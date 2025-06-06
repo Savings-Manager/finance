@@ -360,35 +360,12 @@ function getMonthName(monthNum) {
 // --- Google Drive API ---
 async function initGoogleDrive() {
   try {
-    console.log('Waiting for Google libraries to load...');
-    // Wait for both libraries to load
-    await Promise.all([
-      new Promise((resolve) => {
-        if (window.google) {
-          console.log('Google Identity Services already loaded');
-          resolve();
-        } else {
-          console.log('Waiting for Google Identity Services to load...');
-          window.onload = resolve;
-        }
-      }),
-      new Promise((resolve) => {
-        if (window.gapi) {
-          console.log('Google API already loaded');
-          resolve();
-        } else {
-          console.log('Waiting for Google API to load...');
-          window.onload = resolve;
-        }
-      })
-    ]);
-    console.log('Promise.all: Both Google libraries loaded successfully');
-
     tokenClient = google.accounts.oauth2.initTokenClient({
       client_id: CLIENT_ID,
       scope: SCOPES,
       callback: '',
     });
+    
     console.log('initTokenClient: Token client initialized successfully');
 
     gisInited = true;
