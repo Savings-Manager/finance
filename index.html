@@ -410,7 +410,7 @@ async function initGoogleDrive() {
 
     if (access_token) {
       console.log('Using existing token, attempting to load data');
-      await loadDataFromDrive();
+      await loadFromGoogleDrive();
     } else {
       console.log('No valid token, requesting new token');
       await requestNewToken();
@@ -419,7 +419,7 @@ async function initGoogleDrive() {
   } catch (error) {
     console.error('Error during Google Drive initialization:', error);
     fileRead = false;
-    loadFromStorage();
+    loadFromLocalStorage();
     renderInit();
   }
 }
@@ -442,24 +442,24 @@ async function requestNewToken() {
       localStorage.setItem(TOKEN_EXPIRY_KEY, expiryTime.toString());
       console.log('[requestNewToken] New access token received and saved');
       
-      await loadDataFromDrive();
+      await loadFromGoogleDrive();
       resolve(resp);
     };
     tokenClient.requestAccessToken();
   });
 }
 
-async function loadDataFromDrive() {
+async function loadFromGoogleDrive() {
   try {
     fileRead = false;
     
     if (!access_token) {
-      console.log('[loadDataFromDrive] No access token, requesting new token');
+      console.log('[loadFromGoogleDrive] No access token, requesting new token');
       await requestNewToken();
       return;
     }
 
-    console.log('[loadDataFromDrive] File search started.');
+    console.log('[loadFromGoogleDrive] File search started.');
     const response = await gapi.client.drive.files.list({
       q: `name='${FILE_NAME}' and trashed=false`,
       fields: 'files(id, name)',
@@ -467,12 +467,12 @@ async function loadDataFromDrive() {
     });
 
     if (!(response?.result?.files?.length > 0)) {
-      console.log('[loadDataFromDrive] No existing file found in Drive. Starting with empty data.');
-      loadFromStorage();
+      console.log('[loadFromGoogleDrive] No existing file found in Drive. Starting with empty data.');
+      loadFromLocalStorage();
       return;
     }
 
-    console.log('[loadDataFromDrive] File found in Drive: ', response.result.files[0]);
+    console.log('[loadFromGoogleDrive] File found in Drive: ', response.result.files[0]);
     fileId = response.result.files[0].id;
     
     const contentResponse = await fetch(`https://www.googleapis.com/drive/v3/files/${fileId}?alt=media`, {
@@ -482,7 +482,7 @@ async function loadDataFromDrive() {
     });
 
     if (!contentResponse.ok) {
-      console.log('[loadDataFromDrive] Could not read file from Drive.');
+      console.log('[loadFromGoogleDrive] Could not read file from Drive.');
       return;
     }
 
@@ -490,21 +490,22 @@ async function loadDataFromDrive() {
     if(data) {
       familyData = data;
       fileRead = true;
-      console.log('[loadDataFromDrive] Data loaded successfully from Drive: ', data);
+      console.log('[loadFromGoogleDrive] Data loaded successfully from Drive: ', data);
     } 
   } catch (error) {
-    console.error('[loadDataFromDrive] Error:', error);
+    console.error('[loadFromGoogleDrive] Error:', error);
     if (error.status === 401) {
       log_out();
       await requestNewToken();
     } else {
-      loadFromStorage();
+      loadFromLocalStorage();
+      renderInit();
     }
   }
   renderInit();
 }
 
-async function uploadJSONToDrive() {
+async function saveToGoogleDrive() {
   try {   
     if (!gapiInited || !gisInited || !access_token) {
       console.warn('Cannot upload: Google APIs not initialized or not logged in');
@@ -534,7 +535,7 @@ async function uploadJSONToDrive() {
       fileId = createResult.id;
 
       if (!fileId) {
-        console.warn('[uploadJSONToDriveRaw] Dosya oluşturulamadı.');
+        console.warn('[saveToGoogleDrive] Dosya oluşturulamadı.');
         return;
       }
     }
@@ -553,6 +554,7 @@ async function uploadJSONToDrive() {
     const uploadResult = await uploadRes.json();
 
     console.log('File uploaded successfully:', uploadResult);
+    saveToLocalStorage();
     
   } catch (error) {
     console.error('Error uploading to Drive:', error);
@@ -560,7 +562,7 @@ async function uploadJSONToDrive() {
       log_out();
       await requestNewToken();
       // Retry upload after getting new token
-      await uploadJSONToDrive();
+      await saveToGoogleDrive();
     }
   }
 }
@@ -571,12 +573,11 @@ function log_out() {
   access_token = null;
 }
 
-function saveToStorage() {
+function saveToLocalStorage() {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(familyData));
-  uploadJSONToDrive();
 }
 
-function loadFromStorage() {
+function loadFromLocalStorage() {
   const data = localStorage.getItem(STORAGE_KEY);
   if (data) {
     let loaded = JSON.parse(data);
@@ -594,7 +595,6 @@ function loadFromStorage() {
         currentYear: loaded.currentMonth ? loaded.currentMonth.split('-')[0] : getCurrentYearMonth().year,
         currentMonth: loaded.currentMonth ? String(Number(loaded.currentMonth.split('-')[1])) : getCurrentYearMonth().month
       };
-      saveToStorage();
     } else {
       familyData = loaded;
     }
@@ -609,15 +609,19 @@ function loadFromStorage() {
   if (!familyData.currentMonth) { 
     familyData.currentMonth = getCurrentYearMonth().month;
   }
+  
+  saveToLocalStorage();
 }
 
 function renderInit() {
+  console.log('[renderInit] Rendering initial data...');
   if (!familyData.currentYear) {
     familyData.currentYear = getCurrentYearMonth().year;
   }
   if (!familyData.currentMonth) {
     familyData.currentMonth = getCurrentYearMonth().month;
   }
+
   ensureMonthData(familyData.currentYear, familyData.currentMonth);
   renderAll();
 }
@@ -661,7 +665,6 @@ function switchMonth(year, month) {
   familyData.lastSelectedMonthByYear[year] = month;
   ensureMonthData(year, month);
   renderAll();
-  saveToStorage();
 }
 
 // --- Months Row ---
@@ -886,7 +889,8 @@ function toggleSpendingPayed(memberId, spendingId) {
   
   if (spending) {
     spending.payed = !spending.payed;
-    saveToStorage();
+    saveToLocalStorage();
+    saveToGoogleDrive();
     renderAll();
   }
 }
@@ -900,7 +904,8 @@ function toggleIncomeReceived(memberId, incomeId) {
     const income = member.incomes.find(i => i.id === incomeId);
     if (income) {
       income.received = !income.received;
-      saveToStorage();
+      saveToLocalStorage();
+      saveToGoogleDrive();
       renderAll();
     }
   }
@@ -939,7 +944,8 @@ function deleteIncome(memberId, incomeId) {
   const member = members.find(m => m.id === memberId);
   if (member && member.incomes) {
     member.incomes = member.incomes.filter(i => i.id !== incomeId);
-    saveToStorage();
+    saveToLocalStorage();
+    saveToGoogleDrive();
     renderAll();
   }
 }
@@ -982,7 +988,8 @@ function deleteSpending(memberId, spendingId) {
   const member = members.find(m => m.id === memberId);
   if (member && member.spendings) {
     member.spendings = member.spendings.filter(s => s.id !== spendingId);
-    saveToStorage();
+    saveToLocalStorage();
+    saveToGoogleDrive();
     renderAll();
   }
 }
@@ -1015,7 +1022,8 @@ function deleteCard(memberId, cardId) {
   const member = members.find(m => m.id === memberId);
   if (member && member.cards) {
     member.cards = member.cards.filter(c => c.id !== cardId);
-    saveToStorage();
+    saveToLocalStorage();
+    saveToGoogleDrive();
     renderAll();
   }
 }
@@ -1036,7 +1044,8 @@ function deleteMember(memberId) {
   const month = familyData.currentMonth;
   let members = familyData.years[year].months[month].members;
   familyData.years[year].months[month].members = members.filter(m => m.id !== memberId);
-  saveToStorage();
+  saveToLocalStorage();
+  saveToGoogleDrive();
   renderAll();
 }
 
@@ -1074,7 +1083,9 @@ document.getElementById('incomeForm').onsubmit = function(e) {
     // Add
     member.incomes.push({ id: generateId(member.incomes), name, value, received });
   }
-  saveToStorage();
+
+  saveToLocalStorage();
+  saveToGoogleDrive();
   renderAll();
   bootstrap.Modal.getInstance(document.getElementById('incomeModal')).hide();
 };
@@ -1108,7 +1119,9 @@ document.getElementById('spendingForm').onsubmit = function(e) {
     // Add
     member.spendings.push({ id: generateId(member.spendings), name, value, payed, cardId, installment, currentInstallment: currentInstallment, monthKey: month });
   }
-  saveToStorage();
+
+  saveToLocalStorage();
+  saveToGoogleDrive();
   renderAll();
   bootstrap.Modal.getInstance(document.getElementById('spendingModal')).hide();
 };
@@ -1169,7 +1182,9 @@ document.getElementById('memberForm').onsubmit = function(e) {
     // Add
     members.push({ id: generateId(members), name, incomes: [], spendings: [], cards: [] });
   }
-  saveToStorage();
+
+  saveToLocalStorage();
+  saveToGoogleDrive();
   renderAll();
   bootstrap.Modal.getInstance(document.getElementById('memberModal')).hide();
 };
@@ -1202,7 +1217,9 @@ document.getElementById('btn-load-json').onclick = function() {
       try {
         const data = JSON.parse(evt.target.result);
         familyData = data;
-        saveToStorage();
+        
+        saveToLocalStorage();
+        saveToGoogleDrive();
         renderAll();
         alert('Data loaded successfully!');
       } catch (err) {
@@ -1241,7 +1258,8 @@ function setupCopyPasteHandlers() {
     familyData.years[year].months[month] = JSON.parse(JSON.stringify(copiedMonthData));
     copiedMonthData = null;      
     pasteBtn.disabled = true;
-    saveToStorage();
+    saveToLocalStorage();
+    saveToGoogleDrive();
     renderAll();
   };
   clearBtn.onclick = function() {
@@ -1250,7 +1268,8 @@ function setupCopyPasteHandlers() {
     const month = familyData.currentMonth;
     if (familyData.years[year] && familyData.years[year].months[month]) {
       familyData.years[year].months[month] = { members: [] };
-      saveToStorage();
+      saveToLocalStorage();
+      saveToGoogleDrive();
       renderAll();
     }
   };
@@ -1302,7 +1321,9 @@ document.getElementById('cardForm').onsubmit = function(e) {
     // Add
     member.cards.push({ id: generateId(member.cards), name });
   }
-  saveToStorage();
+
+  saveToLocalStorage();
+  saveToGoogleDrive();
   renderAll();
   bootstrap.Modal.getInstance(document.getElementById('cardModal')).hide();
 };
