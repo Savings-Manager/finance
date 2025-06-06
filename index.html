@@ -322,7 +322,15 @@
 <script>
 // --- Data Model ---
 let familyData = { years: {}, currentYear: getCurrentYearMonth().year, currentMonth: getCurrentYearMonth().month, lastSelectedMonthByYear: {} };
+
 const STORAGE_KEY = 'familyData';
+const CLIENT_ID = '1004280494239-bm24eig1gk63rgvk3in8rjh9bp5gcd6t.apps.googleusercontent.com';
+const FOLDER_ID = '1unoqNS-kFqvnWrjhtK-aoGnAJU063PU1';
+const SCOPES = 'https://www.googleapis.com/auth/drive.file';
+const FILE_NAME = "finance_data.json";
+
+let fileId = null;
+let DRIVE_SUCCESS = false;
 let isCurrencyMasked = true; // Add global state for currency masking
 
 function getCurrentYearMonth() {
@@ -344,21 +352,14 @@ function getMonthName(monthNum) {
 }
 
 // --- Google Drive API ---
-const CLIENT_ID = '1004280494239-bm24eig1gk63rgvk3in8rjh9bp5gcd6t.apps.googleusercontent.com';
-const FOLDER_ID = '1unoqNS-kFqvnWrjhtK-aoGnAJU063PU1';
-const SCOPES = 'https://www.googleapis.com/auth/drive.file';
-const FILE_NAME = "finance_data.json";
-var fileId = null;
-var DRIVE_SUCCESS = false;
-
 async function init() {
   await new Promise(resolve => gapi.load('client:auth2', resolve));
   await gapi.client.init({
     clientId: CLIENT_ID,
-    scope: SCOPES,
-    cookie_policy: 'single_host_origin', // bu kalsın
+    scope: SCOPES
   });
 
+  console.log('initt');
   const GoogleAuth = gapi.auth2.getAuthInstance();
 
   // Otomatik giriş yapılmamışsa, giriş iste
@@ -368,12 +369,12 @@ async function init() {
 
   // Giriş yapıldıktan sonra JSON dosyasını ara ve oku
   const fileId = await getFileIdByName(FILE_NAME);
-  if (fileId) {
-    const jsonData = await readJSONFromDrive(fileId);
-    console.log(jsonData);
+  const jsonData = await readJSONFromDrive(fileId);
+  if (jsonData) {
     DRIVE_SUCCESS = true;
-    document.getElementById("jsonOutput").textContent = JSON.stringify(jsonData, null, 2);
+    familyData = jsonData;
   } else {
+    console.log('Dosya bulunamadı.');
     document.getElementById("jsonOutput").textContent = "Dosya bulunamadı.";
   }
 }
@@ -388,7 +389,8 @@ async function getFileIdByName(fileName = null) {
   });
 
   if (response?.result?.files?.length > 0) {
-    fileId = response.result.files[0].id
+    fileId = response.result.files[0].id;
+    console.log('getFileIdByName: ', fileId);
     return fileId;
   }
     
@@ -507,13 +509,32 @@ function loadFromStorage() {
   }
 }
 
+function renderInit() {
+  loadFromStorage();
+  if (!familyData.currentYear) {
+    familyData.currentYear = getCurrentYearMonth().year;
+  }
+  if (!familyData.currentMonth) {
+    familyData.currentMonth = getCurrentYearMonth().month;
+  }
+  ensureMonthData(familyData.currentYear, familyData.currentMonth);
+  renderAll();
+}
+
 window.onload = init;
+renderInit();
 
 // --- Month Handling ---
 function ensureMonthData(year, month) {
-  if (!year) year = familyData.currentYear;
-  if (!month) month = familyData.currentMonth;
-  if (!familyData.years[year]) familyData.years[year] = { months: {} };
+  if (!year) {
+    year = familyData.currentYear;
+  }
+  if (!month) {
+    month = familyData.currentMonth;
+  }
+  if (!familyData.years[year]) {
+    familyData.years[year] = { months: {} };
+  }
   if (!familyData.years[year].months[month]) {
     // Copy previous month or start fresh
     const months = getMonthList(year);
@@ -532,7 +553,9 @@ function switchMonth(year, month) {
   familyData.currentYear = year;
   familyData.currentMonth = month;
   // Store last selected month for this year
-  if (!familyData.lastSelectedMonthByYear) familyData.lastSelectedMonthByYear = {};
+  if (!familyData.lastSelectedMonthByYear) {
+    familyData.lastSelectedMonthByYear = {};
+  }
   familyData.lastSelectedMonthByYear[year] = month;
   ensureMonthData(year, month);
   renderAll();
@@ -914,15 +937,6 @@ function deleteMember(memberId) {
   saveToStorage();
   renderAll();
 }
-
-function renderInit() {
-  loadFromStorage();
-  if (!familyData.currentYear) familyData.currentYear = getCurrentYearMonth().year;
-  if (!familyData.currentMonth) familyData.currentMonth = getCurrentYearMonth().month;
-  ensureMonthData(familyData.currentYear, familyData.currentMonth);
-  renderAll();
-}
-renderInit();
 
 // --- Utility Functions ---
 function generateId(list) {
