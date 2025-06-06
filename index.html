@@ -407,17 +407,19 @@ async function loadDataFromDrive() {
     console.log('[loadDataFromDrive] Requesting access token...');
     await new Promise((resolve, reject) => {
       tokenClient.callback = async (resp) => {
+        console.log('[loadDataFromDrive] tokenClient.callback: ', resp);
         if (resp.error) {
           console.error('[loadDataFromDrive] Error getting access token:', resp.error);
           reject(resp);
           return;
         }
-        console.log('[loadDataFromDrive] Access token received successfully');
+        console.log('[loadDataFromDrive] Access token received successfully.');
         resolve(resp);
       };
       tokenClient.requestAccessToken();
     });
 
+    console.log('[loadDataFromDrive] File search STARTED.');
     const response = await gapi.client.drive.files.list({
       q: `name='${FILE_NAME}' and trashed=false`,
       fields: 'files(id, name)'
