@@ -349,6 +349,7 @@ const FOLDER_ID = '1unoqNS-kFqvnWrjhtK-aoGnAJU063PU1';
 const SCOPES = 'https://www.googleapis.com/auth/drive.file';
 const FILE_NAME = "finance_data.json";
 var fileId = null;
+var DRIVE_SUCCESS = false;
 
 async function init() {
   await new Promise(resolve => gapi.load('client:auth2', resolve));
@@ -370,6 +371,7 @@ async function init() {
   if (fileId) {
     const jsonData = await readJSONFromDrive(fileId);
     console.log(jsonData);
+    DRIVE_SUCCESS = true;
     document.getElementById("jsonOutput").textContent = JSON.stringify(jsonData, null, 2);
   } else {
     document.getElementById("jsonOutput").textContent = "Dosya bulunamadı.";
@@ -377,6 +379,8 @@ async function init() {
 }
 
 async function getFileIdByName(fileName = null) {
+  if(!DRIVE_SUCCESS) return null;
+
   fileName ??= FILE_NAME;
   const response = await gapi.client.drive.files.list({
     q: `name='${fileName}' and trashed=false`,
@@ -393,6 +397,8 @@ async function getFileIdByName(fileName = null) {
 }
 
 async function readJSONFromDrive(fileId=null) {
+  if(!DRIVE_SUCCESS) return null;
+
   fileId ??= this.fileId;
   if(fileId) {
     const accessToken = gapi.auth.getToken().access_token;
@@ -410,9 +416,15 @@ async function readJSONFromDrive(fileId=null) {
 }
 
 async function uploadJSONToDrive() {
+  if(!DRIVE_SUCCESS) return;
+
   const fileContent = JSON.stringify(familyData);
   const fileBlob = new Blob([fileContent], { type: 'application/json' });
-
+  const metadata = {
+    name: FILE_NAME,
+    mimeType: 'application/json',
+    parents: [FOLDER_ID]
+  };
   const accessToken = gapi.auth.getToken().access_token;
 
   // 1. Dosya zaten var mı diye Drive'da ara
@@ -426,12 +438,7 @@ async function uploadJSONToDrive() {
   if (files?.length > 0) {
     // 2. Varsa güncelle
     const fileId = files[0].id;
-    const metadata = {
-      name: FILE_NAME,
-      mimeType: 'application/json',
-      parents: [ FOLDER_ID ]
-    };
-
+    
     const form = new FormData();
     form.append('metadata', new Blob([JSON.stringify(metadata)], { type: 'application/json' }));
     form.append('file', fileBlob);
@@ -445,12 +452,6 @@ async function uploadJSONToDrive() {
     const result = await updateResponse.json();
     alert('Dosya güncellendi! ID: ' + result.id);
   } else {
-    const metadata = {
-      name: FILE_NAME,
-      mimeType: 'application/json',
-      parents: [FOLDER_ID]
-    };
-
     const form = new FormData();
     form.append('metadata', new Blob([JSON.stringify(metadata)], { type: 'application/json' }));
     form.append('file', fileBlob);
@@ -479,7 +480,9 @@ function loadFromStorage() {
       let newYears = {};
       Object.entries(loaded.months).forEach(([key, value]) => {
         const [year, month] = key.split('-');
-        if (!newYears[year]) newYears[year] = { months: {} };
+        if (!newYears[year]) {
+           newYears[year] = { months: {} };
+        }
         newYears[year].months[String(Number(month))] = value;
       });
       familyData = {
@@ -491,14 +494,17 @@ function loadFromStorage() {
     } else {
       familyData = loaded;
     }
-    if (!familyData.years) familyData.years = {};
-    if (!familyData.currentYear) familyData.currentYear = getCurrentYearMonth().year;
-    if (!familyData.currentMonth) familyData.currentMonth = getCurrentYearMonth().month;
   }
   // Always ensure structure
-  if (!familyData.years) familyData.years = {};
-  if (!familyData.currentYear) familyData.currentYear = getCurrentYearMonth().year;
-  if (!familyData.currentMonth) familyData.currentMonth = getCurrentYearMonth().month;
+  if (!familyData.years) {
+    familyData.years = {};
+  }
+  if (!familyData.currentYear) {
+    familyData.currentYear = getCurrentYearMonth().year;
+  }
+  if (!familyData.currentMonth) { 
+    familyData.currentMonth = getCurrentYearMonth().month;
+  }
 }
 
 window.onload = init;
