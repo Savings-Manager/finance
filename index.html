@@ -209,13 +209,13 @@
 <div class="container py-4">
   <div class="d-flex justify-content-between align-items-center mb-4">
     <div class="d-flex align-items-center">
-      <h2><i class="bi bi-people-fill me-2"></i>Family Finance Manager </h2>
+      <h2><i class="bi bi-people-fill me-2"></i>Aile Finans Yöneticisi </h2>
       <small class="text-muted ms-2">v1.0.7</small>   
     </div>
     <div>
       <button class="top-action-btn" id="btn-google-drive"><i class="bi bi-folder ms-2"></i>Google Drive</button>
-      <button class="top-action-btn" id="btn-load-json"><i class="bi bi-folder2-open ms-2"></i>Load Data</button>
-      <button class="top-action-btn" id="btn-save-json"><i class="bi bi-save ms-2"></i>Save Data</button>
+      <button class="top-action-btn" id="btn-load-json"><i class="bi bi-folder2-open ms-2"></i>Verileri Geri Yükle</button>
+      <button class="top-action-btn" id="btn-save-json"><i class="bi bi-save ms-2"></i>Verileri Yedekle</button>
     </div>
   </div>
   <div id="family-section">
@@ -226,21 +226,21 @@
           <select id="years-dropdown" class="form-select form-select-sm"></select>
         </div>
         <span id="copy-paste-btn-group">
-          <button id="btn-clear-month" class="btn-circle btn btn-outline-danger btn-sm ms-2" title="Clear this month's data"><i class="bi bi-trash"></i></button>
+          <button id="btn-clear-month" class="btn-circle btn btn-outline-danger btn-sm ms-2" title="Bu ayın verilerini temizle"><i class="bi bi-trash"></i></button>
           <button onclick="toggleAllCurrencyMasks()" class="btn-circle btn btn-sm btn-secondary ms-2"><i id="show-hide-icon" class="bi bi-eye-slash"></i></button>
-          <button id="btn-copy-month" class="btn-circle btn btn-outline-info btn-sm ms-2" title="Copy this month's data"><i class="bi bi-clipboard"></i></button>
-          <button id="btn-paste-month" class="btn-circle btn btn-outline-success btn-sm ms-2" title="Paste to this month" disabled><i class="bi bi-clipboard-check"></i></button>
+          <button id="btn-copy-month" class="btn-circle btn btn-outline-info btn-sm ms-2" title="Bu ayın verilerini kopyala"><i class="bi bi-clipboard"></i></button>
+          <button id="btn-paste-month" class="btn-circle btn btn-outline-success btn-sm ms-2" title="Bu aya yapıştır" disabled><i class="bi bi-clipboard-check"></i></button>
           </span>
       </div>
     </div>
     <div class="d-flex justify-content-between align-items-center mb-2">   
       <div id="months-row"></div>
       <div>
-        <button class="top-action-btn" id="btn-add-member"><i class="bi bi-person-plus"></i> Add Member</button>
+        <button class="top-action-btn" id="btn-add-member"><i class="bi bi-person-plus"></i> Aile Üyesi Ekle</button>
       </div>
     </div>
     <div id="family-summary" class="mb-4"></div>
-    <h4>Family Members</h4>
+    <h4>Aile Üyeleri</h4>
     <div id="members-list" class="mt-2"></div>
   </div>
 </div>
@@ -250,17 +250,17 @@
   <div class="modal-dialog">
     <div class="modal-content">
       <div class="modal-header">
-        <h5 class="modal-title" id="memberModalLabel">Add/Edit Member</h5>
+        <h5 class="modal-title" id="memberModalLabel">Aile Üyesi Ekle/Düzenle</h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
       </div>
       <div class="modal-body">
         <form id="memberForm">
           <input type="hidden" id="member-id">
           <div class="mb-3">
-            <label for="member-name" class="form-label">Name</label>
+            <label for="member-name" class="form-label">İsim</label>
             <input type="text" class="form-control" id="member-name" required>
           </div>
-          <button type="submit" class="btn btn-primary">Save</button>
+          <button type="submit" class="btn btn-primary">Kaydet</button>
         </form>
       </div>
     </div>
@@ -272,7 +272,7 @@
   <div class="modal-dialog">
     <div class="modal-content">
       <div class="modal-header modal-header-income">
-        <h5 class="modal-title" id="incomeModalLabel">Add/Edit Income</h5>
+        <h5 class="modal-title" id="incomeModalLabel">Gelir Ekle/Düzenle</h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
       </div>
       <div class="modal-body">
@@ -280,18 +280,18 @@
           <input type="hidden" id="income-member-id">
           <input type="hidden" id="income-id">
           <div class="mb-3">
-            <label for="income-name" class="form-label">Name</label>
+            <label for="income-name" class="form-label">Adı</label>
             <input type="text" class="form-control" id="income-name" required>
           </div>
           <div class="mb-3">
-            <label for="income-value" class="form-label">Value</label>
+            <label for="income-value" class="form-label">Tutar</label>
             <input type="number" class="form-control" id="income-value" required min="0" step="0.01">
           </div>
           <div class="form-check mb-3">
             <input class="form-check-input" type="checkbox" id="income-received">
-            <label class="form-check-label" for="income-received">Received</label>
+            <label class="form-check-label" for="income-received">Alındı mı?</label>
           </div>
-          <button type="submit" class="btn btn-success">Save</button>
+          <button type="submit" class="btn btn-success">Kaydet</button>
         </form>
       </div>
     </div>
@@ -303,7 +303,7 @@
   <div class="modal-dialog">
     <div class="modal-content">
       <div class="modal-header modal-header-spending">
-        <h5 class="modal-title" id="spendingModalLabel">Add/Edit Spending</h5>
+        <h5 class="modal-title" id="spendingModalLabel">Gider Ekle/Düzenle</h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
       </div>
       <div class="modal-body">
@@ -311,30 +311,30 @@
           <input type="hidden" id="spending-member-id">
           <input type="hidden" id="spending-id">
           <div class="mb-3">
-            <label for="spending-name" class="form-label">Name</label>
+            <label for="spending-name" class="form-label">Adı</label>
             <input type="text" class="form-control" id="spending-name" required>
           </div>
           <div class="mb-3">
-            <label for="spending-value" class="form-label">Value</label>
+            <label for="spending-value" class="form-label">Tutar</label>
             <input type="number" class="form-control" id="spending-value" required min="0" step="0.01">
           </div>
           <div class="form-check mb-3">
             <input class="form-check-input" type="checkbox" id="spending-payed">
-            <label class="form-check-label" for="spending-payed">Payed</label>
+            <label class="form-check-label" for="spending-payed">Ödendi mi?</label>
           </div>
           <div class="mb-3">
-            <label for="spending-card-id" class="form-label">Credit Card</label>
+            <label for="spending-card-id" class="form-label">Kredi Kartı</label>
             <select class="form-select" id="spending-card-id"></select>
           </div>
           <div class="mb-3">
-            <label for="spending-installment" class="form-label">Installments</label>
+            <label for="spending-installment" class="form-label">Taksit Sayısı</label>
             <input type="number" class="form-control" id="spending-installment" min="1" max="12" value="1">
           </div>
           <div class="mb-3">
-            <label for="spending-current-installment" class="form-label">Current Installment</label>
+            <label for="spending-current-installment" class="form-label">Mevcut Taksit</label>
             <input type="number" class="form-control" id="spending-current-installment" min="1" max="12" value="1">
           </div>
-          <button type="submit" class="btn btn-danger">Save</button>
+          <button type="submit" class="btn btn-danger">Kaydet</button>
         </form>
       </div>
     </div>
@@ -346,7 +346,7 @@
   <div class="modal-dialog">
     <div class="modal-content">
       <div class="modal-header modal-header-card">
-        <h5 class="modal-title" id="cardModalLabel">Add/Edit Credit Card</h5>
+        <h5 class="modal-title" id="cardModalLabel">Kredi Kartı Ekle/Düzenle</h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
       </div>
       <div class="modal-body">
@@ -354,10 +354,10 @@
           <input type="hidden" id="card-member-id">
           <input type="hidden" id="card-id">
           <div class="mb-3">
-            <label for="card-name" class="form-label">Card Name</label>
+            <label for="card-name" class="form-label">Kart Adı</label>
             <input type="text" class="form-control" id="card-name" required>
           </div>
-          <button type="submit" class="btn btn-primary">Save</button>
+          <button type="submit" class="btn btn-primary">Kaydet</button>
         </form>
       </div>
     </div>
@@ -784,10 +784,10 @@ function renderFamilySummary() {
   document.getElementById('family-summary').innerHTML = `
     <div class="row g-2">
       <div class="col-md-4">
-        <div class="card bg-income material-shadow p-3"><span class="fw-bold income-color"><i class="bi bi-plus-circle"></i> Total Income:</span> <span class="fs-5 fw-bold income-color pointer" onclick="toggleCurrencyMask(this, ${totalIncome})">${currency(totalIncome, isCurrencyMasked)}</span></div>
+        <div class="card bg-income material-shadow p-3"><span class="fw-bold income-color"><i class="bi bi-plus-circle"></i> Toplam Gelir:</span> <span class="fs-5 fw-bold income-color pointer" onclick="toggleCurrencyMask(this, ${totalIncome})">${currency(totalIncome, isCurrencyMasked)}</span></div>
       </div>
       <div class="col-md-4">
-        <div class="card bg-spending material-shadow p-3"><span class="fw-bold spending-color"><i class="bi bi-dash-circle"></i> Total Spendings:</span> <span class="fs-5 fw-bold spending-color pointer" onclick="toggleCurrencyMask(this, ${totalSpend})">${currency(totalSpend, isCurrencyMasked)}</span></div>
+        <div class="card bg-spending material-shadow p-3"><span class="fw-bold spending-color"><i class="bi bi-dash-circle"></i> Toplam Gider:</span> <span class="fs-5 fw-bold spending-color pointer" onclick="toggleCurrencyMask(this, ${totalSpend})">${currency(totalSpend, isCurrencyMasked)}</span></div>
       </div>
       <div class="col-md-4">
         <div class="card bg-card material-shadow p-3"><span class="fw-bold ${netColor}"><i class="bi bi-calculator"></i> Net:</span> <span class="fs-5 fw-bold ${netColor} pointer" onclick="toggleCurrencyMask(this, ${net})">${currency(net, isCurrencyMasked)}</span></div>
@@ -818,7 +818,7 @@ function renderMembers() {
   const list = document.getElementById('members-list');
   const members = familyData.years[familyData.currentYear].months[familyData.currentMonth].members;
   if (!(members?.length > 0)) {
-    list.innerHTML = '<div class="alert alert-info">No family members. Add one!</div>';
+    list.innerHTML = '<div class="alert alert-info">Henüz üye yok. Bir tane ekleyin!</div>';
     return;
   }
 
@@ -859,14 +859,14 @@ function renderMembers() {
         </div>
         <div class="row mt-3">
           <div class="col-md-4">
-            <h6>Incomes <button class="icon-btn income-color ms-1" onclick="openAddIncome(${member.id})"><i class="bi bi-plus-circle"></i></button></h6>
+            <h6>Gelirler <button class="icon-btn income-color ms-1" onclick="openAddIncome(${member.id})"><i class="bi bi-plus-circle"></i></button></h6>
             <ul class="col-md-12 list-group mb-2">
               ${incomes.map(income => `
                 <li class="col-md-12 list-group-item d-flex justify-content-between align-items-center bg-income">
-                  <span><i class="bi bi-cash-coin"></i> ${income.name}</span>
+                  <span class="fw-bold"><i class="bi bi-cash-coin"></i> ${income.name}</span>
                   <div class="item-actions ms-2">
-                    <span class="income-color pointer" onclick="toggleCurrencyMask(this, ${income.value})">${currency(income.value, isCurrencyMasked)}</span>
-                    <input type="checkbox" class="form-check-input ms-2" ${income.received ? 'checked' : ''} onchange="toggleIncomeReceived(${member.id},${income.id})" title="Received">
+                    <span class="fw-bold income-color pointer" onclick="toggleCurrencyMask(this, ${income.value})">${currency(income.value, isCurrencyMasked)}</span>
+                    <input type="checkbox" class="form-check-input ms-2" ${income.received ? 'checked' : ''} onchange="toggleIncomeReceived(${member.id},${income.id})" title="Alındı">
                     <button class="icon-btn ms-2" onclick="openEditIncome(${member.id},${income.id})"><i class="bi bi-pencil"></i></button>
                     <button class="icon-btn ms-2" onclick="deleteIncome(${member.id},${income.id})"><i class="bi bi-trash"></i></button>
                   </div>
@@ -874,7 +874,7 @@ function renderMembers() {
             </ul>
           </div>
           <div class="col-md-4">
-            <h6>Spendings <button class="icon-btn spending-color ms-1" onclick="openAddSpending(${member.id})"><i class="bi bi-plus-circle"></i></button></h6>
+            <h6>Giderler <button class="icon-btn spending-color ms-1" onclick="openAddSpending(${member.id})"><i class="bi bi-plus-circle"></i></button></h6>
             <ul class="col-md-12 list-group mb-2">
               ${spendings.map(spending => {
                 const card = (member.cards || []).find(c => c.id === spending.cardId);
@@ -890,32 +890,32 @@ function renderMembers() {
                 return `
                 <li class="col-md-12 list-group-item d-flex justify-content-between align-items-center bg-spending">
                   <div class="col-md-6">
-                    <div class="col-md-12">
+                    <div class="col-md-12 fw-bold">
                       <i class="bi bi-cart-dash"></i> ${spending.name} 
                     </div>
-                    <div class="col-md-12">
+                    <div class="col-md-12 fw-bold">
                      ${card ? ` <span class='badge card-color ms-1'><i class='bi bi-credit-card-2-front'></i> ${card.name}</span>` : ''} 
                       ${spending.installment > 1 ? ` <span class='badge bg-secondary ms-1'>${spending.currentInstallment > 1 
                                 ? spending.currentInstallment : currentInstallment}/${spending.installment}</span>` : ''}
                     </div>
                   </div>
                   <div class="col-md-3 ms-3"> 
-                    <span class="spending-color pointer" onclick="toggleCurrencyMask(this, ${Number(spending.value) / (spending.installment || 1)})">${currency(Number(spending.value) / (spending.installment || 1), isCurrencyMasked)}</span>
+                    <span class="fw-bold spending-color pointer" onclick="toggleCurrencyMask(this, ${Number(spending.value) / (spending.installment || 1)})">${currency(Number(spending.value) / (spending.installment || 1), isCurrencyMasked)}</span>
                     
-                    ${spending.installment > 1 ? `<span class='badge bg-danger pointer' onclick="toggleCurrencyMask(this, ${Number(spending.value)})">${currency(Number(spending.value), isCurrencyMasked)}` : ''}</span>
+                    ${spending.installment > 1 ? `<span class='fw-bold badge bg-danger pointer' onclick="toggleCurrencyMask(this, ${Number(spending.value)})">${currency(Number(spending.value), isCurrencyMasked)}` : ''}</span>
                   </div>
                   <div class="col-md-3">                
-                    <input type="checkbox" class="form-check-input ms-2" ${spending.payed ? 'checked' : ''} onchange="toggleSpendingPayed(${member.id},${spending.id})" title="Payed">
+                    <input type="checkbox" class="form-check-input ms-2" ${spending.payed ? 'checked' : ''} onchange="toggleSpendingPayed(${member.id},${spending.id})" title="Ödendi">
                     <button class="icon-btn ms-2" onclick="openEditSpending(${member.id},${spending.id})"><i class="bi bi-pencil"></i></button>
                     <button class="icon-btn ms-2" onclick="deleteSpending(${member.id},${spending.id})"><i class="bi bi-trash"></i></button>
                   </div>
                 </li>`;
               }).join('')}
             </ul>
-            <div class="fw-bold">Total: <span class="spending-color pointer" onclick="toggleCurrencyMask(this, ${spend})">${currency(spend, isCurrencyMasked)}</span></div>
+            <div class="fw-bold">Toplam: <span class="spending-color pointer" onclick="toggleCurrencyMask(this, ${spend})">${currency(spend, isCurrencyMasked)}</span></div>
           </div>
           <div class="col-md-4">
-            <h6>Credit Cards <button class="icon-btn card-color ms-1" onclick="openAddCard(${member.id})"><i class="bi bi-credit-card-2-front"></i></button></h6>
+            <h6>Kredi Kartları <button class="icon-btn card-color ms-1" onclick="openAddCard(${member.id})"><i class="bi bi-credit-card-2-front"></i></button></h6>
             <ul class="col-md-12 list-group mb-2">
               ${(member.cards || []).map(card => {
                 const cardSpend = (member.spendings || []).filter(s => s.cardId === card.id && s.payed).reduce((a, b) => {
@@ -924,16 +924,16 @@ function renderMembers() {
                 }, 0);
                 return `
                 <li class="list-group-item bg-card d-flex justify-content-between align-items-center">
-                  <span><i class="bi bi-credit-card-2-front"></i> ${card.name}</span>
+                  <span class="fw-bold"><i class="bi bi-credit-card-2-front"></i> ${card.name}</span>
                   <div class="item-actions ms-2">
-                    <span class="spending-color pointer" onclick="toggleCurrencyMask(this, ${cardSpend})">${currency(cardSpend, isCurrencyMasked)}</span>
+                    <span class="fw-bold spending-color pointer" onclick="toggleCurrencyMask(this, ${cardSpend})">${currency(cardSpend, isCurrencyMasked)}</span>
                     <button class="icon-btn ms-2" onclick="openEditCard(${member.id},${card.id})"><i class="bi bi-pencil"></i></button>
                     <button class="icon-btn ms-2" onclick="deleteCard(${member.id},${card.id})"><i class="bi bi-trash"></i></button>
                   </div>
                 </li>`
               }).join('')}
             </ul>
-            <div class="fw-bold">All Cards Total: <span class="spending-color pointer" onclick="toggleCurrencyMask(this, '${(member.spendings || []).filter(s => s.cardId && s.payed).reduce((a, b) => {
+            <div class="fw-bold">Toplam Kart Harcaması: <span class="spending-color pointer" onclick="toggleCurrencyMask(this, '${(member.spendings || []).filter(s => s.cardId && s.payed).reduce((a, b) => {
               if (!b.installment || b.installment < 1) b.installment = 1;
               return a + Number(b.value) / b.installment;
             }, 0)}')">${currency((member.spendings || []).filter(s => s.cardId && s.payed).reduce((a, b) => {
@@ -1008,7 +1008,7 @@ function openEditIncome(memberId, incomeId) {
   }
 }
 function deleteIncome(memberId, incomeId) {
-  showToast('Delete income?', 'warning', 0, 'center', true).then((result) => {
+  showToast('Gelir bilgisi silinsin mi?', 'warning', 0, 'center', true).then((result) => {
     if (result.isConfirmed) {
       const year = familyData.currentYear;
       const month = familyData.currentMonth;
@@ -1019,7 +1019,7 @@ function deleteIncome(memberId, incomeId) {
         saveToLocalStorage();
         saveToGoogleDrive();
         renderAll();
-        showToast('Income deleted.');
+        showToast('Gelir bilgisi silindi.');
       }
     }
   });
@@ -1056,7 +1056,7 @@ function openEditSpending(memberId, spendingId) {
   }
 }
 function deleteSpending(memberId, spendingId) {
-  showToast('Delete spending?', 'warning', 0, 'center', true).then((result) => {
+  showToast('Gider bilgisi silinsin mi?', 'warning', 0, 'center', true).then((result) => {
     if (result.isConfirmed) {
       const year = familyData.currentYear;
       const month = familyData.currentMonth;
@@ -1067,7 +1067,7 @@ function deleteSpending(memberId, spendingId) {
         saveToLocalStorage();
         saveToGoogleDrive();
         renderAll();
-        showToast('Spending deleted.');
+        showToast('Gider bilgisi silindi.');
       }
     }
   });
@@ -1094,7 +1094,7 @@ function openEditCard(memberId, cardId) {
   }
 }
 function deleteCard(memberId, cardId) {
-  showToast('Delete card?', 'warning', 0, 'center', true).then((result) => {
+  showToast('Kart bilgisi silinsin mi?', 'warning', 0, 'center', true).then((result) => {
     if (result.isConfirmed) {
       const year = familyData.currentYear;
       const month = familyData.currentMonth;
@@ -1105,7 +1105,7 @@ function deleteCard(memberId, cardId) {
         saveToLocalStorage();
         saveToGoogleDrive();
         renderAll();
-        showToast('Card deleted.');
+        showToast('Kart bilgisi silindi.');
       }
     }
   });
@@ -1122,7 +1122,7 @@ function openEditMember(memberId) {
   }
 }
 function deleteMember(memberId) {
-  showToast('Delete member?', 'warning', 0, 'center', true).then((result) => {
+  showToast('Üye bilgisi silinsin mi?', 'warning', 0, 'center', true).then((result) => {
     if (result.isConfirmed) {
       const year = familyData.currentYear;
       const month = familyData.currentMonth;
@@ -1131,7 +1131,7 @@ function deleteMember(memberId) {
       saveToLocalStorage();
       saveToGoogleDrive();
       renderAll();
-      showToast('Member deleted.');
+      showToast('Üye bilgisi silindi.');
     }
   });
 }
@@ -1258,15 +1258,13 @@ document.getElementById('memberForm').onsubmit = function(e) {
   const month = familyData.currentMonth;
   const memberId = document.getElementById('member-id').value;
   const name = document.getElementById('member-name').value;
-  const members = familyData.years[year].months[month].members;
+  const members = familyData.years[year]?.months[month]?.members;
   if (memberId) {
-    // Edit
-    const member = members.find(m => m.id == memberId);
+    const member = members?.find(m => m.id == memberId);
     if (member) {
       member.name = name;
     }
   } else {
-    // Add
     members.push({ id: generateId(members), name, incomes: [], spendings: [], cards: [] });
   }
 
@@ -1308,9 +1306,9 @@ document.getElementById('btn-load-json').onclick = function() {
         saveToLocalStorage();
         saveToGoogleDrive();
         renderAll();
-        showToast('Data loaded successfully.');
+        showToast('Veriler yedekten yüklendi.');
       } catch (err) {
-        showToast('Invalid JSON file.', 'error');
+        showToast('Geçersiz JSON dosyası.', 'error');
       }
     };
     reader.readAsText(file);
@@ -1335,13 +1333,13 @@ function setupCopyPasteHandlers() {
     if (familyData.years[year] && familyData.years[year].months[month]) {
       copiedMonthData = JSON.parse(JSON.stringify(familyData.years[year].months[month]));
       pasteBtn.disabled = false;
-      showToast('Month data copied.');
+      showToast('Ay verileri kopyalandı.');
     }
   };
   pasteBtn.onclick = function() {
     if (!copiedMonthData) return;
 
-    showToast('Paste month data?', 'question', 0, 'center', true).then((result) => {
+    showToast('Ay verileri yapıştırılsın mı?', 'question', 0, 'center', true).then((result) => {
       if (result.isConfirmed) {
         const year = familyData.currentYear;
         const month = familyData.currentMonth;
@@ -1351,12 +1349,12 @@ function setupCopyPasteHandlers() {
         saveToLocalStorage();
         saveToGoogleDrive();
         renderAll();
-        showToast('Month data pasted.');
+        showToast('Ay verileri yapıştırıldı.');
       }
     });
   };
   clearBtn.onclick = function() {
-    showToast('Clear month data?', 'warning', 0, 'center', true).then((result) => {
+    showToast('Ay verileri temizlensin mi?', 'warning', 0, 'center', true).then((result) => {
       if (result.isConfirmed) {
         const year = familyData.currentYear;
         const month = familyData.currentMonth;
@@ -1365,7 +1363,7 @@ function setupCopyPasteHandlers() {
           saveToLocalStorage();
           saveToGoogleDrive();
           renderAll();
-          showToast('Month data cleared.');
+          showToast('Ay verileri temizlendi.');
         }
       }
     });
