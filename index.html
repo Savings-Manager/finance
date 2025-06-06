@@ -327,17 +327,19 @@
 let familyData = { years: {}, currentYear: getCurrentYearMonth().year, currentMonth: getCurrentYearMonth().month, lastSelectedMonthByYear: {} };
 
 const STORAGE_KEY = 'familyData';
+const TOKEN_STORAGE_KEY = 'finance_access_token';
+const TOKEN_EXPIRY_KEY = 'finance_token_expiry';
 const CLIENT_ID = '1004280494239-bm24eig1gk63rgvk3in8rjh9bp5gcd6t.apps.googleusercontent.com';
 const FOLDER_ID = '1unoqNS-kFqvnWrjhtK-aoGnAJU063PU1';
 const SCOPES = 'https://www.googleapis.com/auth/drive.file';
 const FILE_NAME = "finance_data.json";
 
+let access_token = null;
 let fileId = null;
 let isCurrencyMasked = true;
 let tokenClient = null;
 let gapiInited = false;
 let gisInited = false;
-let loggedIn = false;
 let fileRead = false;
 
 function getCurrentYearMonth() {
@@ -367,9 +369,20 @@ async function initGoogleDrive() {
       callback: '',
     });
     
-    console.log('initTokenClient: Token client initialized successfully');
-
     gisInited = true;
+
+    // Check for existing token and its expiry
+    const savedToken = localStorage.getItem(TOKEN_STORAGE_KEY);
+    const tokenExpiry = localStorage.getItem(TOKEN_EXPIRY_KEY);
+    const now = Date.now();
+
+    if (savedToken && tokenExpiry && now < parseInt(tokenExpiry)) {
+      console.log('Using saved access token');
+      access_token = savedToken;
+    } else {
+      console.log('Token expired or not found, requesting new token');
+      log_out();
+    }
 
     await new Promise((resolve, reject) => {
       gapi.load('client', {
@@ -391,7 +404,13 @@ async function initGoogleDrive() {
 
     gapiInited = true;
 
-    await loadDataFromDrive();
+    if (access_token) {
+      console.log('Using existing token, attempting to load data');
+      await loadDataFromDrive();
+    } else {
+      console.log('No valid token, requesting new token');
+      await requestNewToken();
+    }
     
   } catch (error) {
     console.error('Error during Google Drive initialization:', error);
@@ -401,26 +420,40 @@ async function initGoogleDrive() {
   }
 }
 
+async function requestNewToken() {
+  return new Promise((resolve, reject) => {
+    tokenClient.callback = async (resp) => {
+      console.log('[requestNewToken] Token client callback response:', resp);
+      if (resp.error) {
+        log_out();
+        console.error('Error getting access token:', resp.error);
+        reject(resp);
+        return;
+      }
+
+      access_token = resp.access_token;
+      // Set token expiry to 50 minutes from now (tokens typically last 1 hour)
+      const expiryTime = Date.now() + (50 * 60 * 1000);
+      localStorage.setItem(TOKEN_STORAGE_KEY, access_token);
+      localStorage.setItem(TOKEN_EXPIRY_KEY, expiryTime.toString());
+      console.log('[requestNewToken] New access token received and saved');
+      
+      await loadDataFromDrive();
+      resolve(resp);
+    };
+    tokenClient.requestAccessToken();
+  });
+}
+
 async function loadDataFromDrive() {
   try {
     fileRead = false;
     
-    console.log('[loadDataFromDrive] Requesting access token...');
-    await new Promise((resolve, reject) => {
-      tokenClient.callback = async (resp) => {
-        console.log('[loadDataFromDrive] tokenClient.callback: ', resp);
-        if (resp.error) {
-          loggedIn = false;
-          console.error('[loadDataFromDrive] Error getting access token:', resp.error);
-          reject(resp);
-          return;
-        }
-        loggedIn = true;
-        console.log('[loadDataFromDrive] Access token received successfully.');
-        resolve(resp);
-      };
-      tokenClient.requestAccessToken();
-    });
+    if (!access_token) {
+      console.log('[loadDataFromDrive] No access token, requesting new token');
+      await requestNewToken();
+      return;
+    }
 
     console.log('[loadDataFromDrive] File search STARTED.');
     const response = await gapi.client.drive.files.list({
@@ -441,24 +474,26 @@ async function loadDataFromDrive() {
       if (file.body) {
         familyData = JSON.parse(file.body);
         fileRead = true;
-        console.log('Data loaded from Drive successfully');
-      } else {
-        console.warn('File downloaded but body is empty');
+        console.log('[loadDataFromDrive] Data loaded successfully from Drive');
       }
     } else {
-      console.log('No existing file found in Drive. Starting with empty data.');
+      console.log('[loadDataFromDrive] No existing file found in Drive. Starting with empty data.');
       loadFromStorage();
     }
   } catch (error) {
-    console.error('Error loading data from Drive:', error);
-    loadFromStorage();
+    console.error('[loadDataFromDrive] Error:', error);
+    if (error.status === 401) {
+      log_out();
+      await requestNewToken();
+    } else {
+      loadFromStorage();
+    }
   }
   renderInit();
 }
 
 async function uploadJSONToDrive() {
-  console.log('Starting file upload to Drive...');
-  if (!gapiInited || !gisInited || !loggedIn) {
+  if (!gapiInited || !gisInited || !access_token) {
     console.warn('Cannot upload: Google APIs not initialized or not logged in');
     return;
   }
@@ -472,22 +507,6 @@ async function uploadJSONToDrive() {
       mimeType: 'application/json',
       parents: [FOLDER_ID]
     };
-
-    console.log('Requesting access token for upload...');
-    await new Promise((resolve, reject) => {
-      tokenClient.callback = async (resp) => {
-        if (resp.error) {
-          loggedIn = false;
-          console.error('Error getting access token for upload:', resp.error);
-          reject(resp);
-          return;
-        }
-        loggedIn = true;
-        console.log('Access token received for upload');
-        resolve(resp);
-      };
-      tokenClient.requestAccessToken();
-    });
 
     if (fileId) {
       console.log('Updating existing file in Drive...');
@@ -514,7 +533,19 @@ async function uploadJSONToDrive() {
     }
   } catch (error) {
     console.error('Error uploading to Drive:', error);
+    if (error.status === 401) {
+      log_out();
+      await requestNewToken();
+      // Retry upload after getting new token
+      await uploadJSONToDrive();
+    }
   }
+}
+
+function log_out() {
+  localStorage.removeItem(TOKEN_STORAGE_KEY);
+  localStorage.removeItem(TOKEN_EXPIRY_KEY);
+  access_token = null;
 }
 
 function saveToStorage() {
