@@ -330,6 +330,7 @@ const STORAGE_KEY = 'familyData';
 const TOKEN_STORAGE_KEY = 'finance_access_token';
 const TOKEN_EXPIRY_KEY = 'finance_token_expiry';
 const CLIENT_ID = '1004280494239-bm24eig1gk63rgvk3in8rjh9bp5gcd6t.apps.googleusercontent.com';
+const API_KEY = 'AIzaSyDWgrMTLb2iygiApN18mtNiGfZlpk0pA0E'; // Replace with your actual API key
 const FOLDER_ID = '1unoqNS-kFqvnWrjhtK-aoGnAJU063PU1';
 const SCOPES = 'https://www.googleapis.com/auth/drive.file';
 const FILE_NAME = "finance_data.json";
@@ -398,6 +399,7 @@ async function initGoogleDrive() {
     });
 
     await gapi.client.init({
+      apiKey: API_KEY,
       discoveryDocs: ['https://www.googleapis.com/discovery/v1/apis/drive/v3/rest']
     });
     console.log('gapi.client.init: Drive API initialized successfully');
@@ -458,7 +460,8 @@ async function loadDataFromDrive() {
     console.log('[loadDataFromDrive] File search STARTED.');
     const response = await gapi.client.drive.files.list({
       q: `name='${FILE_NAME}' and trashed=false`,
-      fields: 'files(id, name)'
+      fields: 'files(id, name)',
+      access_token: access_token
     });
     console.log('[loadDataFromDrive] File search response:', response);
 
@@ -468,7 +471,8 @@ async function loadDataFromDrive() {
       
       const file = await gapi.client.drive.files.get({
         fileId: fileId,
-        alt: 'media'
+        alt: 'media',
+        access_token: access_token
       });
       
       if (file.body) {
@@ -515,7 +519,8 @@ async function uploadJSONToDrive() {
         media: {
           mimeType: 'application/json',
           body: fileBlob
-        }
+        },
+        access_token: access_token
       });
       console.log('File updated successfully');
     } else {
@@ -526,7 +531,8 @@ async function uploadJSONToDrive() {
           mimeType: 'application/json',
           body: fileBlob
         },
-        fields: 'id'
+        fields: 'id',
+        access_token: access_token
       });
       fileId = result.result.id;
       console.log('New file created successfully with ID:', fileId);
