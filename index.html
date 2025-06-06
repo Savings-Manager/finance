@@ -337,6 +337,7 @@ let isCurrencyMasked = true;
 let tokenClient = null;
 let gapiInited = false;
 let gisInited = false;
+let loggedIn = false;
 let fileRead = false;
 
 function getCurrentYearMonth() {
@@ -409,10 +410,12 @@ async function loadDataFromDrive() {
       tokenClient.callback = async (resp) => {
         console.log('[loadDataFromDrive] tokenClient.callback: ', resp);
         if (resp.error) {
+          loggedIn = false;
           console.error('[loadDataFromDrive] Error getting access token:', resp.error);
           reject(resp);
           return;
         }
+        loggedIn = true;
         console.log('[loadDataFromDrive] Access token received successfully.');
         resolve(resp);
       };
@@ -455,8 +458,8 @@ async function loadDataFromDrive() {
 
 async function uploadJSONToDrive() {
   console.log('Starting file upload to Drive...');
-  if (!gapiInited || !gisInited) {
-    console.warn('Cannot upload: Google APIs not initialized');
+  if (!gapiInited || !gisInited || !loggedIn) {
+    console.warn('Cannot upload: Google APIs not initialized or not logged in');
     return;
   }
 
@@ -474,10 +477,12 @@ async function uploadJSONToDrive() {
     await new Promise((resolve, reject) => {
       tokenClient.callback = async (resp) => {
         if (resp.error) {
+          loggedIn = false;
           console.error('Error getting access token for upload:', resp.error);
           reject(resp);
           return;
         }
+        loggedIn = true;
         console.log('Access token received for upload');
         resolve(resp);
       };
