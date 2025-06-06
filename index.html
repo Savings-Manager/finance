@@ -10,7 +10,11 @@
   <link href="https://cdn.jsdelivr.net/npm/bootswatch@5.3.3/dist/materia/bootstrap.min.css" rel="stylesheet">
   <!-- Bootstrap Icons -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
-  
+
+  <!-- SweetAlert2 -->
+  <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11.10.5/dist/sweetalert2.min.css" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.10.5/dist/sweetalert2.all.min.js"></script>
+
   <!-- Add both Google API scripts -->
   <script src="https://apis.google.com/js/api.js"></script>
   <script src="https://accounts.google.com/gsi/client" async defer></script>
@@ -344,6 +348,25 @@ let tokenClient = null;
 let gapiInited = false;
 let gisInited = false;
 let fileRead = false;
+
+function showToast(title, icon = "success", timer = 2000, position = "top-end") {
+  const Toast = Swal.mixin({
+    toast: true,
+    position: position,
+    showConfirmButton: false,
+    timer: timer,
+    timerProgressBar: true,
+    didOpen: (toast) => {
+      toast.onmouseenter = Swal.stopTimer;
+      toast.onmouseleave = Swal.resumeTimer;
+    }
+  });
+  Toast.fire({
+    icon: icon,
+    title: title
+  });
+}
+
 
 function getCurrentYearMonth() {
   const d = new Date();
@@ -752,10 +775,11 @@ function renderMembers() {
   ensureMonthData(familyData.currentYear, familyData.currentMonth);
   const list = document.getElementById('members-list');
   const members = familyData.years[familyData.currentYear].months[familyData.currentMonth].members;
-  if (!members.length) {
+  if (!(members?.length > 0)) {
     list.innerHTML = '<div class="alert alert-info">No family members. Add one!</div>';
     return;
   }
+
   list.innerHTML = members.map(member => {
     const income = (member.incomes || []).filter(i => i.received).reduce((a, b) => a + Number(b.value || 0), 0);
     const spend = sumSpendingsForMonth(member, familyData.currentYear, familyData.currentMonth);
@@ -776,13 +800,13 @@ function renderMembers() {
             <h5 class="card-title mb-1"><i class="bi bi-person-circle me-2"></i>${member.name}</h5>
             <div class="mb-2">
               <div class="badge bg-big bg-income me-1 income-color">
-                <i class="bi bi-plus-circle"></i> <span class="income-color pointer" onclick="toggleCurrencyMask(this, ${income})"> ${currency(income, isCurrencyMasked)}</span>
+                <i class="bi bi-plus-circle"></i> <span class="income-color pointer" onclick="toggleCurrencyMask(this, ${income})">${currency(income, isCurrencyMasked)}</span>
               </div>
               <div class="badge bg-big bg-spending spending-color">
-                <i class="bi bi-dash-circle"></i> <span class="spending-color pointer" onclick="toggleCurrencyMask(this, ${spend})"> ${currency(spend, isCurrencyMasked)}</span>
+                <i class="bi bi-dash-circle"></i> <span class="spending-color pointer" onclick="toggleCurrencyMask(this, ${spend})">${currency(spend, isCurrencyMasked)}</span>
               </div>
               <div class="badge bg-big bg-card ${netColor}">
-                <i class="bi bi-calculator"></i> <span class="${netColor} pointer" onclick="toggleCurrencyMask(this, ${net})"> ${currency(net, isCurrencyMasked)}</span>
+                <i class="bi bi-calculator"></i> <span class="${netColor} pointer" onclick="toggleCurrencyMask(this, ${net})">${currency(net, isCurrencyMasked)}</span>
               </div>
             </div>
           </div>
@@ -906,16 +930,13 @@ function toggleSpendingPayed(memberId, spendingId) {
 function toggleIncomeReceived(memberId, incomeId) {
   const year = familyData.currentYear;
   const month = familyData.currentMonth;
-  const members = familyData.years[year].months[month].members;
-  const member = members.find(m => m.id === memberId);
-  if (member && member.incomes) {
-    const income = member.incomes.find(i => i.id === incomeId);
-    if (income) {
-      income.received = !income.received;
-      saveToLocalStorage();
-      saveToGoogleDrive();
-      renderAll();
-    }
+  const member = familyData.years[year]?.months[month]?.members?.find(m => m.id === memberId);
+  const income = member?.incomes?.find(i => i.id === incomeId);
+  if (income) {
+    income.received = !income.received;
+    saveToLocalStorage();
+    saveToGoogleDrive();
+    renderAll();
   }
 }
 
@@ -955,6 +976,7 @@ function deleteIncome(memberId, incomeId) {
     saveToLocalStorage();
     saveToGoogleDrive();
     renderAll();
+    showToast('Income deleted.');
   }
 }
 function openAddSpending(memberId) {
@@ -999,6 +1021,7 @@ function deleteSpending(memberId, spendingId) {
     saveToLocalStorage();
     saveToGoogleDrive();
     renderAll();
+    showToast('Spending deleted.');
   }
 }
 function openAddCard(memberId) {
@@ -1033,6 +1056,7 @@ function deleteCard(memberId, cardId) {
     saveToLocalStorage();
     saveToGoogleDrive();
     renderAll();
+    showToast('Card deleted.');
   }
 }
 function openEditMember(memberId) {
@@ -1055,6 +1079,7 @@ function deleteMember(memberId) {
   saveToLocalStorage();
   saveToGoogleDrive();
   renderAll();
+  showToast('Member deleted.');
 }
 
 // --- Utility Functions ---
@@ -1229,9 +1254,9 @@ document.getElementById('btn-load-json').onclick = function() {
         saveToLocalStorage();
         saveToGoogleDrive();
         renderAll();
-        alert('Data loaded successfully!');
+        showToast('Data loaded successfully.');
       } catch (err) {
-        alert('Invalid JSON file.');
+        showToast('Invalid JSON file.', 'error');
       }
     };
     reader.readAsText(file);
@@ -1256,6 +1281,7 @@ function setupCopyPasteHandlers() {
     if (familyData.years[year] && familyData.years[year].months[month]) {
       copiedMonthData = JSON.parse(JSON.stringify(familyData.years[year].months[month]));
       pasteBtn.disabled = false;
+      showToast('Month data copied.');
     }
   };
   pasteBtn.onclick = function() {
@@ -1269,6 +1295,7 @@ function setupCopyPasteHandlers() {
     saveToLocalStorage();
     saveToGoogleDrive();
     renderAll();
+    showToast('Month data pasted.');
   };
   clearBtn.onclick = function() {
     if (!confirm('This will remove all data for the selected year and month. Continue?')) return;
@@ -1279,6 +1306,7 @@ function setupCopyPasteHandlers() {
       saveToLocalStorage();
       saveToGoogleDrive();
       renderAll();
+      showToast('Month data cleared.');
     }
   };
 }
@@ -1339,11 +1367,12 @@ document.getElementById('cardForm').onsubmit = function(e) {
 // Add toggle currency mask function
 function toggleCurrencyMask(element, originalValue) {
   const currentText = element.textContent?.trim();
+  //console.log('[toggleCurrencyMask] ', currentText, originalValue);
   if (currentText === '••••••••') {
     // Unmask
-    if (originalValue >= 0) {
-        element.textContent = currency(Number(originalValue));
-      }
+    if (originalValue != undefined) {
+      element.textContent = currency(Number(originalValue));
+    }
   } else {
     // Mask
     element.textContent = '••••••••';
