@@ -563,7 +563,9 @@ function renderInit() {
   renderAll();
 }
 
+// --- Run on load ---
 window.onload = initGoogleDrive;
+renderAll();
 
 // --- Month Handling ---
 function ensureMonthData(year, month) {
