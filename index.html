@@ -171,7 +171,7 @@
   <div class="d-flex justify-content-between align-items-center mb-4">
     <div class="d-flex align-items-center">
       <h2><i class="bi bi-people-fill me-2"></i>Family Finance Manager </h2>
-      <small class="text-muted ms-2">v1.0.2</small>   
+      <small class="text-muted ms-2">v1.0.3</small>   
     </div>
     <div>
       <button class="top-action-btn" id="btn-google-drive"><i class="bi bi-folder ms-2"></i>Google Drive</button>
@@ -180,8 +180,8 @@
     </div>
   </div>
   <div id="family-section">
-    <div class="mb-4">
-      <div class="mb-4">
+    <div class="mb-2">
+      <div>
         <div class="years-dropdown-wrapper">
           <i class="bi bi-calendar3 dropdown-icon"></i>
           <select id="years-dropdown" class="form-select form-select-sm"></select>
@@ -518,7 +518,7 @@ async function uploadJSONToDrive() {
       const createMetadataRes = await fetch('https://www.googleapis.com/drive/v3/files?fields=id', {
         method: 'POST',
         headers: {
-          'Authorization': 'Bearer ' + accessToken,
+          'Authorization': 'Bearer ' + access_token,
           'Content-Type': 'application/json'
         },
         body: JSON.stringify(metadata)
@@ -538,7 +538,7 @@ async function uploadJSONToDrive() {
     const uploadRes = await fetch(`https://www.googleapis.com/upload/drive/v3/files/${fileId}?uploadType=media`, {
       method: 'PATCH',
       headers: {
-        'Authorization': 'Bearer ' + accessToken,
+        'Authorization': 'Bearer ' + access_token,
         'Content-Type': 'application/json'
       },
       body: fileContent
