@@ -20,8 +20,12 @@
   <script src="https://accounts.google.com/gsi/client" async defer></script>
   
   <style>
+    .swal2-warning {
+      color:#e53935 !important;
+      border-color:#e53935 !important;
+    }
     .colored-toast.swal2-icon-success {
-      background-color: #5eb62b !important;
+      background-color: #77b355 !important;
     }
 
     .colored-toast.swal2-icon-error {
@@ -380,23 +384,26 @@ let gapiInited = false;
 let gisInited = false;
 let fileRead = false;
 
-function showToast(title, icon = "success", timer = 2000, position = "top-end") {
+function showToast(title, icon = "success", timer = 2000, position = "top-end", showConfirmButton = false) {
   const Toast = Swal.mixin({
     toast: true,
-    position: position,  
-    iconColor: 'white',
-    customClass: {
-      popup: 'colored-toast',
-    },
-    showConfirmButton: false,
-    timer: timer,
-    timerProgressBar: true,
+    position: position,
+    iconColor: showConfirmButton ? null : 'white',
+    customClass: showConfirmButton ? null : { popup: 'colored-toast' },
+    showConfirmButton: showConfirmButton,
+    showCancelButton: showConfirmButton,
+    confirmButtonText: 'Yes',
+    cancelButtonText: 'No',
+    confirmButtonColor: '#3085d6',
+    cancelButtonColor: '#d33',
+    timer: showConfirmButton ? undefined : timer,
+    timerProgressBar: !showConfirmButton,
     didOpen: (toast) => {
       toast.onmouseenter = Swal.stopTimer;
       toast.onmouseleave = Swal.resumeTimer;
     }
   });
-  Toast.fire({
+  return Toast.fire({
     icon: icon,
     title: title
   });
@@ -1001,18 +1008,21 @@ function openEditIncome(memberId, incomeId) {
   }
 }
 function deleteIncome(memberId, incomeId) {
-  if (!confirm('Are you sure you want to delete this income?')) return;
-  const year = familyData.currentYear;
-  const month = familyData.currentMonth;
-  const members = familyData.years[year].months[month].members;
-  const member = members.find(m => m.id === memberId);
-  if (member && member.incomes) {
-    member.incomes = member.incomes.filter(i => i.id !== incomeId);
-    saveToLocalStorage();
-    saveToGoogleDrive();
-    renderAll();
-    showToast('Income deleted.');
-  }
+  showToast('Delete income?', 'warning', 0, 'center', true).then((result) => {
+    if (result.isConfirmed) {
+      const year = familyData.currentYear;
+      const month = familyData.currentMonth;
+      const members = familyData.years[year].months[month].members;
+      const member = members.find(m => m.id === memberId);
+      if (member && member.incomes) {
+        member.incomes = member.incomes.filter(i => i.id !== incomeId);
+        saveToLocalStorage();
+        saveToGoogleDrive();
+        renderAll();
+        showToast('Income deleted.');
+      }
+    }
+  });
 }
 function openAddSpending(memberId) {
   document.getElementById('spending-member-id').value = memberId;
@@ -1046,18 +1056,21 @@ function openEditSpending(memberId, spendingId) {
   }
 }
 function deleteSpending(memberId, spendingId) {
-  if (!confirm('Are you sure you want to delete this spending?')) return;
-  const year = familyData.currentYear;
-  const month = familyData.currentMonth;
-  const members = familyData.years[year].months[month].members;
-  const member = members.find(m => m.id === memberId);
-  if (member && member.spendings) {
-    member.spendings = member.spendings.filter(s => s.id !== spendingId);
-    saveToLocalStorage();
-    saveToGoogleDrive();
-    renderAll();
-    showToast('Spending deleted.');
-  }
+  showToast('Delete spending?', 'warning', 0, 'center', true).then((result) => {
+    if (result.isConfirmed) {
+      const year = familyData.currentYear;
+      const month = familyData.currentMonth;
+      const members = familyData.years[year].months[month].members;
+      const member = members.find(m => m.id === memberId);
+      if (member && member.spendings) {
+        member.spendings = member.spendings.filter(s => s.id !== spendingId);
+        saveToLocalStorage();
+        saveToGoogleDrive();
+        renderAll();
+        showToast('Spending deleted.');
+      }
+    }
+  });
 }
 function openAddCard(memberId) {
   document.getElementById('card-member-id').value = memberId;
@@ -1081,18 +1094,21 @@ function openEditCard(memberId, cardId) {
   }
 }
 function deleteCard(memberId, cardId) {
-  if (!confirm('Are you sure you want to delete this card?')) return;
-  const year = familyData.currentYear;
-  const month = familyData.currentMonth;
-  const members = familyData.years[year].months[month].members;
-  const member = members.find(m => m.id === memberId);
-  if (member && member.cards) {
-    member.cards = member.cards.filter(c => c.id !== cardId);
-    saveToLocalStorage();
-    saveToGoogleDrive();
-    renderAll();
-    showToast('Card deleted.');
-  }
+  showToast('Delete card?', 'warning', 0, 'center', true).then((result) => {
+    if (result.isConfirmed) {
+      const year = familyData.currentYear;
+      const month = familyData.currentMonth;
+      const members = familyData.years[year].months[month].members;
+      const member = members.find(m => m.id === memberId);
+      if (member && member.cards) {
+        member.cards = member.cards.filter(c => c.id !== cardId);
+        saveToLocalStorage();
+        saveToGoogleDrive();
+        renderAll();
+        showToast('Card deleted.');
+      }
+    }
+  });
 }
 function openEditMember(memberId) {
   const year = familyData.currentYear;
@@ -1106,15 +1122,18 @@ function openEditMember(memberId) {
   }
 }
 function deleteMember(memberId) {
-  if (!confirm('Are you sure you want to delete this member?')) return;
-  const year = familyData.currentYear;
-  const month = familyData.currentMonth;
-  let members = familyData.years[year].months[month].members;
-  familyData.years[year].months[month].members = members.filter(m => m.id !== memberId);
-  saveToLocalStorage();
-  saveToGoogleDrive();
-  renderAll();
-  showToast('Member deleted.');
+  showToast('Delete member?', 'warning', 0, 'center', true).then((result) => {
+    if (result.isConfirmed) {
+      const year = familyData.currentYear;
+      const month = familyData.currentMonth;
+      let members = familyData.years[year].months[month].members;
+      familyData.years[year].months[month].members = members.filter(m => m.id !== memberId);
+      saveToLocalStorage();
+      saveToGoogleDrive();
+      renderAll();
+      showToast('Member deleted.');
+    }
+  });
 }
 
 // --- Utility Functions ---
@@ -1321,28 +1340,35 @@ function setupCopyPasteHandlers() {
   };
   pasteBtn.onclick = function() {
     if (!copiedMonthData) return;
-    if (!confirm('This will override all data for the selected year and month. Continue?')) return;
-    const year = familyData.currentYear;
-    const month = familyData.currentMonth;
-    familyData.years[year].months[month] = JSON.parse(JSON.stringify(copiedMonthData));
-    copiedMonthData = null;      
-    pasteBtn.disabled = true;
-    saveToLocalStorage();
-    saveToGoogleDrive();
-    renderAll();
-    showToast('Month data pasted.');
+
+    showToast('Paste month data?', 'question', 0, 'center', true).then((result) => {
+      if (result.isConfirmed) {
+        const year = familyData.currentYear;
+        const month = familyData.currentMonth;
+        familyData.years[year].months[month] = JSON.parse(JSON.stringify(copiedMonthData));
+        copiedMonthData = null;      
+        pasteBtn.disabled = true;
+        saveToLocalStorage();
+        saveToGoogleDrive();
+        renderAll();
+        showToast('Month data pasted.');
+      }
+    });
   };
   clearBtn.onclick = function() {
-    if (!confirm('This will remove all data for the selected year and month. Continue?')) return;
-    const year = familyData.currentYear;
-    const month = familyData.currentMonth;
-    if (familyData.years[year] && familyData.years[year].months[month]) {
-      familyData.years[year].months[month] = { members: [] };
-      saveToLocalStorage();
-      saveToGoogleDrive();
-      renderAll();
-      showToast('Month data cleared.');
-    }
+    showToast('Clear month data?', 'warning', 0, 'center', true).then((result) => {
+      if (result.isConfirmed) {
+        const year = familyData.currentYear;
+        const month = familyData.currentMonth;
+        if (familyData.years[year] && familyData.years[year].months[month]) {
+          familyData.years[year].months[month] = { members: [] };
+          saveToLocalStorage();
+          saveToGoogleDrive();
+          renderAll();
+          showToast('Month data cleared.');
+        }
+      }
+    });
   };
 }
 
