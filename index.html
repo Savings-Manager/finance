@@ -133,6 +133,48 @@
       border-color: #283593;
     }
 
+    /* Mobile responsive styles for top buttons */
+    @media (max-width: 768px) {
+      .list-group-item{ 
+        padding: 15px 8px !important;
+      }
+      .div-spending-value {
+        margin-left: 0rem !important;
+      }
+      .top-action-btn {
+        font-size: 0.9rem;
+        padding: 0.4rem 0.8rem;
+        margin-right: 0.3rem;
+        margin-top: 0.4rem;
+      }
+      .top-action-btn i {
+        font-size: 0.9rem;
+      }
+      #btn-google-drive.top-action-btn {
+        padding: 0.4rem 0.6rem;
+      }
+      #btn-google-drive.top-action-btn i {
+        margin: 0 !important;
+      }
+      #btn-google-drive.top-action-btn span {
+        display: none;
+      }
+      .container {
+        padding-left: 0.5rem;
+        padding-right: 0.5rem;
+      }
+      .d-flex.justify-content-between.align-items-center.mb-4 {
+        flex-wrap: wrap;
+        gap: 0.5rem;
+      }
+      .d-flex.justify-content-between.align-items-center.mb-4 > div {
+        width: 100%;
+      }
+      .d-flex.justify-content-between.align-items-center.mb-4 > div:first-child {
+        margin-bottom: 0.5rem;
+      }
+    }
+
     /* --- Copy/Paste buttons --- */
     #btn-copy-month .bi {
       color: #0d6efd !important;
@@ -853,7 +895,7 @@ function renderMembers() {
             </div>
           </div>
           <div>
-            <button class="btn btn-sm btn-primary" onclick="openEditMember(${member.id})"><i class="bi bi-pencil"></i></button>
+            <button class="btn btn-sm btn-primary ms-2" onclick="openEditMember(${member.id})"><i class="bi bi-pencil"></i></button>
             <button class="btn btn-sm btn-danger ms-2" onclick="deleteMember(${member.id})"><i class="bi bi-trash"></i></button>
           </div>
         </div>
@@ -866,7 +908,7 @@ function renderMembers() {
                   <span class="fw-bold"><i class="bi bi-cash-coin"></i> ${income.name}</span>
                   <div class="item-actions ms-2">
                     <span class="fw-bold income-color pointer" onclick="toggleCurrencyMask(this, ${income.value})">${currency(income.value, isCurrencyMasked)}</span>
-                    <input type="checkbox" class="form-check-input ms-2" ${income.received ? 'checked' : ''} onchange="toggleIncomeReceived(${member.id},${income.id})" title="Alındı">
+                    <input name="income-received" type="checkbox" class="form-check-input ms-2" ${income.received ? 'checked' : ''} onchange="toggleIncomeReceived(${member.id},${income.id})" title="Alındı">
                     <button class="icon-btn ms-2" onclick="openEditIncome(${member.id},${income.id})"><i class="bi bi-pencil"></i></button>
                     <button class="icon-btn ms-2" onclick="deleteIncome(${member.id},${income.id})"><i class="bi bi-trash"></i></button>
                   </div>
@@ -894,18 +936,18 @@ function renderMembers() {
                       <i class="bi bi-cart-dash"></i> ${spending.name} 
                     </div>
                     <div class="col-md-12 fw-bold">
-                     ${card ? ` <span class='badge card-color ms-1'><i class='bi bi-credit-card-2-front'></i> ${card.name}</span>` : ''} 
-                      ${spending.installment > 1 ? ` <span class='badge bg-secondary ms-1'>${spending.currentInstallment > 1 
+                     ${card ? `<span class='badge card-color'><i class='bi bi-credit-card-2-front'></i> ${card.name}</span>` : ''} 
+                      ${spending.installment > 1 ? `<span class='badge bg-secondary'>${spending.currentInstallment > 1 
                                 ? spending.currentInstallment : currentInstallment}/${spending.installment}</span>` : ''}
                     </div>
                   </div>
-                  <div class="col-md-3 ms-3"> 
+                  <div class="div-spending-value col-md-3 ms-3"> 
                     <span class="fw-bold spending-color pointer" onclick="toggleCurrencyMask(this, ${Number(spending.value) / (spending.installment || 1)})">${currency(Number(spending.value) / (spending.installment || 1), isCurrencyMasked)}</span>
                     
                     ${spending.installment > 1 ? `<span class='fw-bold badge bg-danger pointer' onclick="toggleCurrencyMask(this, ${Number(spending.value)})">${currency(Number(spending.value), isCurrencyMasked)}` : ''}</span>
                   </div>
                   <div class="col-md-3">                
-                    <input type="checkbox" class="form-check-input ms-2" ${spending.payed ? 'checked' : ''} onchange="toggleSpendingPayed(${member.id},${spending.id})" title="Ödendi">
+                    <input name="spending-payed" type="checkbox" class="form-check-input ms-2" ${spending.payed ? 'checked' : ''} onchange="toggleSpendingPayed(${member.id},${spending.id})" title="Ödendi">
                     <button class="icon-btn ms-2" onclick="openEditSpending(${member.id},${spending.id})"><i class="bi bi-pencil"></i></button>
                     <button class="icon-btn ms-2" onclick="deleteSpending(${member.id},${spending.id})"><i class="bi bi-trash"></i></button>
                   </div>
