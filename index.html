@@ -171,7 +171,7 @@
   <div class="d-flex justify-content-between align-items-center mb-4">
     <div class="d-flex align-items-center">
       <h2><i class="bi bi-people-fill me-2"></i>Family Finance Manager </h2>
-      <small class="text-muted ms-2">v1.0.3</small>   
+      <small class="text-muted ms-2">v1.0.4</small>   
     </div>
     <div>
       <button class="top-action-btn" id="btn-google-drive"><i class="bi bi-folder ms-2"></i>Google Drive</button>
@@ -459,29 +459,32 @@ async function loadDataFromDrive() {
       return;
     }
 
-    console.log('[loadDataFromDrive] File search STARTED.');
+    console.log('[loadDataFromDrive] File search started.');
     const response = await gapi.client.drive.files.list({
       q: `name='${FILE_NAME}' and trashed=false`,
       fields: 'files(id, name)',
       access_token: access_token
     });
-    console.log('[loadDataFromDrive] File search response:', response);
 
     if (response?.result?.files?.length > 0) {
       console.log('[loadDataFromDrive] File found in Drive:', response.result.files[0]);
       fileId = response.result.files[0].id;
       
-      const file = await gapi.client.drive.files.get({
-        fileId: fileId,
-        alt: 'media',
-        access_token: access_token
+      const response = await fetch(`https://www.googleapis.com/drive/v3/files/${fileId}?alt=media`, {
+        headers: {
+          'Authorization': 'Bearer ' + access_token
+        }
       });
-      
-      if (file.body) {
-        familyData = JSON.parse(file.body);
-        fileRead = true;
-        console.log('[loadDataFromDrive] Data loaded successfully from Drive');
+
+      if (!response.ok) {
+        console.log('[loadDataFromDrive] Could not read file from Drive.');
+        return;
       }
+
+      const data = await response.json();
+      console.log('[loadDataFromDrive] Data loaded successfully from Drive: ', data);
+      familyData = JSON.parse(data);
+      fileRead = true;
     } else {
       console.log('[loadDataFromDrive] No existing file found in Drive. Starting with empty data.');
       loadFromStorage();
@@ -558,59 +561,6 @@ async function uploadJSONToDrive() {
     }
   }
 }
-
-// async function uploadJSONToDrive() {
-//   if (!gapiInited || !gisInited || !access_token) {
-//     console.warn('Cannot upload: Google APIs not initialized or not logged in');
-//     return;
-//   }
-
-//   try {
-//     const fileContent = JSON.stringify(familyData);
-//     const fileBlob = new Blob([fileContent], { type: 'application/json' });
-    
-//     if (fileId) {
-//       console.log('Updating existing file in Drive...');
-//       await gapi.client.drive.files.update({
-//         fileId: fileId,
-//         media: {
-//           mimeType: 'application/json',
-//           body: fileBlob
-//         },
-//         access_token: access_token
-//       });
-//       console.log('File updated successfully');
-//     } 
-//     else {
-//       console.log('Creating new file in Drive...');
-//       const result = await gapi.client.drive.files.create({
-//         resource: {
-//           name: FILE_NAME,
-//           mimeType: 'application/json',
-//           description: 'Family Finance Manager Data',
-//           parents: ['root']
-//         },
-//         media: {
-//           mimeType: 'application/json',
-//           body: fileBlob
-//         },
-//         fields: 'id, name, mimeType',
-//         access_token: access_token,
-//         uploadType: 'multipart'
-//       });
-//       fileId = result.result.id;
-//       console.log('New file created successfully:', result.result);
-//     }
-//   } catch (error) {
-//     console.error('Error uploading to Drive:', error);
-//     if (error.status === 401) {
-//       log_out();
-//       await requestNewToken();
-//       // Retry upload after getting new token
-//       await uploadJSONToDrive();
-//     }
-//   }
-// }
 
 function log_out() {
   localStorage.removeItem(TOKEN_STORAGE_KEY);
