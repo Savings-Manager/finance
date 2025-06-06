@@ -380,21 +380,21 @@ async function initGoogleDrive() {
     const now = Date.now();
 
     if (savedToken && tokenExpiry && now < parseInt(tokenExpiry)) {
-      console.log('Using saved access token');
+      console.log('[initGoogleDrive] Using saved access token');
       access_token = savedToken;
     } else {
-      console.log('Token expired or not found, requesting new token');
+      console.log('[initGoogleDrive] Token expired or not found, requesting new token');
       log_out();
     }
 
     await new Promise((resolve, reject) => {
       gapi.load('client', {
-        callback: () => {
-          console.log('Promise: Drive API client loaded successfully');
+        callback: (response) => {
+          console.log('[initGoogleDrive] Promise: Drive API client loaded successfully', response);
           resolve();
         },
         onerror: (error) => {
-          console.error('Promise: Error loading Drive API client:', error);
+          console.error('[initGoogleDrive] Promise: Error loading Drive API client:', error);
           reject(error);
         }
       });
@@ -404,7 +404,7 @@ async function initGoogleDrive() {
       apiKey: API_KEY,
       discoveryDocs: ['https://www.googleapis.com/discovery/v1/apis/drive/v3/rest']
     });
-    console.log('gapi.client.init: Drive API initialized successfully');
+    console.log('[initGoogleDrive] gapi.client.init: Drive API initialized successfully');
 
     gapiInited = true;
 
@@ -663,7 +663,9 @@ function switchMonth(year, month) {
     familyData.lastSelectedMonthByYear = {};
   }
   familyData.lastSelectedMonthByYear[year] = month;
-  ensureMonthData(year, month);
+  ensureMonthData(year, month);  
+  saveToLocalStorage();
+  saveToGoogleDrive();
   renderAll();
 }
 
@@ -773,9 +775,15 @@ function renderMembers() {
           <div>
             <h5 class="card-title mb-1"><i class="bi bi-person-circle me-2"></i>${member.name}</h5>
             <div class="mb-2">
-              <span class="badge bg-big bg-income me-1 income-color pointer" onclick="toggleCurrencyMask(this, ${income})"><i class="bi bi-plus-circle"></i> ${currency(income, isCurrencyMasked)}</span>
-              <span class="badge bg-big bg-spending spending-color pointer" onclick="toggleCurrencyMask(this, ${spend})"><i class="bi bi-dash-circle"></i> ${currency(spend, isCurrencyMasked)}</span>
-              <span class="badge bg-big bg-card ${netColor} pointer" onclick="toggleCurrencyMask(this, ${net})"><i class="bi bi-calculator"></i> ${currency(net, isCurrencyMasked)}</span>
+              <div class="badge bg-big bg-income me-1 income-color">
+                <i class="bi bi-plus-circle"></i> <span class="income-color pointer" onclick="toggleCurrencyMask(this, ${income})"> ${currency(income, isCurrencyMasked)}</span>
+              </div>
+              <div class="badge bg-big bg-spending spending-color">
+                <i class="bi bi-dash-circle"></i> <span class="spending-color pointer" onclick="toggleCurrencyMask(this, ${spend})"> ${currency(spend, isCurrencyMasked)}</span>
+              </div>
+              <div class="badge bg-big bg-card ${netColor}">
+                <i class="bi bi-calculator"></i> <span class="${netColor} pointer" onclick="toggleCurrencyMask(this, ${net})"> ${currency(net, isCurrencyMasked)}</span>
+              </div>
             </div>
           </div>
           <div>
