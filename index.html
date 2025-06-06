@@ -171,6 +171,7 @@
   <div class="d-flex justify-content-between align-items-center mb-4">
     <h2><i class="bi bi-people-fill me-2"></i>Family Finance Manager</h2>
     <div>
+      <button class="top-action-btn" id="btn-google-drive"><i class="bi bi-folder ms-2"></i>Google Drive</button>
       <button class="top-action-btn" id="btn-load-json"><i class="bi bi-folder2-open ms-2"></i>Load Data</button>
       <button class="top-action-btn" id="btn-save-json"><i class="bi bi-save ms-2"></i>Save Data</button>
     </div>
@@ -332,11 +333,11 @@ const SCOPES = 'https://www.googleapis.com/auth/drive.file';
 const FILE_NAME = "finance_data.json";
 
 let fileId = null;
-let DRIVE_SUCCESS = false;
 let isCurrencyMasked = true;
 let tokenClient = null;
 let gapiInited = false;
 let gisInited = false;
+let fileRead = false;
 
 function getCurrentYearMonth() {
   const d = new Date();
@@ -357,55 +358,66 @@ function getMonthName(monthNum) {
 }
 
 // --- Google Drive API ---
-async function init() {
+async function initGoogleDrive() {
   try {
+    console.log('Waiting for Google libraries to load...');
     // Wait for both libraries to load
     await Promise.all([
       new Promise((resolve) => {
         if (window.google) {
+          console.log('Google Identity Services already loaded');
           resolve();
         } else {
+          console.log('Waiting for Google Identity Services to load...');
           window.onload = resolve;
         }
       }),
       new Promise((resolve) => {
         if (window.gapi) {
+          console.log('Google API already loaded');
           resolve();
         } else {
+          console.log('Waiting for Google API to load...');
           window.onload = resolve;
         }
       })
     ]);
+    console.log('Promise.all: Both Google libraries loaded successfully');
 
-    // Initialize the Google Identity Services
     tokenClient = google.accounts.oauth2.initTokenClient({
       client_id: CLIENT_ID,
       scope: SCOPES,
-      callback: '', // defined later
+      callback: '',
     });
+    console.log('initTokenClient: Token client initialized successfully');
 
     gisInited = true;
-    
-    // Load the Drive API
+
     await new Promise((resolve, reject) => {
       gapi.load('client', {
-        callback: resolve,
-        onerror: reject
+        callback: () => {
+          console.log('Promise: Drive API client loaded successfully');
+          resolve();
+        },
+        onerror: (error) => {
+          console.error('Promise: Error loading Drive API client:', error);
+          reject(error);
+        }
       });
     });
 
     await gapi.client.init({
       discoveryDocs: ['https://www.googleapis.com/discovery/v1/apis/drive/v3/rest']
     });
+    console.log('gapi.client.init: Drive API initialized successfully');
 
     gapiInited = true;
-    
-    // Try to load data
+
     await loadDataFromDrive();
     
   } catch (error) {
-    console.error('Error initializing Google API:', error);
-    DRIVE_SUCCESS = false;
+    console.error('Error during Google Drive initialization:', error);
+    fileRead = false;
     loadFromStorage();
     renderInit();
   }
@@ -413,26 +425,32 @@ async function init() {
 
 async function loadDataFromDrive() {
   try {
-    // Get access token
+    fileRead = false;
+    
+    console.log('[loadDataFromDrive] Requesting access token...');
     await new Promise((resolve, reject) => {
       tokenClient.callback = async (resp) => {
         if (resp.error) {
+          console.error('[loadDataFromDrive] Error getting access token:', resp.error);
           reject(resp);
           return;
         }
+        console.log('[loadDataFromDrive] Access token received successfully');
         resolve(resp);
       };
       tokenClient.requestAccessToken();
     });
 
-    // Search for the file
     const response = await gapi.client.drive.files.list({
       q: `name='${FILE_NAME}' and trashed=false`,
       fields: 'files(id, name)'
     });
+    console.log('[loadDataFromDrive] File search response:', response);
 
-    if (response.result.files && response.result.files.length > 0) {
+    if (response?.result?.files?.length > 0) {
+      console.log('[loadDataFromDrive] File found in Drive:', response.result.files[0]);
       fileId = response.result.files[0].id;
+      
       const file = await gapi.client.drive.files.get({
         fileId: fileId,
         alt: 'media'
@@ -440,10 +458,13 @@ async function loadDataFromDrive() {
       
       if (file.body) {
         familyData = JSON.parse(file.body);
-        DRIVE_SUCCESS = true;
+        fileRead = true;
+        console.log('Data loaded from Drive successfully');
+      } else {
+        console.warn('File downloaded but body is empty');
       }
     } else {
-      console.log('No existing file found. Starting with empty data.');
+      console.log('No existing file found in Drive. Starting with empty data.');
       loadFromStorage();
     }
   } catch (error) {
@@ -454,9 +475,14 @@ async function loadDataFromDrive() {
 }
 
 async function uploadJSONToDrive() {
-  if (!DRIVE_SUCCESS || !gapiInited || !gisInited) return;
+  console.log('Starting file upload to Drive...');
+  if (!gapiInited || !gisInited) {
+    console.warn('Cannot upload: Google APIs not initialized');
+    return;
+  }
 
   try {
+    console.log('Preparing file content...');
     const fileContent = JSON.stringify(familyData);
     const fileBlob = new Blob([fileContent], { type: 'application/json' });
     const metadata = {
@@ -465,24 +491,22 @@ async function uploadJSONToDrive() {
       parents: [FOLDER_ID]
     };
 
-    // Get access token
+    console.log('Requesting access token for upload...');
     await new Promise((resolve, reject) => {
       tokenClient.callback = async (resp) => {
         if (resp.error) {
+          console.error('Error getting access token for upload:', resp.error);
           reject(resp);
           return;
         }
+        console.log('Access token received for upload');
         resolve(resp);
       };
       tokenClient.requestAccessToken();
     });
 
     if (fileId) {
-      // Update existing file
-      const form = new FormData();
-      form.append('metadata', new Blob([JSON.stringify(metadata)], { type: 'application/json' }));
-      form.append('file', fileBlob);
-
+      console.log('Updating existing file in Drive...');
       await gapi.client.drive.files.update({
         fileId: fileId,
         media: {
@@ -490,9 +514,10 @@ async function uploadJSONToDrive() {
           body: fileBlob
         }
       });
+      console.log('File updated successfully');
     } else {
-      // Create new file
-      await gapi.client.drive.files.create({
+      console.log('Creating new file in Drive...');
+      const result = await gapi.client.drive.files.create({
         resource: metadata,
         media: {
           mimeType: 'application/json',
@@ -500,6 +525,8 @@ async function uploadJSONToDrive() {
         },
         fields: 'id'
       });
+      fileId = result.result.id;
+      console.log('New file created successfully with ID:', fileId);
     }
   } catch (error) {
     console.error('Error uploading to Drive:', error);
@@ -557,7 +584,7 @@ function renderInit() {
   renderAll();
 }
 
-window.onload = init;
+window.onload = initGoogleDrive;
 
 // --- Month Handling ---
 function ensureMonthData(year, month) {
@@ -1145,6 +1172,10 @@ document.getElementById('btn-load-json').onclick = function() {
     reader.readAsText(file);
   };
   input.click();
+};
+
+document.getElementById('btn-google-drive').onclick = function() {
+  initGoogleDrive();
 };
 
 // Add copy/paste buttons to the right of years dropdown after DOM is ready
