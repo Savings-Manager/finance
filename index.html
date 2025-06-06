@@ -353,7 +353,8 @@ async function init() {
       await new Promise(resolve => gapi.load('client:auth2', resolve));
       await gapi.client.init({
         clientId: CLIENT_ID,
-        scope: SCOPES
+        scope: SCOPES,
+        cookie_policy: 'single_host_origin', // bu kalsın
       });
 
       const GoogleAuth = gapi.auth2.getAuthInstance();
