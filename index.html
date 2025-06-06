@@ -525,7 +525,11 @@ async function uploadJSONToDrive() {
     } else {
       console.log('Creating new file in Drive...');
       const result = await gapi.client.drive.files.create({
-        resource: metadata,
+        resource: {
+          name: FILE_NAME,
+          mimeType: 'application/json',
+          description: 'Family Finance Manager Data'
+        },
         media: {
           mimeType: 'application/json',
           body: fileBlob
