@@ -492,7 +492,6 @@ async function initGoogleDrive() {
           logOut();          
           loadFromLocalStorage();
           renderInit();
-          reject(resp);
           return;
         }
 
@@ -506,7 +505,6 @@ async function initGoogleDrive() {
         console.log('[tokenClient][callback] New access token received and saved.');
         
         await loadFromGoogleDrive();
-        resolve(resp);
       },
       error_callback: (error) => {
         console.log('[tokenClient][error_callback] Error: ', error);
