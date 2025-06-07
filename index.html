@@ -5,7 +5,7 @@
   <link rel="icon" type="image/x-icon" href="./favicon.ico">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta http-equiv="Content-Security-Policy" content="default-src 'self' https: 'unsafe-inline' 'unsafe-eval' blob: data:; script-src 'self' https: 'unsafe-inline' 'unsafe-eval' blob: data:; connect-src 'self' https:; frame-src 'self' https:; img-src 'self' https: data: blob:;">
-  <title>Family Finance Manager</title>
+  <title>Aile Finans Yöneticisi</title>
   <!-- Bootstrap 5 Material Theme (Bootswatch Materia) -->
   <link href="https://cdn.jsdelivr.net/npm/bootswatch@5.3.3/dist/materia/bootstrap.min.css" rel="stylesheet">
   <!-- Bootstrap Icons -->
@@ -252,7 +252,7 @@
   <div class="d-flex justify-content-between align-items-center mb-4">
     <div class="d-flex align-items-center">
       <h2><i class="bi bi-people-fill me-2"></i>Aile Finans Yöneticisi </h2>
-      <small class="text-muted ms-2">v1.0.8</small>   
+      <small class="text-muted ms-2">v1.0.9</small>   
     </div>
     <div>
       <button class="top-action-btn" id="btn-google-drive"><i class="bi bi-folder ms-2"></i>Google Drive</button>
@@ -417,13 +417,15 @@
 // --- Data Model ---
 let familyData = { years: {}, currentYear: getCurrentYearMonth().year, currentMonth: getCurrentYearMonth().month, lastSelectedMonthByYear: {} };
 
-const STORAGE_KEY = 'familyData';
-const TOKEN_STORAGE_KEY = 'finance_access_token';
-const TOKEN_EXPIRY_KEY = 'finance_token_expiry';
+const APP_CODE = 'cmeaisacsy_finance_app';
+const STORAGE_KEY = `${APP_CODE}_data`;
+const TOKEN_STORAGE_KEY = `${APP_CODE}_access_token`;
+const TOKEN_EXPIRY_KEY = `${APP_CODE}_token_expiry`;
+const FILE_NAME = `${APP_CODE}_data.json`;
+
 const CLIENT_ID = '1004280494239-bm24eig1gk63rgvk3in8rjh9bp5gcd6t.apps.googleusercontent.com';
 const API_KEY = 'AIzaSyDWgrMTLb2iygiApN18mtNiGfZlpk0pA0E'; // Replace with your actual API key
 const SCOPES = 'https://www.googleapis.com/auth/drive.file';
-const FILE_NAME = "finance_data.json";
 
 let access_token = null;
 let fileId = null;
@@ -1357,7 +1359,7 @@ document.getElementById('btn-save-json').onclick = function() {
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
-  a.download = 'family-finance.json';
+  a.download = FILE_NAME;
   document.body.appendChild(a);
   a.click();
   setTimeout(() => {
