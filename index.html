@@ -243,7 +243,7 @@
   <div class="d-flex justify-content-between align-items-center mb-4">
     <div class="d-flex align-items-center">
       <h2><i class="bi bi-people-fill me-2"></i>Aile Finans Yöneticisi </h2>
-      <small class="text-muted ms-2">v1.0.9</small>   
+      <small class="text-muted ms-2">v1.1.0</small>   
     </div>
     <div>
       <button class="top-action-btn" id="btn-load-json"><i class="bi bi-folder2-open ms-2"></i>Verileri Geri Yükle</button>
@@ -484,14 +484,43 @@ async function initGoogleDrive() {
     tokenClient = google.accounts.oauth2.initTokenClient({
       client_id: CLIENT_ID,
       scope: SCOPES,
-      callback: '',
-      error_callback: (error) => {
-        if (error.type === 'popup_closed_by_user') {
-          console.log('[initGoogleDrive] Login popup closed by user');
-          showToast('Google Drive girişi iptal edildi.', 'warning');
-          loadFromLocalStorage();
-          renderInit();
+      callback: async (resp) => {
+        console.log('[tokenClient][callback] Token client callback response:', resp);
+        if (resp.error) {
+          if (resp.error === 'popup_closed_by_user') {
+            console.log('[requestNewToken] Login popup closed by user');
+            showToast('Google Drive girişi iptal edildi.', 'warning');
+            loadFromLocalStorage();
+            renderInit();
+            reject(resp);
+            return;
+          }
+          logOut();
+          console.error('Error getting access token:', resp.error);
+          reject(resp);
+          return;
         }
+
+        access_token = resp.access_token;
+        // Set token expiry to 50 minutes from now (tokens typically last 1 hour)
+        const expiryTime = Date.now() + (50 * 60 * 1000);
+        localStorage.setItem(TOKEN_STORAGE_KEY, access_token);
+        localStorage.setItem(TOKEN_EXPIRY_KEY, expiryTime.toString());
+        document.getElementById('drive-warning').classList.add('d-none');
+
+        console.log('[tokenClient][callback] New access token received and saved.');
+        
+        await loadFromGoogleDrive();
+        resolve(resp);
+      },
+      error_callback: (error) => {
+        console.log('[tokenClient][error_callback] Login popup closed by user');
+        // if (error.type === 'popup_closed_by_user') {
+        //   console.log('[tokenClient][error_callback] Login popup closed by user');
+        //   showToast('Google Drive girişi iptal edildi.', 'warning');
+        //   loadFromLocalStorage();
+        //   renderInit();
+        // }
       }
     });
     
@@ -549,35 +578,6 @@ async function initGoogleDrive() {
 
 async function requestNewToken() {
   return new Promise((resolve, reject) => {
-    tokenClient.callback = async (resp) => {
-      console.log('[requestNewToken] Token client callback response:', resp);
-      if (resp.error) {
-        if (resp.error === 'popup_closed_by_user') {
-          console.log('[requestNewToken] Login popup closed by user');
-          showToast('Google Drive girişi iptal edildi.', 'warning');
-          loadFromLocalStorage();
-          renderInit();
-          reject(resp);
-          return;
-        }
-        logOut();
-        console.error('Error getting access token:', resp.error);
-        reject(resp);
-        return;
-      }
-
-      access_token = resp.access_token;
-      // Set token expiry to 50 minutes from now (tokens typically last 1 hour)
-      const expiryTime = Date.now() + (50 * 60 * 1000);
-      localStorage.setItem(TOKEN_STORAGE_KEY, access_token);
-      localStorage.setItem(TOKEN_EXPIRY_KEY, expiryTime.toString());
-      document.getElementById('drive-warning').classList.add('d-none');
-
-      console.log('[requestNewToken] New access token received and saved');
-      
-      await loadFromGoogleDrive();
-      resolve(resp);
-    };
     tokenClient.requestAccessToken();
   });
 }
