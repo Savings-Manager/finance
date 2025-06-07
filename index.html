@@ -487,16 +487,11 @@ async function initGoogleDrive() {
       callback: async (resp) => {
         console.log('[tokenClient][callback] Token client callback response:', resp);
         if (resp.error) {
-          if (resp.error === 'popup_closed_by_user') {
-            console.log('[requestNewToken] Login popup closed by user');
-            showToast('Google Drive girişi iptal edildi.', 'warning');
-            loadFromLocalStorage();
-            renderInit();
-            reject(resp);
-            return;
-          }
-          logOut();
           console.error('Error getting access token:', resp.error);
+
+          logOut();          
+          loadFromLocalStorage();
+          renderInit();
           reject(resp);
           return;
         }
@@ -515,12 +510,10 @@ async function initGoogleDrive() {
       },
       error_callback: (error) => {
         console.log('[tokenClient][error_callback] Error: ', error);
-        // if (error.type === 'popup_closed_by_user') {
-        //   console.log('[tokenClient][error_callback] Login popup closed by user');
-        //   showToast('Google Drive girişi iptal edildi.', 'warning');
-        //   loadFromLocalStorage();
-        //   renderInit();
-        // }
+        // user closed the popup: error.type === 'popup_closed'
+        logOut();          
+        loadFromLocalStorage();
+        renderInit();
       }
     });
     
