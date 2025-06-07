@@ -263,6 +263,13 @@
   <div id="family-section">
     <div class="mb-2">
       <div>
+        <div id="drive-warning" class="alert alert-warning d-none mb-2">
+          <i class="bi bi-exclamation-triangle-fill me-2"></i>
+          Google Drive ile giriş yapılmadığında verileriniz tarayıcıda tutulur ve tarayıcı verileri temizlendiğinde kaybolabilir.
+          <button class="btn btn-sm btn-warning ms-2" onclick="initGoogleDrive()">
+            <i class="bi bi-google me-1"></i>Google Drive ile Giriş Yap
+          </button>
+        </div>
         <div class="years-dropdown-wrapper">
           <i class="bi bi-calendar3 dropdown-icon"></i>
           <select id="years-dropdown" class="form-select form-select-sm"></select>
@@ -470,6 +477,15 @@ function getMonthName(monthNum) {
   return new Date(2000, Number(monthNum) - 1, 1).toLocaleString('default', { month: 'short' });
 }
 
+function isNullOrEmpty(value) {
+  if (value === null || value === undefined) return true;
+  if (typeof value === 'string' && value.trim() === '') return true;
+  if (Array.isArray(value) && value.length === 0) return true;
+  if (typeof value === 'object' && Object.keys(value).length === 0) return true;
+  if (typeof value === 'number' && isNaN(value)) return true;
+  return false;
+}
+
 // --- Google Drive API ---
 async function initGoogleDrive() {
   try {
@@ -477,22 +493,17 @@ async function initGoogleDrive() {
       client_id: CLIENT_ID,
       scope: SCOPES,
       callback: '',
+      error_callback: (error) => {
+        if (error.type === 'popup_closed_by_user') {
+          console.log('[initGoogleDrive] Login popup closed by user');
+          showToast('Google Drive girişi iptal edildi.', 'warning');
+          loadFromLocalStorage();
+          renderInit();
+        }
+      }
     });
     
     gisInited = true;
-
-    // Check for existing token and its expiry
-    const savedToken = localStorage.getItem(TOKEN_STORAGE_KEY);
-    const tokenExpiry = localStorage.getItem(TOKEN_EXPIRY_KEY);
-    const now = Date.now();
-
-    if (savedToken && tokenExpiry && now < parseInt(tokenExpiry)) {
-      console.log('[initGoogleDrive] Using saved access token');
-      access_token = savedToken;
-    } else {
-      console.log('[initGoogleDrive] Token expired or not found, requesting new token');
-      log_out();
-    }
 
     await new Promise((resolve, reject) => {
       gapi.load('client', {
@@ -511,18 +522,31 @@ async function initGoogleDrive() {
       apiKey: API_KEY,
       discoveryDocs: ['https://www.googleapis.com/discovery/v1/apis/drive/v3/rest']
     });
-    console.log('[initGoogleDrive] gapi.client.init: Drive API initialized successfully');
+    console.log('[initGoogleDrive] gapi.client.init: Drive API initialized successfully.');
 
     gapiInited = true;
 
-    if (access_token) {
-      console.log('Using existing token, attempting to load data');
-      await loadFromGoogleDrive();
-    } else {
-      console.log('No valid token, requesting new token');
+    const savedToken = localStorage.getItem(TOKEN_STORAGE_KEY);
+    const tokenExpiry = localStorage.getItem(TOKEN_EXPIRY_KEY);
+    const now = Date.now(); 
+
+    if (isNullOrEmpty(savedToken)) {
+      console.log('[initGoogleDrive] Token not found, requesting new token.');
+      logOut();
       await requestNewToken();
+      return;
     }
-    
+  
+    if(!isNullOrEmpty(tokenExpiry) && now >= parseInt(tokenExpiry)) {
+      console.log('[initGoogleDrive] Token expired, requesting new token.');
+      logOut();
+      await requestNewToken();
+      return;
+    }
+
+    console.log('[initGoogleDrive] Using saved access token.');
+    access_token = savedToken;
+    await loadFromGoogleDrive();
   } catch (error) {
     console.error('Error during Google Drive initialization:', error);
     fileRead = false;
@@ -536,7 +560,15 @@ async function requestNewToken() {
     tokenClient.callback = async (resp) => {
       console.log('[requestNewToken] Token client callback response:', resp);
       if (resp.error) {
-        log_out();
+        if (resp.error === 'popup_closed_by_user') {
+          console.log('[requestNewToken] Login popup closed by user');
+          showToast('Google Drive girişi iptal edildi.', 'warning');
+          loadFromLocalStorage();
+          renderInit();
+          reject(resp);
+          return;
+        }
+        logOut();
         console.error('Error getting access token:', resp.error);
         reject(resp);
         return;
@@ -597,12 +629,13 @@ async function loadFromGoogleDrive() {
     if(data) {
       familyData = data;
       fileRead = true;
+      document.getElementById('drive-warning').classList.add('d-none');
       console.log('[loadFromGoogleDrive] Data loaded successfully from Drive: ', data);
     } 
   } catch (error) {
     console.error('[loadFromGoogleDrive] Error:', error);
     if (error.status === 401) {
-      log_out();
+      logOut();
       await requestNewToken();
     } else {
       loadFromLocalStorage();
@@ -666,7 +699,7 @@ async function saveToGoogleDrive() {
   } catch (error) {
     console.error('Error uploading to Drive:', error);
     if (error.status === 401) {
-      log_out();
+      logOut();
       await requestNewToken();
       // Retry upload after getting new token
       await saveToGoogleDrive();
@@ -674,7 +707,7 @@ async function saveToGoogleDrive() {
   }
 }
 
-function log_out() {
+function logOut() {
   localStorage.removeItem(TOKEN_STORAGE_KEY);
   localStorage.removeItem(TOKEN_EXPIRY_KEY);
   access_token = null;
@@ -717,6 +750,7 @@ function loadFromLocalStorage() {
     familyData.currentMonth = getCurrentYearMonth().month;
   }
   
+  document.getElementById('drive-warning').classList.remove('d-none');
   saveToLocalStorage();
 }
 
