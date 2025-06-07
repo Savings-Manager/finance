@@ -514,7 +514,7 @@ async function initGoogleDrive() {
         resolve(resp);
       },
       error_callback: (error) => {
-        console.log('[tokenClient][error_callback] Login popup closed by user');
+        console.log('[tokenClient][error_callback] Error: ', error);
         // if (error.type === 'popup_closed_by_user') {
         //   console.log('[tokenClient][error_callback] Login popup closed by user');
         //   showToast('Google Drive girişi iptal edildi.', 'warning');
