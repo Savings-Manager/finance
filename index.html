@@ -150,15 +150,6 @@
       .top-action-btn i {
         font-size: 0.9rem;
       }
-      #btn-google-drive.top-action-btn {
-        padding: 0.4rem 0.6rem;
-      }
-      #btn-google-drive.top-action-btn i {
-        margin: 0 !important;
-      }
-      #btn-google-drive.top-action-btn span {
-        display: none;
-      }
       .container {
         padding-left: 0.5rem;
         padding-right: 0.5rem;
@@ -255,7 +246,6 @@
       <small class="text-muted ms-2">v1.0.9</small>   
     </div>
     <div>
-      <button class="top-action-btn" id="btn-google-drive"><i class="bi bi-folder ms-2"></i>Google Drive</button>
       <button class="top-action-btn" id="btn-load-json"><i class="bi bi-folder2-open ms-2"></i>Verileri Geri Yükle</button>
       <button class="top-action-btn" id="btn-save-json"><i class="bi bi-save ms-2"></i>Verileri Yedekle</button>
     </div>
@@ -421,7 +411,7 @@ const APP_CODE = 'cmeaisacsy_finance_app';
 const STORAGE_KEY = `${APP_CODE}_data`;
 const TOKEN_STORAGE_KEY = `${APP_CODE}_access_token`;
 const TOKEN_EXPIRY_KEY = `${APP_CODE}_token_expiry`;
-const FILE_NAME = `${APP_CODE}_data.json`;
+const FILE_NAME = `${STORAGE_KEY}.json`;
 
 const CLIENT_ID = '1004280494239-bm24eig1gk63rgvk3in8rjh9bp5gcd6t.apps.googleusercontent.com';
 const API_KEY = 'AIzaSyDWgrMTLb2iygiApN18mtNiGfZlpk0pA0E'; // Replace with your actual API key
@@ -581,6 +571,8 @@ async function requestNewToken() {
       const expiryTime = Date.now() + (50 * 60 * 1000);
       localStorage.setItem(TOKEN_STORAGE_KEY, access_token);
       localStorage.setItem(TOKEN_EXPIRY_KEY, expiryTime.toString());
+      document.getElementById('drive-warning').classList.add('d-none');
+
       console.log('[requestNewToken] New access token received and saved');
       
       await loadFromGoogleDrive();
@@ -599,8 +591,8 @@ async function loadFromGoogleDrive() {
       await requestNewToken();
       return;
     }
-
-    console.log('[loadFromGoogleDrive] File search started.');
+  
+    console.log('[loadFromGoogleDrive]', FILE_NAME, ' File search started.');
     const response = await gapi.client.drive.files.list({
       q: `name='${FILE_NAME}' and trashed=false`,
       fields: 'files(id, name)',
@@ -631,7 +623,6 @@ async function loadFromGoogleDrive() {
     if(data) {
       familyData = data;
       fileRead = true;
-      document.getElementById('drive-warning').classList.add('d-none');
       console.log('[loadFromGoogleDrive] Data loaded successfully from Drive: ', data);
     } 
   } catch (error) {
@@ -1392,10 +1383,6 @@ document.getElementById('btn-load-json').onclick = function() {
     reader.readAsText(file);
   };
   input.click();
-};
-
-document.getElementById('btn-google-drive').onclick = function() {
-  initGoogleDrive();
 };
 
 // Add copy/paste buttons to the right of years dropdown after DOM is ready
