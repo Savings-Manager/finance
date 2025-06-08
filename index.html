@@ -5,7 +5,7 @@
   <link rel="icon" type="image/x-icon" href="./favicon.ico">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta http-equiv="Content-Security-Policy" content="default-src 'self' https: 'unsafe-inline' 'unsafe-eval' blob: data:; script-src 'self' https: 'unsafe-inline' 'unsafe-eval' blob: data:; connect-src 'self' https:; frame-src 'self' https:; img-src 'self' https: data: blob:;">
-  <title>Aile Finans Yöneticisi</title>
+  <title>Finans Yöneticisi</title>
   <!-- Bootstrap 5 Material Theme (Bootswatch Materia) -->
   <link href="https://cdn.jsdelivr.net/npm/bootswatch@5.3.3/dist/materia/bootstrap.min.css" rel="stylesheet">
   <!-- Bootstrap Icons -->
@@ -242,8 +242,8 @@
 <div class="container py-4">
   <div class="d-flex justify-content-between align-items-center mb-4">
     <div class="d-flex align-items-center">
-      <h2><i class="bi bi-people-fill me-2"></i>Aile Finans Yöneticisi </h2>
-      <small class="text-muted ms-2">v1.1.0</small>   
+      <h2><i class="bi bi-people-fill me-2"></i>Finans Yöneticisi </h2>
+      <small class="text-muted ms-2">v1.1.1</small>   
     </div>
     <div>
       <button class="top-action-btn" id="btn-load-json"><i class="bi bi-folder2-open ms-2"></i>Verileri Geri Yükle</button>
@@ -275,11 +275,11 @@
     <div class="d-flex justify-content-between align-items-center mb-2">   
       <div id="months-row"></div>
       <div>
-        <button class="top-action-btn" id="btn-add-member"><i class="bi bi-person-plus"></i> Aile Üyesi Ekle</button>
+        <button class="top-action-btn" id="btn-add-member"><i class="bi bi-person-plus"></i> Kişi Ekle</button>
       </div>
     </div>
     <div id="family-summary" class="mb-4"></div>
-    <h4>Aile Üyeleri</h4>
+    <h4>Kişiler</h4>
     <div id="members-list" class="mt-2"></div>
   </div>
 </div>
@@ -289,7 +289,7 @@
   <div class="modal-dialog">
     <div class="modal-content">
       <div class="modal-header">
-        <h5 class="modal-title" id="memberModalLabel">Aile Üyesi Ekle/Düzenle</h5>
+        <h5 class="modal-title" id="memberModalLabel">Kişi Ekle/Düzenle</h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
       </div>
       <div class="modal-body">
@@ -880,7 +880,7 @@ function renderMembers() {
   const list = document.getElementById('members-list');
   const members = familyData.years[familyData.currentYear].months[familyData.currentMonth].members;
   if (!(members?.length > 0)) {
-    list.innerHTML = '<div class="alert alert-info">Henüz üye yok. Bir tane ekleyin!</div>';
+    list.innerHTML = '<div class="alert alert-info">Henüz kayıtlı kişi yok. Bir tane ekleyin!</div>';
     return;
   }
 
@@ -1192,7 +1192,7 @@ function openEditMember(memberId) {
   }
 }
 function deleteMember(memberId) {
-  showToast('Üye bilgisi silinsin mi?', 'warning', 0, 'center', true).then((result) => {
+  showToast('Kişi bilgisi silinsin mi?', 'warning', 0, 'center', true).then((result) => {
     if (result.isConfirmed) {
       const year = familyData.currentYear;
       const month = familyData.currentMonth;
@@ -1201,7 +1201,7 @@ function deleteMember(memberId) {
       saveToLocalStorage();
       saveToGoogleDrive();
       renderAll();
-      showToast('Üye bilgisi silindi.');
+      showToast('Kişi bilgisi silindi.');
     }
   });
 }
