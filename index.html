@@ -6,8 +6,12 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta http-equiv="Content-Security-Policy" content="default-src 'self' https: 'unsafe-inline' 'unsafe-eval' blob: data:; script-src 'self' https: 'unsafe-inline' 'unsafe-eval' blob: data:; connect-src 'self' https:; frame-src 'self' https:; img-src 'self' https: data: blob:;">
   <title>Finans Yöneticisi</title>
-  <!-- Bootstrap 5 Material Theme (Bootswatch Materia) -->
-  <link href="https://cdn.jsdelivr.net/npm/bootswatch@5.3.3/dist/materia/bootstrap.min.css" rel="stylesheet">
+
+  <!-- Font Awesome CDN -->
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+
+  <!-- Bootstrap 5 Material Theme (Bootswatch Materia) -->  
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
   <!-- Bootstrap Icons -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
 
@@ -15,7 +19,7 @@
   <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11.10.5/dist/sweetalert2.min.css" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.10.5/dist/sweetalert2.all.min.js"></script>
 
-  <!-- Add both Google API scripts -->
+  <!-- Google API scripts -->
   <script src="https://apis.google.com/js/api.js"></script>
   <script src="https://accounts.google.com/gsi/client" async defer></script>
   
@@ -68,7 +72,84 @@
     .modal-header-card { background: #3949ab; color: #fff; }
     .material-shadow { box-shadow: 0 2px 8px rgba(60,60,60,0.08); border-radius: 12px; }
     .table thead th { background: #f5f5f5; }
-    .icon-btn { border: none; background: none; padding: 0; }
+    
+    .icon-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 35px;
+      height: 35px;
+      background: none;
+      color: black;
+      border-radius: 50%;
+      border: none;
+      font-size: 16px;
+      transition: all 0.2s ease-in-out;
+      cursor: pointer;
+    }
+
+    .icon-btn:hover {
+      background-color: #f0f0f0;
+      transform: scale(1.1);
+    }
+
+    .icon-btn.edit {
+      color: #0d6efd; /* Bootstrap primary */
+    }
+
+    .icon-btn.delete {
+      color: #dc3545; /* Bootstrap danger */
+    }
+
+    .btn-circle {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 40px;
+      height: 40px;
+      color: #242424;
+      background-color: white;      
+      border: none;
+      border-radius: 50%;
+      font-size: 20px;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+      transition: background 0.2s;
+      cursor: pointer;
+    }
+
+    .btn-circle.edit {
+      color: #0d6efd !important; 
+    }
+    .btn-circle.edit:not(:disabled):hover {
+      color: #f0f0f0 !important; 
+      background-color: #0d6efd !important;
+    }
+
+    .btn-circle.delete {
+      color: #dc3545 !important; 
+    }
+    .btn-circle.delete:not(:disabled):hover {
+      color: #f0f0f0 !important; 
+      background-color: #dc3545 !important;
+    }
+
+    .btn-circle.success {
+      color: #198754 !important;
+    }
+    .btn-circle.success:not(:disabled):hover {
+      color: #f0f0f0 !important; 
+      background-color: #198754 !important;
+    }
+
+    .btn-circle:disabled {
+      color: #353535 !important;
+    }
+
+    .btn-circle:not(:disabled):hover {
+      color: #f0f0f0 !important; 
+      background-color: #242424 !important;
+      transform: scale(1.1);
+    }
 
     /* --- Fix list item actions alignment --- */
     .list-group-item.d-flex {
@@ -90,13 +171,10 @@
 
     /* --- Top action buttons --- */
     .top-action-btn {
-      font-size: 1.08rem;
-      border-radius: 2rem;
-      padding: 0.5rem 1.25rem;
-      margin-right: 0.5rem;
-      box-shadow: 0 2px 8px rgba(60,60,60,0.08);
       font-weight: 500;
-      letter-spacing: 0.01em;
+      border-radius: 2rem;
+      padding: 0.5rem 0.75rem;
+      box-shadow: 0 2px 8px rgba(60,60,60,0.08);
       display: inline-flex;
       align-items: center;
       gap: 0.5rem;
@@ -133,6 +211,26 @@
       border-color: #283593;
     }
 
+    #months-row .btn-month {
+      border-radius: 20px;
+      transition: all 0.2s ease;
+      font-weight: 500;
+      padding: 8px 15px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+
+    #months-row .btn-month:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    }
+
+    #months-row .btn-month.active {
+      background-color: #3f51b5;
+      border-color: #3f51b5;
+      color: white;
+      box-shadow: 0 4px 14px rgba(63, 81, 181, 0.4);
+    }
+
     /* Mobile responsive styles for top buttons */
     @media (max-width: 768px) {
       .list-group-item { 
@@ -166,40 +264,11 @@
       }
     }
 
-    /* --- Copy/Paste buttons --- */
-    #btn-copy-month .bi {
-      color: #0d6efd !important;
-    }
-    #btn-paste-month .bi {
-      color: #198754 !important;
-    }
-    #btn-clear-month .bi {
-      color: #e60d0d !important;
-    }
-    #btn-copy-month:disabled .bi, #btn-paste-month:disabled .bi {
-      color: #adb5bd !important;
-    }
-    .btn-circle {
-      border-radius: 50%;
-      width: 2.2rem;
-      height: 2.2rem;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 1.2rem;
-      border: none;
-      background: #f5f5f5;
-      transition: background 0.2s;
-    }
-    .btn-circle:hover {
-      background: #f8d7da;
-    }
-
     /* --- Years Dropdown Beautification --- */
     #years-dropdown {
       font-size: 1.08rem;
-      border-radius: 2rem;
-      padding: 0.5rem 2.2rem 0.5rem 2.5rem;
+      border-radius: 1.25rem;
+      padding: 0.5rem 0rem 0.5rem 2.5rem;
       background: #fff;
       color: #3949ab;
       border: 2px solid #3949ab;
@@ -207,12 +276,10 @@
       font-weight: 500;
       min-width: 110px;
       max-width: 180px;
-      appearance: none;
-      position: relative;
       transition: border-color 0.2s, box-shadow 0.2s;
     }
     #years-dropdown:focus {
-      border-color: #0d6efd;
+      border-color: #579aff;
       box-shadow: 0 0 0 2px #e3eafc;
       outline: none;
     }
@@ -242,7 +309,7 @@
 <div class="container py-4">
   <div class="d-flex justify-content-between align-items-center mb-4">
     <div class="d-flex align-items-center">
-      <h2><i class="bi bi-people-fill me-2"></i>Finans Yöneticisi </h2>
+      <h2><i class="bi bi-people-fill me-2"></i>Finans Yöneticisi</h2>
       <small class="text-muted ms-2">v1.1.1</small>   
     </div>
     <div>
@@ -265,10 +332,12 @@
           <select id="years-dropdown" class="form-select form-select-sm"></select>
         </div>
         <span id="copy-paste-btn-group">
-          <button id="btn-clear-month" class="btn-circle btn btn-outline-danger btn-sm ms-2" title="Bu ayın verilerini temizle"><i class="bi bi-trash"></i></button>
-          <button onclick="toggleAllCurrencyMasks()" class="btn-circle btn btn-sm btn-secondary ms-2"><i id="show-hide-icon" class="bi bi-eye-slash"></i></button>
-          <button id="btn-copy-month" class="btn-circle btn btn-outline-info btn-sm ms-2" title="Bu ayın verilerini kopyala"><i class="bi bi-clipboard"></i></button>
-          <button id="btn-paste-month" class="btn-circle btn btn-outline-success btn-sm ms-2" title="Bu aya yapıştır" disabled><i class="bi bi-clipboard-check"></i></button>
+          <button id="btn-clear-month" class="btn btn-circle delete ms-2" title="Bu ayın verilerini temizle"><i class="fas fa-trash"></i></button>      
+          <button onclick="toggleAllCurrencyMasks()" class="btn-circle ms-2">
+            <i id="show-hide-icon" class="fas fa-eye-slash"></i>
+          </button>
+          <button id="btn-copy-month" class="btn-circle edit ms-2" title="Bu ayın verilerini kopyala"><i class="bi bi-clipboard"></i></button>
+          <button id="btn-paste-month" class="btn-circle success ms-2" title="Bu aya yapıştır" disabled><i class="bi bi-clipboard-check"></i></button>
           </span>
       </div>
     </div>
@@ -338,46 +407,65 @@
 </div>
 
 <!-- Spending Modal -->
-<div class="modal fade" id="spendingModal" tabindex="-1">
+ <div class="modal fade" id="spendingModal" tabindex="-1" aria-labelledby="spendingModalLabel" aria-hidden="true">
   <div class="modal-dialog">
     <div class="modal-content">
-      <div class="modal-header modal-header-spending">
-        <h5 class="modal-title" id="spendingModalLabel">Gider Ekle/Düzenle</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-      </div>
-      <div class="modal-body">
-        <form id="spendingForm">
-          <input type="hidden" id="spending-member-id">
-          <input type="hidden" id="spending-id">
-          <div class="mb-3">
-            <label for="spending-name" class="form-label">Adı</label>
-            <input type="text" class="form-control" id="spending-name" required>
+      <form id="spendingForm">          
+        <input type="hidden" id="spending-member-id">
+        <input type="hidden" id="spending-id">
+        <div class="modal-header modal-header-spending">
+          <h5 class="modal-title" id="spendingModalLabel">Gider Ekle/Düzenle</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Kapat"></button>
+        </div>
+        <div class="modal-body">
+          <!-- 1. spending-name -->
+          <div class="form-floating mb-3">
+            <input type="text" class="form-control" id="spending-name" placeholder="Gider Adı" required>
+            <label for="spending-name">Gider Adı</label>
           </div>
-          <div class="mb-3">
-            <label for="spending-value" class="form-label">Tutar</label>
-            <input type="number" class="form-control" id="spending-value" required min="0" step="0.01">
+
+          <!-- 2. spending-value -->
+          <div class="form-floating mb-3">
+            <input type="number" class="form-control" id="spending-value" placeholder="Tutar" required>
+            <label for="spending-value">Tutar</label>
           </div>
-          <div class="form-check mb-3">
+
+          <!-- 3. spending-payed -->
+          <div class="form-check form-switch mb-3">
             <input class="form-check-input" type="checkbox" id="spending-payed">
-            <label class="form-check-label" for="spending-payed">Ödendi mi?</label>
+            <label class="form-check-label" for="spending-payed">Ödendi</label>
           </div>
-          <div class="mb-3">
-            <label for="spending-card-id" class="form-label">Kredi Kartı</label>
-            <select class="form-select" id="spending-card-id"></select>
+
+          <!-- 4. spending-card-id -->
+          <div class="form-floating mb-3">
+            <select class="form-select" id="spending-card-id" aria-label="Kart seçimi">
+              <option selected disabled>Seçiniz</option>
+              <option value="1">Kart 1</option>
+              <option value="2">Kart 2</option>
+            </select>
+            <label for="spending-card-id">Kart</label>
           </div>
-          <div class="row mb-3">
-            <div class="col-md-6">
-              <label for="spending-current-installment" class="form-label">Mevcut Taksit</label>
-              <input type="number" class="form-control" id="spending-current-installment" min="1" max="12" value="1">
+          <!-- 5. Yan yana iki input -->
+          <div class="row g-3">
+            <div class="col-6 col-md-6">
+              <div class="form-floating">
+                <input type="number" class="form-control" id="spending-current-installment" placeholder="Mevcut Taksit">
+                <label for="spending-current-installment">Mevcut Taksit</label>
+              </div>
             </div>
-            <div class="col-md-6">
-              <label for="spending-installment" class="form-label">Taksit Sayısı</label>
-              <input type="number" class="form-control" id="spending-installment" min="1" max="12" value="1">
-            </div>        
+            <div class="col-6 col-md-6">
+              <div class="form-floating">
+                <input type="number" class="form-control" id="spending-installment" placeholder="Toplam Taksit">
+                <label for="spending-installment">Toplam Taksit</label>
+              </div>
+            </div>
           </div>
-          <button type="submit" class="btn btn-danger">Kaydet</button>
-        </form>
-      </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">İptal</button>
+          <button type="submit" class="btn btn-primary">Kaydet</button>
+        </div>
+      </form>
     </div>
   </div>
 </div>
@@ -435,8 +523,8 @@ function showToast(title, icon = "success", timer = 2000, position = "top-end", 
     customClass: showConfirmButton ? null : { popup: 'colored-toast' },
     showConfirmButton: showConfirmButton,
     showCancelButton: showConfirmButton,
-    confirmButtonText: 'Yes',
-    cancelButtonText: 'No',
+    confirmButtonText: 'Evet',
+    cancelButtonText: 'Hayır',
     confirmButtonColor: '#3085d6',
     cancelButtonColor: '#d33',
     timer: showConfirmButton ? undefined : timer,
@@ -468,7 +556,7 @@ function getMonthList(selectedYear) {
   return Array.from({ length: 12 }, (_, i) => String(i + 1));
 }
 function getMonthName(monthNum) {
-  return new Date(2000, Number(monthNum) - 1, 1).toLocaleString('default', { month: 'short' });
+  return new Date(2000, Number(monthNum) - 1, 1).toLocaleString('tr-TR', { month: 'long' });
 }
 
 function isNullOrEmpty(value) {
@@ -580,7 +668,7 @@ async function loadFromGoogleDrive() {
     fileRead = false;
     
     if (!access_token) {
-      console.log('[loadFromGoogleDrive] No access token, requesting new token');
+      console.log('[loadFromGoogleDrive] Hayır access token, requesting new token');
       await requestNewToken();
       return;
     }
@@ -593,7 +681,7 @@ async function loadFromGoogleDrive() {
     });
 
     if (!(response?.result?.files?.length > 0)) {
-      console.log('[loadFromGoogleDrive] No existing file found in Drive. Starting with empty data.');
+      console.log('[loadFromGoogleDrive] Hayır existing file found in Drive. Starting with empty data.');
       loadFromLocalStorage();
       return;
     }
@@ -915,8 +1003,8 @@ function renderMembers() {
             </div>
           </div>
           <div>
-            <button class="btn-member btn btn-sm btn-primary ms-2" onclick="openEditMember(${member.id})"><i class="bi bi-pencil"></i></button>
-            <button class="btn-member btn btn-sm btn-danger ms-2" onclick="deleteMember(${member.id})"><i class="bi bi-trash"></i></button>
+            <button class="btn-member btn btn-sm btn-primary ms-2" onclick="openEditMember(${member.id})"><i class="fas fa-pen"></i></button>
+            <button class="btn-member btn btn-sm btn-danger ms-2" onclick="deleteMember(${member.id})"><i class="fas fa-trash"></i></button>
           </div>
         </div>
         <div class="row mt-3">
@@ -926,16 +1014,16 @@ function renderMembers() {
               <div class="col-md-12 list-group mb-2">
                 ${incomes.map(income => `
                   <div class="col-md-12 list-group-item d-flex justify-content-between bg-income">
-                    <div class="col-md-5">
+                    <div>
                       <span class="fw-bold"><i class="bi bi-cash-coin"></i> ${income.name}</span>
                     </div>
-                    <div class="col-md-4 d-flex justify-content-end">
-                      <span class="fw-bold income-color pointer" onclick="toggleCurrencyMask(this, ${income.value})">${currency(income.value, isCurrencyMasked)}</span>                  
-                    </div>
-                    <div class="col-md-3 d-flex justify-content-end">
-                      <input name="income-received" type="checkbox" class="form-check-input" ${income.received ? 'checked' : ''} onchange="toggleIncomeReceived(${member.id},${income.id})" title="Alındı">
-                      <button class="icon-btn ms-2" onclick="openEditIncome(${member.id},${income.id})"><i class="bi bi-pencil"></i></button>
-                      <button class="icon-btn ms-2" onclick="deleteIncome(${member.id},${income.id})"><i class="bi bi-trash"></i></button>
+                    <div class="d-flex justify-content-end align-items-center">
+                      <span class="fw-bold income-color pointer" onclick="toggleCurrencyMask(this, ${income.value})">${currency(income.value, isCurrencyMasked)}</span>                                                
+                      <div class="form-check form-switch ms-3">
+                        <input class="form-check-input" type="checkbox" name="income-received" title="Alındı" ${income.received ? 'checked' : ''} onchange="toggleIncomeReceived(${member.id},${income.id})">
+                      </div>
+                      <button class="icon-btn edit" onclick="openEditIncome(${member.id},${income.id})"><i class="fas fa-pen"></i></button>
+                      <button class="icon-btn delete ms-2" onclick="deleteIncome(${member.id},${income.id})"><i class="fas fa-trash"></i></button>
                     </div>
                   </div>`).join('')}
               </div>
@@ -953,8 +1041,8 @@ function renderMembers() {
                     <span class="fw-bold"><i class="bi bi-credit-card-2-front"></i> ${card.name}</span>
                     <div class="item-actions ms-2">
                       <span class="fw-bold spending-color pointer" onclick="toggleCurrencyMask(this, ${cardSpend})">${currency(cardSpend, isCurrencyMasked)}</span>
-                      <button class="icon-btn ms-2" onclick="openEditCard(${member.id},${card.id})"><i class="bi bi-pencil"></i></button>
-                      <button class="icon-btn ms-2" onclick="deleteCard(${member.id},${card.id})"><i class="bi bi-trash"></i></button>
+                      <button class="icon-btn edit ms-2" onclick="openEditCard(${member.id},${card.id})"><i class="fas fa-pen"></i></button>
+                      <button class="icon-btn delete ms-2" onclick="deleteCard(${member.id},${card.id})"><i class="fas fa-trash"></i></button>
                     </div>
                   </div>`
                 }).join('')}
@@ -1001,10 +1089,12 @@ function renderMembers() {
                               onclick="toggleCurrencyMask(this, ${Number(spending.value) / (spending.installment || 1)})">${currency(Number(spending.value) / (spending.installment || 1), isCurrencyMasked)}</span>
                       </div>${spending.installment > 1 ? `<div>
                         <span class='fw-bold badge bg-danger pointer' onclick="toggleCurrencyMask(this, ${Number(spending.value)})">${currency(Number(spending.value), isCurrencyMasked)}</span></div>` : ''}              
-                    </div>                
-                    <input class="form-check-input ms-3" name="spending-payed" type="checkbox" ${spending.payed ? 'checked' : ''} onchange="toggleSpendingPayed(${member.id},${spending.id})" title="Ödendi">
-                    <button class="icon-btn ms-2" onclick="openEditSpending(${member.id},${spending.id})"><i class="bi bi-pencil"></i></button>
-                    <button class="icon-btn ms-2" onclick="deleteSpending(${member.id},${spending.id})"><i class="bi bi-trash"></i></button>
+                    </div>   
+                    <div class="form-check form-switch ms-3">
+                        <input class="form-check-input" type="checkbox" name="spending-payed" title="Ödendi" ${spending.payed ? 'checked' : ''} onchange="toggleSpendingPayed(${member.id},${spending.id})">
+                    </div>            
+                    <button class="icon-btn edit" onclick="openEditSpending(${member.id},${spending.id})"><i class="fas fa-pen"></i></button>
+                    <button class="icon-btn delete ms-2" onclick="deleteSpending(${member.id},${spending.id})"><i class="fas fa-trash"></i></button>
                   </div>
                 </div>`;
               }).join('')}
@@ -1291,7 +1381,7 @@ function populateSpendingCardDropdown(memberId, selectedCardId) {
   const member = members.find(m => m.id === memberId);
   const select = document.getElementById('spending-card-id');
   if (!member || !member.cards || !member.cards.length) {
-    select.innerHTML = '<option value="">No cards</option>';
+    select.innerHTML = '<option value="">Hayır cards</option>';
     select.value = '';
     return;
   }
@@ -1447,7 +1537,7 @@ function setupCopyPasteHandlers() {
     // The Save button should be type=submit
     const saveBtn = form.querySelector('button[type=submit],button:not([type])');
     if (saveBtn) saveBtn.type = 'submit';
-    // No-op: default form submit already works with Enter
+    // Hayır-op: default form submit already works with Enter
   }
 });
 
@@ -1507,11 +1597,11 @@ function toggleCurrencyMask(element, originalValue) {
 function toggleAllCurrencyMasks() {
   isCurrencyMasked = !isCurrencyMasked;
   if(isCurrencyMasked) {
-    document.getElementById('show-hide-icon').classList.remove('bi-eye');
-    document.getElementById('show-hide-icon').classList.add('bi-eye-slash');
+    document.getElementById('show-hide-icon').classList.remove('fa-eye');
+    document.getElementById('show-hide-icon').classList.add('fa-eye-slash');
   } else {
-    document.getElementById('show-hide-icon').classList.remove('bi-eye-slash');
-    document.getElementById('show-hide-icon').classList.add('bi-eye');
+    document.getElementById('show-hide-icon').classList.remove('fa-eye-slash');
+    document.getElementById('show-hide-icon').classList.add('fa-eye');
   }
   renderAll();
 }
