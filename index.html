@@ -135,11 +135,11 @@
 
     /* Mobile responsive styles for top buttons */
     @media (max-width: 768px) {
-      .list-group-item{ 
+      .list-group-item { 
         padding: 15px 8px !important;
       }
-      .div-spending-value {
-        margin-left: 0rem !important;
+      .btn-member, .btn-month, .bg-big {
+        margin-top: 0.5rem;
       }
       .top-action-btn {
         font-size: 0.9rem;
@@ -365,13 +365,15 @@
             <label for="spending-card-id" class="form-label">Kredi Kartı</label>
             <select class="form-select" id="spending-card-id"></select>
           </div>
-          <div class="mb-3">
-            <label for="spending-installment" class="form-label">Taksit Sayısı</label>
-            <input type="number" class="form-control" id="spending-installment" min="1" max="12" value="1">
-          </div>
-          <div class="mb-3">
-            <label for="spending-current-installment" class="form-label">Mevcut Taksit</label>
-            <input type="number" class="form-control" id="spending-current-installment" min="1" max="12" value="1">
+          <div class="row mb-3">
+            <div class="col-md-6">
+              <label for="spending-current-installment" class="form-label">Mevcut Taksit</label>
+              <input type="number" class="form-control" id="spending-current-installment" min="1" max="12" value="1">
+            </div>
+            <div class="col-md-6">
+              <label for="spending-installment" class="form-label">Taksit Sayısı</label>
+              <input type="number" class="form-control" id="spending-installment" min="1" max="12" value="1">
+            </div>        
           </div>
           <button type="submit" class="btn btn-danger">Kaydet</button>
         </form>
@@ -817,7 +819,7 @@ function renderMonthsRow() {
   const selectedYear = familyData.currentYear || getCurrentYearMonth().year;
   const months = getMonthList(selectedYear);
   const row = document.getElementById('months-row');
-  row.innerHTML = months.map(m => `<button class="btn btn-sm me-2 ${familyData.currentMonth === m ? 'btn-primary active fw-bold' : 'btn-outline-primary'}" onclick="switchMonth('${selectedYear}','${m}')">${getMonthName(m)}</button>`).join('');
+  row.innerHTML = months.map(m => `<button class="btn-month btn btn-sm me-2 ${familyData.currentMonth === m ? 'btn-primary active fw-bold' : 'btn-outline-primary'}" onclick="switchMonth('${selectedYear}','${m}')">${getMonthName(m)}</button>`).join('');
 }
 
 // --- Family Summary ---
@@ -913,29 +915,62 @@ function renderMembers() {
             </div>
           </div>
           <div>
-            <button class="btn btn-sm btn-primary ms-2" onclick="openEditMember(${member.id})"><i class="bi bi-pencil"></i></button>
-            <button class="btn btn-sm btn-danger ms-2" onclick="deleteMember(${member.id})"><i class="bi bi-trash"></i></button>
+            <button class="btn-member btn btn-sm btn-primary ms-2" onclick="openEditMember(${member.id})"><i class="bi bi-pencil"></i></button>
+            <button class="btn-member btn btn-sm btn-danger ms-2" onclick="deleteMember(${member.id})"><i class="bi bi-trash"></i></button>
           </div>
         </div>
         <div class="row mt-3">
           <div class="col-md-4">
-            <h6>Gelirler <button class="icon-btn income-color ms-1" onclick="openAddIncome(${member.id})"><i class="bi bi-plus-circle"></i></button></h6>
-            <ul class="col-md-12 list-group mb-2">
-              ${incomes.map(income => `
-                <li class="col-md-12 list-group-item d-flex justify-content-between align-items-center bg-income">
-                  <span class="fw-bold"><i class="bi bi-cash-coin"></i> ${income.name}</span>
-                  <div class="item-actions ms-2">
-                    <span class="fw-bold income-color pointer" onclick="toggleCurrencyMask(this, ${income.value})">${currency(income.value, isCurrencyMasked)}</span>
-                    <input name="income-received" type="checkbox" class="form-check-input ms-2" ${income.received ? 'checked' : ''} onchange="toggleIncomeReceived(${member.id},${income.id})" title="Alındı">
-                    <button class="icon-btn ms-2" onclick="openEditIncome(${member.id},${income.id})"><i class="bi bi-pencil"></i></button>
-                    <button class="icon-btn ms-2" onclick="deleteIncome(${member.id},${income.id})"><i class="bi bi-trash"></i></button>
-                  </div>
-                </li>`).join('')}
-            </ul>
+            <div class="col-md-12">
+              <h6>Gelirler <button class="icon-btn income-color ms-1" onclick="openAddIncome(${member.id})"><i class="bi bi-plus-circle"></i></button></h6>
+              <div class="col-md-12 list-group mb-2">
+                ${incomes.map(income => `
+                  <div class="col-md-12 list-group-item d-flex justify-content-between bg-income">
+                    <div class="col-md-5">
+                      <span class="fw-bold"><i class="bi bi-cash-coin"></i> ${income.name}</span>
+                    </div>
+                    <div class="col-md-4 d-flex justify-content-end">
+                      <span class="fw-bold income-color pointer" onclick="toggleCurrencyMask(this, ${income.value})">${currency(income.value, isCurrencyMasked)}</span>                  
+                    </div>
+                    <div class="col-md-3 d-flex justify-content-end">
+                      <input name="income-received" type="checkbox" class="form-check-input" ${income.received ? 'checked' : ''} onchange="toggleIncomeReceived(${member.id},${income.id})" title="Alındı">
+                      <button class="icon-btn ms-2" onclick="openEditIncome(${member.id},${income.id})"><i class="bi bi-pencil"></i></button>
+                      <button class="icon-btn ms-2" onclick="deleteIncome(${member.id},${income.id})"><i class="bi bi-trash"></i></button>
+                    </div>
+                  </div>`).join('')}
+              </div>
+            </div>
+            <div class="col-md-12 mt-4 mb-4">
+              <h6>Kredi Kartları <button class="icon-btn card-color" onclick="openAddCard(${member.id})"><i class="bi bi-credit-card-2-front"></i></button></h6>
+              <div class="col-md-12 list-group mb-2">
+                ${(member.cards || []).map(card => {
+                  const cardSpend = (member.spendings || []).filter(s => s.cardId === card.id && s.payed).reduce((a, b) => {
+                    if (!b.installment || b.installment < 1) b.installment = 1;
+                    return a + Number(b.value) / b.installment;
+                  }, 0);
+                  return `
+                  <div class="list-group-item bg-card d-flex justify-content-between align-items-center">
+                    <span class="fw-bold"><i class="bi bi-credit-card-2-front"></i> ${card.name}</span>
+                    <div class="item-actions ms-2">
+                      <span class="fw-bold spending-color pointer" onclick="toggleCurrencyMask(this, ${cardSpend})">${currency(cardSpend, isCurrencyMasked)}</span>
+                      <button class="icon-btn ms-2" onclick="openEditCard(${member.id},${card.id})"><i class="bi bi-pencil"></i></button>
+                      <button class="icon-btn ms-2" onclick="deleteCard(${member.id},${card.id})"><i class="bi bi-trash"></i></button>
+                    </div>
+                  </div>`
+                }).join('')}
+              </div>
+              <div class="fw-bold">Toplam Kart Harcaması: <span class="spending-color pointer" onclick="toggleCurrencyMask(this, '${(member.spendings || []).filter(s => s.cardId && s.payed).reduce((a, b) => {
+                if (!b.installment || b.installment < 1) b.installment = 1;
+                return a + Number(b.value) / b.installment;
+              }, 0)}')">${currency((member.spendings || []).filter(s => s.cardId && s.payed).reduce((a, b) => {
+                if (!b.installment || b.installment < 1) b.installment = 1;
+                return a + Number(b.value) / b.installment;
+              }, 0), isCurrencyMasked)}</span></div>
+            </div>
           </div>
-          <div class="col-md-4">
+          <div class="col-md-8">
             <h6>Giderler <button class="icon-btn spending-color ms-1" onclick="openAddSpending(${member.id})"><i class="bi bi-plus-circle"></i></button></h6>
-            <ul class="col-md-12 list-group mb-2">
+            <div class="col-md-12 list-group mb-2">
               ${spendings.map(spending => {
                 const card = (member.cards || []).find(c => c.id === spending.cardId);
                 let currentInstallment = 1;
@@ -948,8 +983,8 @@ function renderMembers() {
                   }
                 }
                 return `
-                <li class="col-md-12 list-group-item d-flex justify-content-between align-items-center bg-spending">
-                  <div class="col-md-6">
+                <div class="col-md-12 list-group-item d-flex justify-content-between bg-spending">
+                  <div class="col-md-7">
                     <div class="col-md-12 fw-bold">
                       <i class="bi bi-cart-dash"></i> ${spending.name} 
                     </div>
@@ -959,47 +994,22 @@ function renderMembers() {
                                 ? spending.currentInstallment : currentInstallment}/${spending.installment}</span>` : ''}
                     </div>
                   </div>
-                  <div class="div-spending-value col-md-3 ms-3"> 
-                    <span class="fw-bold spending-color pointer" onclick="toggleCurrencyMask(this, ${Number(spending.value) / (spending.installment || 1)})">${currency(Number(spending.value) / (spending.installment || 1), isCurrencyMasked)}</span>
-                    
-                    ${spending.installment > 1 ? `<span class='fw-bold badge bg-danger pointer' onclick="toggleCurrencyMask(this, ${Number(spending.value)})">${currency(Number(spending.value), isCurrencyMasked)}` : ''}</span>
-                  </div>
-                  <div class="col-md-3">                
-                    <input name="spending-payed" type="checkbox" class="form-check-input ms-2" ${spending.payed ? 'checked' : ''} onchange="toggleSpendingPayed(${member.id},${spending.id})" title="Ödendi">
+                  <div class="d-flex justify-content-end align-items-center">
+                    <div> 
+                      <div>
+                        <span class="fw-bold spending-color pointer" 
+                              onclick="toggleCurrencyMask(this, ${Number(spending.value) / (spending.installment || 1)})">${currency(Number(spending.value) / (spending.installment || 1), isCurrencyMasked)}</span>
+                      </div>${spending.installment > 1 ? `<div>
+                        <span class='fw-bold badge bg-danger pointer' onclick="toggleCurrencyMask(this, ${Number(spending.value)})">${currency(Number(spending.value), isCurrencyMasked)}</span></div>` : ''}              
+                    </div>                
+                    <input class="form-check-input ms-3" name="spending-payed" type="checkbox" ${spending.payed ? 'checked' : ''} onchange="toggleSpendingPayed(${member.id},${spending.id})" title="Ödendi">
                     <button class="icon-btn ms-2" onclick="openEditSpending(${member.id},${spending.id})"><i class="bi bi-pencil"></i></button>
                     <button class="icon-btn ms-2" onclick="deleteSpending(${member.id},${spending.id})"><i class="bi bi-trash"></i></button>
                   </div>
-                </li>`;
+                </div>`;
               }).join('')}
-            </ul>
+            </div>
             <div class="fw-bold">Toplam: <span class="spending-color pointer" onclick="toggleCurrencyMask(this, ${spend})">${currency(spend, isCurrencyMasked)}</span></div>
-          </div>
-          <div class="col-md-4">
-            <h6>Kredi Kartları <button class="icon-btn card-color ms-1" onclick="openAddCard(${member.id})"><i class="bi bi-credit-card-2-front"></i></button></h6>
-            <ul class="col-md-12 list-group mb-2">
-              ${(member.cards || []).map(card => {
-                const cardSpend = (member.spendings || []).filter(s => s.cardId === card.id && s.payed).reduce((a, b) => {
-                  if (!b.installment || b.installment < 1) b.installment = 1;
-                  return a + Number(b.value) / b.installment;
-                }, 0);
-                return `
-                <li class="list-group-item bg-card d-flex justify-content-between align-items-center">
-                  <span class="fw-bold"><i class="bi bi-credit-card-2-front"></i> ${card.name}</span>
-                  <div class="item-actions ms-2">
-                    <span class="fw-bold spending-color pointer" onclick="toggleCurrencyMask(this, ${cardSpend})">${currency(cardSpend, isCurrencyMasked)}</span>
-                    <button class="icon-btn ms-2" onclick="openEditCard(${member.id},${card.id})"><i class="bi bi-pencil"></i></button>
-                    <button class="icon-btn ms-2" onclick="deleteCard(${member.id},${card.id})"><i class="bi bi-trash"></i></button>
-                  </div>
-                </li>`
-              }).join('')}
-            </ul>
-            <div class="fw-bold">Toplam Kart Harcaması: <span class="spending-color pointer" onclick="toggleCurrencyMask(this, '${(member.spendings || []).filter(s => s.cardId && s.payed).reduce((a, b) => {
-              if (!b.installment || b.installment < 1) b.installment = 1;
-              return a + Number(b.value) / b.installment;
-            }, 0)}')">${currency((member.spendings || []).filter(s => s.cardId && s.payed).reduce((a, b) => {
-              if (!b.installment || b.installment < 1) b.installment = 1;
-              return a + Number(b.value) / b.installment;
-            }, 0), isCurrencyMasked)}</span></div>
           </div>
         </div>
       </div>
