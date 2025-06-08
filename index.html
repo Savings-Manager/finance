@@ -59,8 +59,8 @@
     .colored-toast .swal2-html-container {
       color: white;
     }
-    .income-color { color: #43a047; }
-    .spending-color { color: #e53935; }
+    .income-color { color: #43a047 !important; }
+    .spending-color { color: #e53935 !important; }
     .card-color { color: #3949ab; }
     .pointer { cursor: pointer; }
     .bg-big { font-size: 1.2rem !important; }
@@ -77,7 +77,7 @@
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      width: 35px;
+      width: 25px;
       height: 35px;
       background: none;
       color: black;
@@ -343,12 +343,16 @@
     </div>
     <div class="d-flex justify-content-between align-items-center mb-2">   
       <div id="months-row"></div>
-      <div>
-        <button class="top-action-btn" id="btn-add-member"><i class="bi bi-person-plus"></i> Kişi Ekle</button>
-      </div>
     </div>
     <div id="family-summary" class="mb-4"></div>
-    <h4>Kişiler</h4>
+    <div class="row col-12">
+      <div class="col-8 col-md-8">
+      <h4>Kişiler</h4> 
+    </div>
+    <div class="col-4 col-md-4 d-flex justify-content-end">
+        <button class="top-action-btn" id="btn-add-member"><i class="bi bi-person-plus"></i> Kişi Ekle</button>
+    </div>
+    </div>
     <div id="members-list" class="mt-2"></div>
   </div>
 </div>
@@ -575,9 +579,9 @@ async function initGoogleDrive() {
       client_id: CLIENT_ID,
       scope: SCOPES,
       callback: async (resp) => {
-        console.log('[tokenClient][callback] Token client callback response:', resp);
+        console.log('[oauth2.initTokenClient][callback] Token client callback response:', resp);
         if (resp.error) {
-          console.error('Error getting access token:', resp.error);
+          console.error('[oauth2.initTokenClient][callback] Error getting access token:', resp.error);
 
           logOut();          
           loadFromLocalStorage();
@@ -592,12 +596,12 @@ async function initGoogleDrive() {
         localStorage.setItem(TOKEN_EXPIRY_KEY, expiryTime.toString());
         document.getElementById('drive-warning').classList.add('d-none');
 
-        console.log('[tokenClient][callback] New access token received and saved.');
+        console.log('[oauth2.initTokenClient][callback] New access token received and saved.');
         
         await loadFromGoogleDrive();
       },
       error_callback: (error) => {
-        console.log('[tokenClient][error_callback] Error: ', error);
+        console.log('[oauth2.initTokenClient][error_callback] Error: ', error);
         // user closed the popup: error.type === 'popup_closed'
         logOut();          
         loadFromLocalStorage();
@@ -610,21 +614,40 @@ async function initGoogleDrive() {
     await new Promise((resolve, reject) => {
       gapi.load('client', {
         callback: (response) => {
-          console.log('[initGoogleDrive] Promise: Drive API client loaded successfully', response);
+          console.log('[initGoogleDrive][gapi.load][callback] Promise: Drive API client loaded successfully', response);
           resolve();
         },
         onerror: (error) => {
-          console.error('[initGoogleDrive] Promise: Error loading Drive API client:', error);
+          console.error('[initGoogleDrive][gapi.load][onerror] Promise: Error loading Drive API client:', error);
           reject(error);
         }
       });
+    });
+
+    Swal.fire({
+      title: 'Google Drive verileri alınıyor...',
+      allowOutsideClick: false,
+      didOpen: () => {
+        Swal.showLoading();
+        
+        setTimeout(() => {
+          if(!gapiInited) {   
+            console.log('[initGoogleDrive][gapi.client.init] Drive API TIMED OUT.');    
+            fileRead = false;
+            loadFromLocalStorage();
+            renderInit();
+          }
+          Swal.close();
+        }, 3000);
+      }
     });
 
     await gapi.client.init({
       apiKey: API_KEY,
       discoveryDocs: ['https://www.googleapis.com/discovery/v1/apis/drive/v3/rest']
     });
-    console.log('[initGoogleDrive] gapi.client.init: Drive API initialized successfully.');
+
+    console.log('[initGoogleDrive][gapi.client.init] Drive API initialized successfully.');
 
     gapiInited = true;
 
@@ -639,12 +662,12 @@ async function initGoogleDrive() {
       return;
     }
   
-    if(!isNullOrEmpty(tokenExpiry) && now >= parseInt(tokenExpiry)) {
-      console.log('[initGoogleDrive] Token expired, requesting new token.');
-      logOut();
-      await requestNewToken();
-      return;
-    }
+    // if(!isNullOrEmpty(tokenExpiry) && now >= parseInt(tokenExpiry)) {
+    //   console.log('[initGoogleDrive] Token expired, requesting new token.');
+    //   logOut();
+    //   await requestNewToken();
+    //   return;
+    // }
 
     console.log('[initGoogleDrive] Using saved access token.');
     access_token = savedToken;
@@ -795,7 +818,7 @@ function loadFromLocalStorage() {
   const data = localStorage.getItem(STORAGE_KEY);
   if (data) {
     let loaded = JSON.parse(data);
-    if (loaded.months) {
+    if (loaded?.months?.length > 0) {
       let newYears = {};
       Object.entries(loaded.months).forEach(([key, value]) => {
         const [year, month] = key.split('-');
@@ -813,16 +836,10 @@ function loadFromLocalStorage() {
       familyData = loaded;
     }
   }
-  // Always ensure structure
-  if (!familyData.years) {
-    familyData.years = {};
-  }
-  if (!familyData.currentYear) {
-    familyData.currentYear = getCurrentYearMonth().year;
-  }
-  if (!familyData.currentMonth) { 
-    familyData.currentMonth = getCurrentYearMonth().month;
-  }
+
+  familyData.years ??= {};
+  familyData.currentYear ??= getCurrentYearMonth().year;
+  familyData.currentMonth ??= getCurrentYearMonth().month;
   
   document.getElementById('drive-warning').classList.remove('d-none');
   saveToLocalStorage();
@@ -1010,7 +1027,7 @@ function renderMembers() {
         <div class="row mt-3">
           <div class="col-md-4">
             <div class="col-md-12">
-              <h6>Gelirler <button class="icon-btn income-color ms-1" onclick="openAddIncome(${member.id})"><i class="bi bi-plus-circle"></i></button></h6>
+              <h6 class="income-color">Gelirler<button class="icon-btn income-color" onclick="openAddIncome(${member.id})"><i class="bi bi-plus-circle"></i></button></h6>
               <div class="col-md-12 list-group mb-2">
                 ${incomes.map(income => `
                   <div class="col-md-12 list-group-item d-flex justify-content-between bg-income">
@@ -1023,7 +1040,7 @@ function renderMembers() {
                         <input class="form-check-input" type="checkbox" name="income-received" title="Alındı" ${income.received ? 'checked' : ''} onchange="toggleIncomeReceived(${member.id},${income.id})">
                       </div>
                       <button class="icon-btn edit" onclick="openEditIncome(${member.id},${income.id})"><i class="fas fa-pen"></i></button>
-                      <button class="icon-btn delete ms-2" onclick="deleteIncome(${member.id},${income.id})"><i class="fas fa-trash"></i></button>
+                      <button class="icon-btn delete" onclick="deleteIncome(${member.id},${income.id})"><i class="fas fa-trash"></i></button>
                     </div>
                   </div>`).join('')}
               </div>
@@ -1041,8 +1058,8 @@ function renderMembers() {
                     <span class="fw-bold"><i class="bi bi-credit-card-2-front"></i> ${card.name}</span>
                     <div class="item-actions ms-2">
                       <span class="fw-bold spending-color pointer" onclick="toggleCurrencyMask(this, ${cardSpend})">${currency(cardSpend, isCurrencyMasked)}</span>
-                      <button class="icon-btn edit ms-2" onclick="openEditCard(${member.id},${card.id})"><i class="fas fa-pen"></i></button>
-                      <button class="icon-btn delete ms-2" onclick="deleteCard(${member.id},${card.id})"><i class="fas fa-trash"></i></button>
+                      <button class="icon-btn edit" onclick="openEditCard(${member.id},${card.id})"><i class="fas fa-pen"></i></button>
+                      <button class="icon-btn delete" onclick="deleteCard(${member.id},${card.id})"><i class="fas fa-trash"></i></button>
                     </div>
                   </div>`
                 }).join('')}
@@ -1057,7 +1074,7 @@ function renderMembers() {
             </div>
           </div>
           <div class="col-md-8">
-            <h6>Giderler <button class="icon-btn spending-color ms-1" onclick="openAddSpending(${member.id})"><i class="bi bi-plus-circle"></i></button></h6>
+            <h6 class="spending-color">Giderler<button class="icon-btn spending-color" onclick="openAddSpending(${member.id})"><i class="bi bi-plus-circle"></i></button></h6>
             <div class="col-md-12 list-group mb-2">
               ${spendings.map(spending => {
                 const card = (member.cards || []).find(c => c.id === spending.cardId);
@@ -1094,7 +1111,7 @@ function renderMembers() {
                         <input class="form-check-input" type="checkbox" name="spending-payed" title="Ödendi" ${spending.payed ? 'checked' : ''} onchange="toggleSpendingPayed(${member.id},${spending.id})">
                     </div>            
                     <button class="icon-btn edit" onclick="openEditSpending(${member.id},${spending.id})"><i class="fas fa-pen"></i></button>
-                    <button class="icon-btn delete ms-2" onclick="deleteSpending(${member.id},${spending.id})"><i class="fas fa-trash"></i></button>
+                    <button class="icon-btn delete" onclick="deleteSpending(${member.id},${spending.id})"><i class="fas fa-trash"></i></button>
                   </div>
                 </div>`;
               }).join('')}
