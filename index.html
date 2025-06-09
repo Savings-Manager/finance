@@ -320,6 +320,7 @@
       <small class="text-muted ms-2">v1.1.1</small>   
     </div>
     <div>
+      <button class="top-action-btn"><a href="file:///D:/Programming/Github/finance/gym.html" target="_blank">GYM</a></button>
       <button class="top-action-btn" id="btn-load-json"><i class="bi bi-folder2-open ms-2"></i>Verileri Geri Yükle</button>
       <button class="top-action-btn" id="btn-save-json"><i class="bi bi-save ms-2"></i>Verileri Yedekle</button>
     </div>
@@ -693,7 +694,9 @@ async function initGoogleDrive() {
     if(!isNullOrEmpty(timeOut)) {
       clearTimeout(timeOut);
     }
-    googleDriveSwal.close();
+    if(!isNullOrEmpty(googleDriveSwal)) {
+      googleDriveSwal.close();
+    }
 
     await loadFromGoogleDrive();
   } catch (error) {
