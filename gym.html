@@ -320,7 +320,7 @@
       <small class="text-muted ms-2">v1.1.1</small>   
     </div>
     <div>
-      <button class="top-action-btn"><a href="file:///D:/Programming/Github/finance/index.html" target="_blank">Finans</a></button>
+      <button class="top-action-btn"><a href="https://savings-manager.github.io/finance/" target="_blank">Finans</a></button>
       <button class="top-action-btn" id="btn-load-json"><i class="bi bi-folder2-open ms-2"></i>Verileri Geri Yükle</button>
       <button class="top-action-btn" id="btn-save-json"><i class="bi bi-save ms-2"></i>Verileri Yedekle</button>
     </div>
@@ -503,23 +503,9 @@ async function initGoogleDrive() {
       await requestNewToken();
       return;
     }
-  
-    // if(!isNullOrEmpty(tokenExpiry) && now >= parseInt(tokenExpiry)) {
-    //   console.log('[initGoogleDrive] Token expired, requesting new token.');
-    //   logOut();
-    //   await requestNewToken();
-    //   return;
-    // }
 
     console.log('[initGoogleDrive] Using saved access token.');
     access_token = savedToken;
-
-    if(!isNullOrEmpty(timeOut)) {
-      clearTimeout(timeOut);
-    }
-    if(!isNullOrEmpty(googleDriveSwal)) {
-      googleDriveSwal.close();
-    }
 
     await loadFromGoogleDrive();
   } catch (error) {
@@ -579,6 +565,12 @@ async function loadFromGoogleDrive() {
       familyData.cycles ??= {};
       familyData.currentCycle ??= 1;
       fileRead = true;
+      if(!isNullOrEmpty(timeOut)) {
+        clearTimeout(timeOut);
+      }
+      if(!isNullOrEmpty(googleDriveSwal)) {
+        googleDriveSwal.close();
+      }
       console.log('[loadFromGoogleDrive] Data loaded successfully from Drive: ', data);
     } 
   } catch (error) {
