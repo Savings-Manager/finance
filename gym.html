@@ -320,7 +320,7 @@
       <small class="text-muted ms-2">v1.1.1</small>   
     </div>
     <div>
-      <button class="top-action-btn"><a href="https://savings-manager.github.io/finance/" target="_blank">Finans</a></button>
+      <button class="top-action-btn"><a href="https://savings-manager.github.io/finance/">Finans</a></button>
       <button class="top-action-btn" id="btn-load-json"><i class="bi bi-folder2-open ms-2"></i>Verileri Geri Yükle</button>
       <button class="top-action-btn" id="btn-save-json"><i class="bi bi-save ms-2"></i>Verileri Yedekle</button>
     </div>
@@ -724,11 +724,21 @@ function renderDaysRow() {
 
   const days = getDayList();
   const selectedDays = familyData.cycles[cycle]?.days;
-
+  
+  let html = '';
+  days.forEach(x=> {
+    html += `<div class="col-6 col-md-3 mt-2">
+              <label for="day_${x}" class="form-label">${getDayName(x)}</label>
+              <input id="day_${x}" 
+                      value="${selectedDays[x] ?? ''}" 
+                      onchange="onDateChange(${x})" 
+                      type='date' 
+                      placeholder="${getDayName(x)}" 
+                      class="form-control btn-day btn btn-sm btn-outline-primary"/>
+            </div>`
+  });
   const row = document.getElementById('days-row');
-  row.innerHTML = days.map(m => `<div class="col-2 col-md-2 mt-2"><label for="day_${m}">${getDayName(m)}</label>
-          <input id="day_${m}" value=${selectedDays[m]} onchange="onDateChange(${m})" type='date' placeholder="${getDayName(m)}" class="btn-day btn btn-sm mt-2 me-2 btn-outline-primary"/></div>`
-  ).join('');
+  row.innerHTML = html;
 }
 
 // --- Render Functions ---
