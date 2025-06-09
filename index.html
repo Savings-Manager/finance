@@ -320,7 +320,7 @@
       <small class="text-muted ms-2">v1.1.1</small>   
     </div>
     <div>
-      <button class="top-action-btn"><a href="https://savings-manager.github.io/finance/gym.html">GYM</a></button>
+      <button class="top-action-btn"><a id="link-gym" href="https://savings-manager.github.io/finance/gym.html">GYM</a></button>
       <button class="top-action-btn" id="btn-load-json"><i class="bi bi-folder2-open ms-2"></i>Verileri Geri Yükle</button>
       <button class="top-action-btn" id="btn-save-json"><i class="bi bi-save ms-2"></i>Verileri Yedekle</button>
     </div>
@@ -876,6 +876,11 @@ function renderInit() {
 // --- Run on load ---
 window.onload = initGoogleDrive;
 renderAll();
+
+const basePath = location.href.replace(/\/[^/]*$/, '/');
+
+const link_gym = document.getElementById('link-gym');
+link_gym.href = basePath + 'gym.html';
 
 // --- Month Handling ---
 function ensureMonthData(year, month) {
