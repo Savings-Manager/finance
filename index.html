@@ -72,6 +72,10 @@
     .modal-header-card { background: #3949ab; color: #fff; }
     .material-shadow { box-shadow: 0 2px 8px rgba(60,60,60,0.08); border-radius: 12px; }
     .table thead th { background: #f5f5f5; }
+
+    .form-check {
+      margin-bottom: 0!important;
+    }
     
     .icon-btn {
       display: inline-flex;
@@ -236,7 +240,7 @@
       .list-group-item { 
         padding: 15px 8px !important;
       }
-      .btn-member, .btn-month, .bg-big {
+      .btn-month, .bg-big {
         margin-top: 0.5rem;
       }
       .top-action-btn {
@@ -244,6 +248,9 @@
         padding: 0.4rem 0.8rem;
         margin-right: 0.3rem;
         margin-top: 0.4rem;
+      }
+      #btn-add-member {
+        margin-top: 0rem!important;
       }
       .top-action-btn i {
         font-size: 0.9rem;
@@ -339,6 +346,20 @@
           <button id="btn-copy-month" class="btn-circle edit ms-2" title="Bu ayın verilerini kopyala"><i class="bi bi-clipboard"></i></button>
           <button id="btn-paste-month" class="btn-circle success ms-2" title="Bu aya yapıştır" disabled><i class="bi bi-clipboard-check"></i></button>
           </span>
+        <!-- <div class="row col-12">
+          <div class="col-2 col-md-2 years-dropdown-wrapper">
+            <i class="bi bi-calendar3 dropdown-icon"></i>
+            <select id="years-dropdown" class="form-select form-select-sm"></select>
+          </div>
+          <div class="col-6 col-md-6">
+            <button id="btn-clear-month" class="btn btn-circle delete" title="Bu ayın verilerini temizle"><i class="fas fa-trash"></i></button>      
+            <button onclick="toggleAllCurrencyMasks()" class="btn-circle ms-2">
+              <i id="show-hide-icon" class="fas fa-eye-slash"></i>
+            </button>
+            <button id="btn-copy-month" class="btn-circle edit ms-2" title="Bu ayın verilerini kopyala"><i class="bi bi-clipboard"></i></button>
+            <button id="btn-paste-month" class="btn-circle success ms-2" title="Bu aya yapıştır" disabled><i class="bi bi-clipboard-check"></i></button>
+          </div>
+        </div> -->
       </div>
     </div>
     <div class="d-flex justify-content-between align-items-center mb-2">   
@@ -346,10 +367,10 @@
     </div>
     <div id="family-summary" class="mb-4"></div>
     <div class="row col-12">
-      <div class="col-8 col-md-8">
+      <div class="col-7 col-md-7">
       <h4>Kişiler</h4> 
     </div>
-    <div class="col-4 col-md-4 d-flex justify-content-end">
+    <div class="col-5 col-md-5 d-flex justify-content-end">
         <button class="top-action-btn" id="btn-add-member"><i class="bi bi-person-plus"></i> Kişi Ekle</button>
     </div>
     </div>
@@ -357,7 +378,7 @@
   </div>
 </div>
 
-<!-- Modals -->
+<!-- Member Modal -->
 <div class="modal fade" id="memberModal" tabindex="-1">
   <div class="modal-dialog">
     <div class="modal-content">
@@ -380,38 +401,41 @@
 </div>
 
 <!-- Income Modal -->
-<div class="modal fade" id="incomeModal" tabindex="-1">
+<div class="modal fade" id="incomeModal" tabindex="-1" aria-labelledby="incomeModalLabel" aria-hidden="true">
   <div class="modal-dialog">
     <div class="modal-content">
-      <div class="modal-header modal-header-income">
-        <h5 class="modal-title" id="incomeModalLabel">Gelir Ekle/Düzenle</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-      </div>
-      <div class="modal-body">
-        <form id="incomeForm">
-          <input type="hidden" id="income-member-id">
-          <input type="hidden" id="income-id">
-          <div class="mb-3">
-            <label for="income-name" class="form-label">Adı</label>
-            <input type="text" class="form-control" id="income-name" required>
+      <form id="incomeForm">
+        <input type="hidden" id="income-member-id">
+        <input type="hidden" id="income-id">
+        <div class="modal-header modal-header-income">
+          <h5 class="modal-title" id="incomeModalLabel">Gelir Ekle/Düzenle</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Kapat"></button>
+        </div>
+        <div class="modal-body">
+          <div class="form-floating mb-3">
+            <input type="text" class="form-control" id="income-name" placeholder="Gelir Adı" required>
+            <label for="income-name">Adı</label>
           </div>
-          <div class="mb-3">
-            <label for="income-value" class="form-label">Tutar</label>
+          <div class="form-floating mb-3">
             <input type="number" class="form-control" id="income-value" required min="0" step="0.01">
+            <label for="income-value">Tutar</label>
           </div>
-          <div class="form-check mb-3">
+          <div class="form-check form-switch">
             <input class="form-check-input" type="checkbox" id="income-received">
-            <label class="form-check-label" for="income-received">Alındı mı?</label>
+            <label class="form-check-label" for="income-received">Alındı</label>
           </div>
-          <button type="submit" class="btn btn-success">Kaydet</button>
-        </form>
-      </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">İptal</button>
+          <button type="submit" class="btn btn-primary">Kaydet</button>
+        </div>
+      </form>
     </div>
   </div>
 </div>
 
 <!-- Spending Modal -->
- <div class="modal fade" id="spendingModal" tabindex="-1" aria-labelledby="spendingModalLabel" aria-hidden="true">
+<div class="modal fade" id="spendingModal" tabindex="-1" aria-labelledby="spendingModalLabel" aria-hidden="true">
   <div class="modal-dialog">
     <div class="modal-content">
       <form id="spendingForm">          
@@ -422,25 +446,18 @@
           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Kapat"></button>
         </div>
         <div class="modal-body">
-          <!-- 1. spending-name -->
           <div class="form-floating mb-3">
             <input type="text" class="form-control" id="spending-name" placeholder="Gider Adı" required>
             <label for="spending-name">Gider Adı</label>
           </div>
-
-          <!-- 2. spending-value -->
           <div class="form-floating mb-3">
-            <input type="number" class="form-control" id="spending-value" placeholder="Tutar" required>
+            <input type="number" class="form-control" id="spending-value" placeholder="Tutar" required min="0" step="0.01">
             <label for="spending-value">Tutar</label>
           </div>
-
-          <!-- 3. spending-payed -->
           <div class="form-check form-switch mb-3">
             <input class="form-check-input" type="checkbox" id="spending-payed">
             <label class="form-check-label" for="spending-payed">Ödendi</label>
           </div>
-
-          <!-- 4. spending-card-id -->
           <div class="form-floating mb-3">
             <select class="form-select" id="spending-card-id" aria-label="Kart seçimi">
               <option selected disabled>Seçiniz</option>
@@ -449,7 +466,6 @@
             </select>
             <label for="spending-card-id">Kart</label>
           </div>
-          <!-- 5. Yan yana iki input -->
           <div class="row g-3">
             <div class="col-6 col-md-6">
               <div class="form-floating">
@@ -518,6 +534,8 @@ let tokenClient = null;
 let gapiInited = false;
 let gisInited = false;
 let fileRead = false;
+let googleDriveSwal = null;
+let timeOut = null;
 
 function showToast(title, icon = "success", timer = 2000, position = "top-end", showConfirmButton = false) {
   const Toast = Swal.mixin({
@@ -624,20 +642,20 @@ async function initGoogleDrive() {
       });
     });
 
-    Swal.fire({
+    googleDriveSwal = Swal.fire({
       title: 'Google Drive verileri alınıyor...',
       allowOutsideClick: false,
       didOpen: () => {
         Swal.showLoading();
         
-        setTimeout(() => {
+        timeOut = setTimeout(() => {
           if(!gapiInited) {   
             console.log('[initGoogleDrive][gapi.client.init] Drive API TIMED OUT.');    
             fileRead = false;
             loadFromLocalStorage();
             renderInit();
           }
-          Swal.close();
+          googleDriveSwal.close();
         }, 3000);
       }
     });
@@ -671,6 +689,12 @@ async function initGoogleDrive() {
 
     console.log('[initGoogleDrive] Using saved access token.');
     access_token = savedToken;
+
+    if(!isNullOrEmpty(timeOut)) {
+      clearTimeout(timeOut);
+    }
+    googleDriveSwal.close();
+
     await loadFromGoogleDrive();
   } catch (error) {
     console.error('Error during Google Drive initialization:', error);
@@ -847,12 +871,8 @@ function loadFromLocalStorage() {
 
 function renderInit() {
   console.log('[renderInit] Rendering initial data...');
-  if (!familyData.currentYear) {
-    familyData.currentYear = getCurrentYearMonth().year;
-  }
-  if (!familyData.currentMonth) {
-    familyData.currentMonth = getCurrentYearMonth().month;
-  }
+  familyData.currentYear ??= getCurrentYearMonth().year;
+  familyData.currentMonth ??= getCurrentYearMonth().month;
 
   ensureMonthData(familyData.currentYear, familyData.currentMonth);
   renderAll();
@@ -864,15 +884,10 @@ renderAll();
 
 // --- Month Handling ---
 function ensureMonthData(year, month) {
-  if (!year) {
-    year = familyData.currentYear;
-  }
-  if (!month) {
-    month = familyData.currentMonth;
-  }
-  if (!familyData.years[year]) {
-    familyData.years[year] = { months: {} };
-  }
+    year ??= familyData.currentYear;
+    month ??= familyData.currentMonth;
+    familyData.years[year] ??= { months: {} };
+
   if (!familyData.years[year].months[month]) {
     // Copy previous month or start fresh
     const months = getMonthList(year);
@@ -890,10 +905,7 @@ function ensureMonthData(year, month) {
 function switchMonth(year, month) {
   familyData.currentYear = year;
   familyData.currentMonth = month;
-  // Store last selected month for this year
-  if (!familyData.lastSelectedMonthByYear) {
-    familyData.lastSelectedMonthByYear = {};
-  }
+  familyData.lastSelectedMonthByYear ??= {}; 
   familyData.lastSelectedMonthByYear[year] = month;
   ensureMonthData(year, month);  
   saveToLocalStorage();
@@ -941,8 +953,8 @@ function renderFamilySummary() {
   }
   ensureMonthData(year, month);
   let totalIncome = 0, totalSpend = 0;
-  const members = familyData.years[year].months[month].members;
-  members.forEach(m => {
+  const activeMembers = familyData.years[year].months[month].members.filter(x => x.status);
+  activeMembers.forEach(m => {
     totalIncome += (m.incomes || []).filter(i => i.received).reduce((a, b) => a + Number(b.value || 0), 0);
     totalSpend += sumSpendingsForMonth(m, year, month);
   });
@@ -1019,8 +1031,11 @@ function renderMembers() {
               </div>
             </div>
           </div>
-          <div>
-            <button class="btn-member btn btn-sm btn-primary ms-2" onclick="openEditMember(${member.id})"><i class="fas fa-pen"></i></button>
+          <div class="d-flex align-items-center">
+            <div class="btn-status form-check form-switch">
+              <input class="form-check-input" type="checkbox" name="member-status" title="Aktif" ${member.status ? 'checked' : ''} onchange="toggleMemberStatus(${member.id})">
+            </div>
+            <button class="btn-member btn btn-sm btn-primary ms-1" onclick="openEditMember(${member.id})"><i class="fas fa-pen"></i></button>
             <button class="btn-member btn btn-sm btn-danger ms-2" onclick="deleteMember(${member.id})"><i class="fas fa-trash"></i></button>
           </div>
         </div>
@@ -1146,6 +1161,18 @@ function toggleSpendingPayed(memberId, spendingId) {
   }
 }
 
+function toggleMemberStatus(memberId) {  
+  const year = familyData.currentYear;
+  const month = familyData.currentMonth;
+  const member = familyData.years[year]?.months[month]?.members?.find(m => m.id === memberId);
+  if (member) {
+    member.status = !member.status;
+    saveToLocalStorage();
+    saveToGoogleDrive();
+    renderAll();
+  }
+}
+
 function toggleIncomeReceived(memberId, incomeId) {
   const year = familyData.currentYear;
   const month = familyData.currentMonth;
@@ -1167,6 +1194,7 @@ function openAddIncome(memberId) {
   document.getElementById('income-received').checked = true;
   new bootstrap.Modal(document.getElementById('incomeModal')).show();
 }
+
 function openEditIncome(memberId, incomeId) {
   const year = familyData.currentYear;
   const month = familyData.currentMonth;
@@ -1184,6 +1212,7 @@ function openEditIncome(memberId, incomeId) {
     }
   }
 }
+
 function deleteIncome(memberId, incomeId) {
   showToast('Gelir bilgisi silinsin mi?', 'warning', 0, 'center', true).then((result) => {
     if (result.isConfirmed) {
@@ -1201,6 +1230,7 @@ function deleteIncome(memberId, incomeId) {
     }
   });
 }
+
 function openAddSpending(memberId) {
   document.getElementById('spending-member-id').value = memberId;
   document.getElementById('spending-id').value = '';
@@ -1212,6 +1242,7 @@ function openAddSpending(memberId) {
   document.getElementById('spending-current-installment').value = 1;
   new bootstrap.Modal(document.getElementById('spendingModal')).show();
 }
+
 function openEditSpending(memberId, spendingId) {
   const year = familyData.currentYear;
   const month = familyData.currentMonth;
@@ -1232,6 +1263,7 @@ function openEditSpending(memberId, spendingId) {
     }
   }
 }
+
 function deleteSpending(memberId, spendingId) {
   showToast('Gider bilgisi silinsin mi?', 'warning', 0, 'center', true).then((result) => {
     if (result.isConfirmed) {
@@ -1249,12 +1281,14 @@ function deleteSpending(memberId, spendingId) {
     }
   });
 }
+
 function openAddCard(memberId) {
   document.getElementById('card-member-id').value = memberId;
   document.getElementById('card-id').value = '';
   document.getElementById('card-name').value = '';
   new bootstrap.Modal(document.getElementById('cardModal')).show();
 }
+
 function openEditCard(memberId, cardId) {
   const year = familyData.currentYear;
   const month = familyData.currentMonth;
@@ -1270,6 +1304,7 @@ function openEditCard(memberId, cardId) {
     }
   }
 }
+
 function deleteCard(memberId, cardId) {
   showToast('Kart bilgisi silinsin mi?', 'warning', 0, 'center', true).then((result) => {
     if (result.isConfirmed) {
@@ -1287,6 +1322,7 @@ function deleteCard(memberId, cardId) {
     }
   });
 }
+
 function openEditMember(memberId) {
   const year = familyData.currentYear;
   const month = familyData.currentMonth;
@@ -1298,6 +1334,7 @@ function openEditMember(memberId) {
     new bootstrap.Modal(document.getElementById('memberModal')).show();
   }
 }
+
 function deleteMember(memberId) {
   showToast('Kişi bilgisi silinsin mi?', 'warning', 0, 'center', true).then((result) => {
     if (result.isConfirmed) {
@@ -1442,7 +1479,7 @@ document.getElementById('memberForm').onsubmit = function(e) {
       member.name = name;
     }
   } else {
-    members.push({ id: generateId(members), name, incomes: [], spendings: [], cards: [] });
+    members.push({ id: generateId(members), name: name, status: true, incomes: [], spendings: [], cards: [] });
   }
 
   saveToLocalStorage();
@@ -1503,7 +1540,7 @@ function setupCopyPasteHandlers() {
   copyBtn.onclick = function() {
     const year = familyData.currentYear;
     const month = familyData.currentMonth;
-    if (familyData.years[year] && familyData.years[year].months[month]) {
+    if (familyData?.years[year]?.months[month]) {
       copiedMonthData = JSON.parse(JSON.stringify(familyData.years[year].months[month]));
       pasteBtn.disabled = false;
       showToast('Ay verileri kopyalandı.');
@@ -1531,7 +1568,7 @@ function setupCopyPasteHandlers() {
       if (result.isConfirmed) {
         const year = familyData.currentYear;
         const month = familyData.currentMonth;
-        if (familyData.years[year] && familyData.years[year].months[month]) {
+        if (familyData?.years[year]?.months[month]) {
           familyData.years[year].months[month] = { members: [] };
           saveToLocalStorage();
           saveToGoogleDrive();
