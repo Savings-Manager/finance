@@ -653,7 +653,7 @@
 <script>
 
 // --- Data Model ---
-let familyData = { 
+let financeData = { 
   years: {}, 
   currentYear: getCurrentYearMonth().year, 
   currentMonth: getCurrentYearMonth().month, 
@@ -714,7 +714,7 @@ function getCurrentYearMonth() {
   return { year: String(d.getFullYear()), month: String(d.getMonth() + 1) };
 }
 function getYearList() {
-  let years = Object.keys(familyData.years || {});
+  let years = Object.keys(financeData.years || {});
   for (let y = 2025; y <= 2050; ++y) years.push(String(y));
   years.push(String(new Date().getFullYear()));
   years = Array.from(new Set(years)).sort();
@@ -882,8 +882,11 @@ async function loadFromGoogleDrive() {
 
     const data = await contentResponse.json();
     if(data) {
-      familyData = data;
-      fileRead = true;      
+      financeData = data;
+      fileRead = true;    
+
+      validateFinanceData();  
+
       if(!isNullOrEmpty(timeOut)) {
         clearTimeout(timeOut);
       }
@@ -940,7 +943,7 @@ async function saveToGoogleDrive() {
       }
     }
     
-    const fileContent = JSON.stringify(familyData);
+    const fileContent = JSON.stringify(financeData);
 
     const uploadRes = await fetch(`https://www.googleapis.com/upload/drive/v3/files/${fileId}?uploadType=media`, {
       method: 'PATCH',
@@ -979,7 +982,7 @@ function saveData() {
 }
 
 function saveToLocalStorage() {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(familyData));
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(financeData));
 }
 
 function loadFromLocalStorage() {
@@ -995,63 +998,64 @@ function loadFromLocalStorage() {
         }
         newYears[year].months[String(Number(month))] = value;
       });
-      familyData = {
+      financeData = {
         years: newYears,
         currentYear: loaded.currentMonth ? loaded.currentMonth.split('-')[0] : getCurrentYearMonth().year,
         currentMonth: loaded.currentMonth ? String(Number(loaded.currentMonth.split('-')[1])) : getCurrentYearMonth().month
       };
     } else {
-      familyData = loaded;
+      financeData = loaded;
     }
   }
 
-  familyData.years ??= {};
-  familyData.currentYear ??= getCurrentYearMonth().year;
-  familyData.currentMonth ??= getCurrentYearMonth().month;
-  familyData.cycles ??= {};
-  familyData.currentCycle ??= 1;
-  
   $('#drive-warning').removeClass('d-none');
+  
+  validateFinanceData();
   saveToLocalStorage();
+}
+
+function validateFinanceData() {
+  financeData.years ??= {};
+  financeData.currentYear ??= getCurrentYearMonth().year;
+  financeData.currentMonth ??= getCurrentYearMonth().month;
+  financeData.cycles ??= {};
+  financeData.currentCycle ??= 1;
+  financeData.activeTabIndex ??= 1; 
 }
 
 function renderInit() {
   console.log('[renderInit] Rendering initial data...');
-  familyData.currentYear ??= getCurrentYearMonth().year;
-  familyData.currentMonth ??= getCurrentYearMonth().month;
-  familyData.cycles ??= {};
-  familyData.currentCycle ??= 1;
-
-  ensureMonthData(familyData.currentYear, familyData.currentMonth);
+  validateFinanceData();
+  ensureMonthData(financeData.currentYear, financeData.currentMonth);
   renderAll(0);
   renderAll(1);
 }
 
 // --- Month Handling ---
 function ensureMonthData(year, month) {
-    year ??= familyData.currentYear;
-    month ??= familyData.currentMonth;
-    familyData.years[year] ??= { months: {} };
+    year ??= financeData.currentYear;
+    month ??= financeData.currentMonth;
+    financeData.years[year] ??= { months: {} };
 
-  if (!familyData.years[year].months[month]) {
+  if (!financeData.years[year].months[month]) {
     // Copy previous month or start fresh
     const months = getMonthList(year);
     const idx = months.indexOf(month);
     let prev = null;
-    for (let i = idx - 1; i >= 0; --i) if (familyData.years[year].months[months[i]]) { prev = months[i]; break; }
+    for (let i = idx - 1; i >= 0; --i) if (financeData.years[year].months[months[i]]) { prev = months[i]; break; }
     if (prev) {
-      familyData.years[year].months[month] = JSON.parse(JSON.stringify(familyData.years[year].months[prev]));
+      financeData.years[year].months[month] = JSON.parse(JSON.stringify(financeData.years[year].months[prev]));
     } else {
-      familyData.years[year].months[month] = { members: [] };
+      financeData.years[year].months[month] = { members: [] };
     }
   }
 }
 
 function switchMonth(year, month) {
-  familyData.currentYear = year;
-  familyData.currentMonth = month;
-  familyData.lastSelectedMonthByYear ??= {}; 
-  familyData.lastSelectedMonthByYear[year] = month;
+  financeData.currentYear = year;
+  financeData.currentMonth = month;
+  financeData.lastSelectedMonthByYear ??= {}; 
+  financeData.lastSelectedMonthByYear[year] = month;
   ensureMonthData(year, month);  
   saveData();
   renderAll();
@@ -1061,14 +1065,14 @@ function switchMonth(year, month) {
 function renderYearsDropdown() {
   const years = getYearList();
   const dropdown = document.getElementById('years-dropdown');
-  const selectedYear = familyData.currentYear || getCurrentYearMonth().year;
+  const selectedYear = financeData.currentYear || getCurrentYearMonth().year;
   dropdown.innerHTML = years.map(y => `<option value="${y}"${y === selectedYear ? ' selected' : ''}>${y}</option>`).join('');
   dropdown.onchange = function () {
     const year = this.value;
     const months = getMonthList(year);
     // Use last selected month for this year if available, else default to '1'
-    let month = (familyData.lastSelectedMonthByYear && familyData.lastSelectedMonthByYear[year]) || '1';
-    if (!familyData.years[year] || !familyData.years[year].months[month]) {
+    let month = (financeData.lastSelectedMonthByYear && financeData.lastSelectedMonthByYear[year]) || '1';
+    if (!financeData.years[year] || !financeData.years[year].months[month]) {
       month = '1';
       ensureMonthData(year, month);
     }
@@ -1077,27 +1081,27 @@ function renderYearsDropdown() {
 }
 
 function renderMonthsRow() {
-  const selectedYear = familyData.currentYear || getCurrentYearMonth().year;
+  const selectedYear = financeData.currentYear || getCurrentYearMonth().year;
   const months = getMonthList(selectedYear);
   const row = document.getElementById('months-row');
-  row.innerHTML = months.map(m => `<button class="btn-month btn btn-sm me-2 ${familyData.currentMonth === m ? 'btn-primary active fw-bold' : 'btn-outline-primary'}" onclick="switchMonth('${selectedYear}','${m}')">${getMonthName(m)}</button>`).join('');
+  row.innerHTML = months.map(m => `<button class="btn-month btn btn-sm me-2 ${financeData.currentMonth === m ? 'btn-primary active fw-bold' : 'btn-outline-primary'}" onclick="switchMonth('${selectedYear}','${m}')">${getMonthName(m)}</button>`).join('');
 }
 
 // --- Family Summary ---
 function renderFamilySummary() {
-  let year = familyData.currentYear;
-  let month = familyData.currentMonth;
-  if (!year || !familyData.years[year] || !familyData.years[year].months[month]) {
+  let year = financeData.currentYear;
+  let month = financeData.currentMonth;
+  if (!year || !financeData.years[year] || !financeData.years[year].months[month]) {
     const now = getCurrentYearMonth();
     year = now.year;
     month = now.month;
     ensureMonthData(year, month);
-    familyData.currentYear = year;
-    familyData.currentMonth = month;
+    financeData.currentYear = year;
+    financeData.currentMonth = month;
   }
   ensureMonthData(year, month);
   let totalIncome = 0, totalSpend = 0;
-  const activeMembers = familyData.years[year].months[month].members.filter(x => x.status);
+  const activeMembers = financeData.years[year].months[month].members.filter(x => x.status);
   activeMembers.forEach(m => {
     totalIncome += (m.incomes || []).filter(i => i.received).reduce((a, b) => a + Number(b.value || 0), 0);
     totalSpend += sumSpendingsForMonth(m, year, month);
@@ -1129,7 +1133,7 @@ function sumSpendingsForMonth(member, year, month) {
 
 // --- Render Functions ---
 function renderAll(activeTabIndex= null) {
-  activeTabIndex ??= familyData.activeTabIndex;
+  activeTabIndex ??= financeData.activeTabIndex;
   console.log('[renderAll] activeTab: ', activeTabIndex);
   if(activeTabIndex == 0) {
     renderYearsDropdown();
@@ -1145,10 +1149,9 @@ function renderAll(activeTabIndex= null) {
 }
 
 function renderCycleDropdown() {
-  const selectedCycle = familyData.currentCycle || 1;
-  familyData.cycles ??= {};
-  familyData.cycles[selectedCycle] ??= {};
-  familyData.cycles[selectedCycle].days ??= {};
+  const selectedCycle = financeData.currentCycle;
+  financeData.cycles[selectedCycle] ??= {};
+  financeData.cycles[selectedCycle].days ??= {};
 
   const cycles = [];
   for (let index = 0; index < 100; index++) {
@@ -1158,20 +1161,19 @@ function renderCycleDropdown() {
   const dropdown = document.getElementById('cycles-dropdown');
   dropdown.innerHTML = cycles.map(y => `<option value="${y}" ${y == selectedCycle ? 'selected' : ''}>${y + '. Döngü'}</option>`).join('');
   dropdown.onchange = function () {
-    familyData.currentCycle = this.value;
+    financeData.currentCycle = this.value;
     renderDaysRow();
   };
 }
 function renderDaysRow() {  
-  const cycle = familyData.currentCycle || 1;
-  familyData.cycles ??= {};
-  familyData.cycles[cycle] ??= {};
-  familyData.cycles[cycle].days ??= {};
+  const cycle = financeData.currentCycle;
+  financeData.cycles[cycle] ??= {};
+  financeData.cycles[cycle].days ??= {};
 
   console.log('renderDaysRow: ', cycle);
 
   const days = getDayList();
-  const selectedDays = familyData.cycles[cycle]?.days;
+  const selectedDays = financeData.cycles[cycle]?.days;
   
   let html = '';
   days.forEach(x=> {
@@ -1190,9 +1192,9 @@ function renderDaysRow() {
 }
 
 function renderMembers() {
-  ensureMonthData(familyData.currentYear, familyData.currentMonth);
+  ensureMonthData(financeData.currentYear, financeData.currentMonth);
   const list = document.getElementById('members-list');
-  const members = familyData.years[familyData.currentYear].months[familyData.currentMonth].members;
+  const members = financeData.years[financeData.currentYear].months[financeData.currentMonth].members;
   if (!(members?.length > 0)) {
     list.innerHTML = '<div class="alert alert-info">Henüz kayıtlı kişi yok. Bir tane ekleyin!</div>';
     return;
@@ -1200,7 +1202,7 @@ function renderMembers() {
 
   list.innerHTML = members.map(member => {
     const income = (member.incomes || []).filter(i => i.received).reduce((a, b) => a + Number(b.value || 0), 0);
-    const spend = sumSpendingsForMonth(member, familyData.currentYear, familyData.currentMonth);
+    const spend = sumSpendingsForMonth(member, financeData.currentYear, financeData.currentMonth);
     const net = income - spend;
     const netColor = net < 0 ? 'spending-color' : 'card-color';
     // Order incomes by name only
@@ -1292,9 +1294,9 @@ function renderMembers() {
                 const card = (member.cards || []).find(c => c.id === spending.cardId);
                 let currentInstallment = 1;
                 if (spending.installment && spending.installment > 1) {
-                  const months = getMonthList(familyData.currentYear);
-                  const idx = months.indexOf(spending.monthKey ? String(Number(spending.monthKey)) : familyData.currentMonth);
-                  const thisIdx = months.indexOf(String(familyData.currentMonth));
+                  const months = getMonthList(financeData.currentYear);
+                  const idx = months.indexOf(spending.monthKey ? String(Number(spending.monthKey)) : financeData.currentMonth);
+                  const thisIdx = months.indexOf(String(financeData.currentMonth));
                   if (thisIdx >= idx) {
                     currentInstallment = thisIdx - idx + 1;
                   }
@@ -1345,9 +1347,9 @@ document.getElementById('btn-add-member').onclick = () => {
 };
 
 function toggleSpendingPayed(memberId, spendingId) {
-  const year = familyData.currentYear;
-  const month = familyData.currentMonth;
-  const member = familyData.years[year]?.months[month]?.members?.find(m => m.id === memberId);
+  const year = financeData.currentYear;
+  const month = financeData.currentMonth;
+  const member = financeData.years[year]?.months[month]?.members?.find(m => m.id === memberId);
   const spending = member?.spendings?.find(s => s.id === spendingId);
   
   if (spending) {
@@ -1359,9 +1361,9 @@ function toggleSpendingPayed(memberId, spendingId) {
 }
 
 function toggleMemberStatus(memberId) {  
-  const year = familyData.currentYear;
-  const month = familyData.currentMonth;
-  const member = familyData.years[year]?.months[month]?.members?.find(m => m.id === memberId);
+  const year = financeData.currentYear;
+  const month = financeData.currentMonth;
+  const member = financeData.years[year]?.months[month]?.members?.find(m => m.id === memberId);
   if (member) {
     member.status = !member.status;
     saveData();
@@ -1371,9 +1373,9 @@ function toggleMemberStatus(memberId) {
 }
 
 function toggleIncomeReceived(memberId, incomeId) {
-  const year = familyData.currentYear;
-  const month = familyData.currentMonth;
-  const member = familyData.years[year]?.months[month]?.members?.find(m => m.id === memberId);
+  const year = financeData.currentYear;
+  const month = financeData.currentMonth;
+  const member = financeData.years[year]?.months[month]?.members?.find(m => m.id === memberId);
   const income = member?.incomes?.find(i => i.id === incomeId);
 
   if (income) {
@@ -1394,9 +1396,9 @@ function openAddIncome(memberId) {
 }
 
 function openEditIncome(memberId, incomeId) {
-  const year = familyData.currentYear;
-  const month = familyData.currentMonth;
-  const members = familyData.years[year].months[month].members;
+  const year = financeData.currentYear;
+  const month = financeData.currentMonth;
+  const members = financeData.years[year].months[month].members;
   const member = members.find(m => m.id === memberId);
   if (member && member.incomes) {
     const income = member.incomes.find(i => i.id === incomeId);
@@ -1414,9 +1416,9 @@ function openEditIncome(memberId, incomeId) {
 function deleteIncome(memberId, incomeId) {
   showToast('Gelir bilgisi silinsin mi?', 'warning', 0, 'center', true).then((result) => {
     if (result.isConfirmed) {
-      const year = familyData.currentYear;
-      const month = familyData.currentMonth;
-      const members = familyData.years[year].months[month].members;
+      const year = financeData.currentYear;
+      const month = financeData.currentMonth;
+      const members = financeData.years[year].months[month].members;
       const member = members.find(m => m.id === memberId);
       if (member && member.incomes) {
         member.incomes = member.incomes.filter(i => i.id !== incomeId);
@@ -1441,9 +1443,9 @@ function openAddSpending(memberId) {
 }
 
 function openEditSpending(memberId, spendingId) {
-  const year = familyData.currentYear;
-  const month = familyData.currentMonth;
-  const members = familyData.years[year].months[month].members;
+  const year = financeData.currentYear;
+  const month = financeData.currentMonth;
+  const members = financeData.years[year].months[month].members;
   const member = members.find(m => m.id === memberId);
   if (member && member.spendings) {
     const spending = member.spendings.find(s => s.id === spendingId);
@@ -1464,9 +1466,9 @@ function openEditSpending(memberId, spendingId) {
 function deleteSpending(memberId, spendingId) {
   showToast('Gider bilgisi silinsin mi?', 'warning', 0, 'center', true).then((result) => {
     if (result.isConfirmed) {
-      const year = familyData.currentYear;
-      const month = familyData.currentMonth;
-      const members = familyData.years[year].months[month].members;
+      const year = financeData.currentYear;
+      const month = financeData.currentMonth;
+      const members = financeData.years[year].months[month].members;
       const member = members.find(m => m.id === memberId);
       if (member && member.spendings) {
         member.spendings = member.spendings.filter(s => s.id !== spendingId);
@@ -1486,9 +1488,9 @@ function openAddCard(memberId) {
 }
 
 function openEditCard(memberId, cardId) {
-  const year = familyData.currentYear;
-  const month = familyData.currentMonth;
-  const members = familyData.years[year].months[month].members;
+  const year = financeData.currentYear;
+  const month = financeData.currentMonth;
+  const members = financeData.years[year].months[month].members;
   const member = members.find(m => m.id === memberId);
   if (member && member.cards) {
     const card = member.cards.find(c => c.id === cardId);
@@ -1504,9 +1506,9 @@ function openEditCard(memberId, cardId) {
 function deleteCard(memberId, cardId) {
   showToast('Kart bilgisi silinsin mi?', 'warning', 0, 'center', true).then((result) => {
     if (result.isConfirmed) {
-      const year = familyData.currentYear;
-      const month = familyData.currentMonth;
-      const members = familyData.years[year].months[month].members;
+      const year = financeData.currentYear;
+      const month = financeData.currentMonth;
+      const members = financeData.years[year].months[month].members;
       const member = members.find(m => m.id === memberId);
       if (member && member.cards) {
         member.cards = member.cards.filter(c => c.id !== cardId);
@@ -1519,9 +1521,9 @@ function deleteCard(memberId, cardId) {
 }
 
 function openEditMember(memberId) {
-  const year = familyData.currentYear;
-  const month = familyData.currentMonth;
-  const members = familyData.years[year].months[month].members;
+  const year = financeData.currentYear;
+  const month = financeData.currentMonth;
+  const members = financeData.years[year].months[month].members;
   const member = members.find(m => m.id === memberId);
   if (member) {
     document.getElementById('member-id').value = memberId;
@@ -1533,10 +1535,10 @@ function openEditMember(memberId) {
 function deleteMember(memberId) {
   showToast('Kişi bilgisi silinsin mi?', 'warning', 0, 'center', true).then((result) => {
     if (result.isConfirmed) {
-      const year = familyData.currentYear;
-      const month = familyData.currentMonth;
-      let members = familyData.years[year].months[month].members;
-      familyData.years[year].months[month].members = members.filter(m => m.id !== memberId);
+      const year = financeData.currentYear;
+      const month = financeData.currentMonth;
+      let members = financeData.years[year].months[month].members;
+      financeData.years[year].months[month].members = members.filter(m => m.id !== memberId);
       saveData();
       renderAll();
       showToast('Kişi bilgisi silindi.');
@@ -1545,13 +1547,13 @@ function deleteMember(memberId) {
 }
 
 function onDateChange(day) {
-  const cycle = familyData.currentCycle;
+  const cycle = financeData.currentCycle;
   const value = document.getElementById('day_'+day)?.value;
 
-  familyData.cycles[cycle] ??= {};
-  familyData.cycles[cycle].days ??= {};
+  financeData.cycles[cycle] ??= {};
+  financeData.cycles[cycle].days ??= {};
 
-  familyData.cycles[cycle].days[day] = value;
+  financeData.cycles[cycle].days[day] = value;
 
   saveData();
   showToast("Tarih güncellendi.");
@@ -1578,14 +1580,14 @@ function currency(val, shouldMask = false) {
 // --- Modal Save Logic Fixes ---
 document.getElementById('incomeForm').onsubmit = function(e) {
   e.preventDefault();
-  const year = familyData.currentYear;
-  const month = familyData.currentMonth;
+  const year = financeData.currentYear;
+  const month = financeData.currentMonth;
   const memberId = Number(document.getElementById('income-member-id').value);
   const incomeId = document.getElementById('income-id').value;
   const name = document.getElementById('income-name').value;
   const value = Number(document.getElementById('income-value').value);
   const received = document.getElementById('income-received').checked;
-  const members = familyData.years[year].months[month].members;
+  const members = financeData.years[year].months[month].members;
   const member = members.find(m => m.id === memberId);
   if (!member.incomes) member.incomes = [];
   if (incomeId) {
@@ -1608,8 +1610,8 @@ document.getElementById('incomeForm').onsubmit = function(e) {
 };
 document.getElementById('spendingForm').onsubmit = function(e) {
   e.preventDefault();
-  const year = familyData.currentYear;
-  const month = familyData.currentMonth;
+  const year = financeData.currentYear;
+  const month = financeData.currentMonth;
   const memberId = Number(document.getElementById('spending-member-id').value);
   const spendingId = document.getElementById('spending-id').value;
   const name = document.getElementById('spending-name').value;
@@ -1618,7 +1620,7 @@ document.getElementById('spendingForm').onsubmit = function(e) {
   const cardId = document.getElementById('spending-card-id').value ? Number(document.getElementById('spending-card-id').value) : null;
   const installment = Number(document.getElementById('spending-installment').value) || 1;
   const currentInstallment = Number(document.getElementById('spending-current-installment').value) || 1;
-  const members = familyData.years[year].months[month].members;
+  const members = financeData.years[year].months[month].members;
   const member = members.find(m => m.id === memberId);
   
   member.spendings ??= [];
@@ -1647,9 +1649,9 @@ document.getElementById('spendingForm').onsubmit = function(e) {
 
 // --- Populate Card Dropdown on Spending Modal ---
 function populateSpendingCardDropdown(memberId, selectedCardId) {
-  const year = familyData.currentYear;
-  const month = familyData.currentMonth;
-  const members = familyData.years[year].months[month].members;
+  const year = financeData.currentYear;
+  const month = financeData.currentMonth;
+  const members = financeData.years[year].months[month].members;
   const member = members.find(m => m.id === memberId);
   const select = document.getElementById('spending-card-id');
   if (!member || !member.cards || !member.cards.length) {
@@ -1672,9 +1674,9 @@ const _openEditSpending = openEditSpending;
 openEditSpending = function(memberId, spendingId) {
   _openEditSpending(memberId, spendingId);
   // Find the cardId for this spending
-  const year = familyData.currentYear;
-  const month = familyData.currentMonth;
-  const members = familyData.years[year].months[month].members;
+  const year = financeData.currentYear;
+  const month = financeData.currentMonth;
+  const members = financeData.years[year].months[month].members;
   const member = members.find(m => m.id === memberId);
   if (member && member.spendings) {
     const spending = member.spendings.find(s => s.id === spendingId);
@@ -1687,11 +1689,11 @@ openEditSpending = function(memberId, spendingId) {
 // --- Member Modal Save Logic ---
 document.getElementById('memberForm').onsubmit = function(e) {
   e.preventDefault();
-  const year = familyData.currentYear;
-  const month = familyData.currentMonth;
+  const year = financeData.currentYear;
+  const month = financeData.currentMonth;
   const memberId = document.getElementById('member-id').value;
   const name = document.getElementById('member-name').value;
-  const members = familyData.years[year]?.months[month]?.members;
+  const members = financeData.years[year]?.months[month]?.members;
   if (memberId) {
     const member = members?.find(m => m.id == memberId);
     if (member) {
@@ -1711,7 +1713,7 @@ document.getElementById('memberForm').onsubmit = function(e) {
 document.getElementById('btn-save-json').onclick = function() {
   showToast('Yedek bilgisayarınıza indirilsin mi?', 'warning', 0, 'center', true).then((result) => {
     if (result.isConfirmed) {
-        const dataStr = JSON.stringify(familyData, null, 2);
+        const dataStr = JSON.stringify(financeData, null, 2);
         const blob = new Blob([dataStr], { type: 'application/json' });
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
@@ -1739,10 +1741,9 @@ document.getElementById('btn-load-json').onclick = function() {
     reader.onload = function(evt) {
       try {
         const data = JSON.parse(evt.target.result);
-        familyData = data;     
-        familyData.cycles ??= {};
-        familyData.currentCycle ??= 1;
-
+        financeData = data;   
+        
+        validateFinanceData(); 
         saveData();
         renderAll();
         showToast('Veriler yedekten yüklendi.');
@@ -1763,10 +1764,10 @@ function setupCopyPasteHandlers() {
   const clearBtn = document.getElementById('btn-clear-month');
   if (!copyBtn || !pasteBtn || !clearBtn) return;
   copyBtn.onclick = function() {
-    const year = familyData.currentYear;
-    const month = familyData.currentMonth;
-    if (familyData?.years[year]?.months[month]) {
-      copiedMonthData = JSON.parse(JSON.stringify(familyData.years[year].months[month]));
+    const year = financeData.currentYear;
+    const month = financeData.currentMonth;
+    if (financeData?.years[year]?.months[month]) {
+      copiedMonthData = JSON.parse(JSON.stringify(financeData.years[year].months[month]));
       pasteBtn.disabled = false;
       showToast('Ay verileri kopyalandı.');
     }
@@ -1793,9 +1794,9 @@ function setupCopyPasteHandlers() {
             });
           }
           
-          const year = familyData.currentYear;
-          const month = familyData.currentMonth;
-          familyData.years[year].months[month] = JSON.parse(JSON.stringify(copiedMonthData));
+          const year = financeData.currentYear;
+          const month = financeData.currentMonth;
+          financeData.years[year].months[month] = JSON.parse(JSON.stringify(copiedMonthData));
           copiedMonthData = null;      
           pasteBtn.disabled = true;
 
@@ -1809,10 +1810,10 @@ function setupCopyPasteHandlers() {
   clearBtn.onclick = function() {
     showToast('Ay verileri temizlensin mi?', 'warning', 0, 'center', true).then((result) => {
       if (result.isConfirmed) {
-        const year = familyData.currentYear;
-        const month = familyData.currentMonth;
-        if (familyData?.years[year]?.months[month]) {
-          familyData.years[year].months[month] = { members: [] };
+        const year = financeData.currentYear;
+        const month = financeData.currentMonth;
+        if (financeData?.years[year]?.months[month]) {
+          financeData.years[year].months[month] = { members: [] };
           saveData();
           renderAll();
           showToast('Ay verileri temizlendi.');
@@ -1839,12 +1840,12 @@ function setupCopyPasteHandlers() {
 
 document.getElementById('cardForm').onsubmit = function(e) {
   e.preventDefault();
-  const year = familyData.currentYear;
-  const month = familyData.currentMonth;
+  const year = financeData.currentYear;
+  const month = financeData.currentMonth;
   const memberId = Number(document.getElementById('card-member-id').value);
   const cardId = document.getElementById('card-id').value;
   const name = document.getElementById('card-name').value;
-  const members = familyData.years[year].months[month].members;
+  const members = financeData.years[year].months[month].members;
   const member = members.find(m => m.id === memberId);
   if (!member.cards) member.cards = [];
   if (cardId) {
@@ -1896,7 +1897,7 @@ $(document).ready(function() {
   renderAll();
 
   $('#myTab .nav-link').on('shown.bs.tab', function (e) {
-    familyData.activeTabIndex = $(this).index($(e.target));
+    financeData.activeTabIndex = $(this).index($(e.target));
     saveData();
   });
 
