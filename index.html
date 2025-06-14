@@ -235,42 +235,6 @@
       box-shadow: 0 4px 14px rgba(63, 81, 181, 0.4);
     }
 
-    /* Mobile responsive styles for top buttons */
-    @media (max-width: 768px) {
-      .list-group-item { 
-        padding: 15px 8px !important;
-      }
-      .btn-month, .bg-big {
-        margin-top: 0.5rem;
-      }
-      .top-action-btn {
-        font-size: 0.9rem;
-        padding: 0.4rem 0.8rem;
-        margin-right: 0.3rem;
-        margin-top: 0.4rem;
-      }
-      #btn-add-member {
-        margin-top: 0rem!important;
-      }
-      .top-action-btn i {
-        font-size: 0.9rem;
-      }
-      .container {
-        padding-left: 0.5rem;
-        padding-right: 0.5rem;
-      }
-      .d-flex.justify-content-between.align-items-center.mb-4 {
-        flex-wrap: wrap;
-        gap: 0.5rem;
-      }
-      .d-flex.justify-content-between.align-items-center.mb-4 > div {
-        width: 100%;
-      }
-      .d-flex.justify-content-between.align-items-center.mb-4 > div:first-child {
-        margin-bottom: 0.5rem;
-      }
-    }
-
     /* --- Years Dropdown Beautification --- */
     #years-dropdown {
       font-size: 1.08rem;
@@ -310,72 +274,244 @@
     #years-dropdown option {
       color: #222;
     }
+
+    .nav-tabs .nav-link.active {
+      border-bottom: 2px solid #6200ea !important;
+      color: #6200ea !important;
+      background-color: transparent !important;
+    }
+
+    .nav-tabs .nav-link {
+      border: none !important;
+      color: #6200ea;
+      font-weight: 500;
+    }
+
+    .nav-tabs .nav-link:hover {
+      background-color: rgba(98,0,234,0.1);
+    }
+
+
+    /* GYM PAGE */
+    #days-row .btn-day {
+      border-radius: 20px;
+      transition: all 0.2s ease;
+      font-weight: 500;
+      padding: 8px 15px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+
+    #days-row .btn-day:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    }
+
+    #days-row .btn-day.active {
+      background-color: #3f51b5;
+      border-color: #3f51b5;
+      color: white;
+      box-shadow: 0 4px 14px rgba(63, 81, 181, 0.4);
+    }
+
+    /* --- Top action buttons --- */
+    .top-action-btn {
+      font-weight: 500;
+      border-radius: 2rem;
+      padding: 0.5rem 0.75rem;
+      box-shadow: 0 2px 8px rgba(60,60,60,0.08);
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .top-action-btn:last-child {
+      margin-right: 0;
+    }
+
+    /* --- Cycles Dropdown Beautification --- */
+    #cycles-dropdown {
+      font-size: 1.08rem;
+      border-radius: 1.25rem;
+      padding: 0.5rem 0rem 0.5rem 2.5rem;
+      background: #fff;
+      color: #3949ab;
+      border: 2px solid #3949ab;
+      box-shadow: 0 2px 8px rgba(60,60,60,0.08);
+      font-weight: 500;
+      min-width: 110px;
+      max-width: 180px;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    #cycles-dropdown:focus {
+      border-color: #579aff;
+      box-shadow: 0 0 0 2px #e3eafc;
+      outline: none;
+    }
+    .cycles-dropdown-wrapper {
+      position: relative;
+      display: inline-block;
+    }
+    .cycles-dropdown-wrapper .dropdown-icon {
+      position: absolute;
+      left: 0.9rem;
+      top: 50%;
+      transform: translateY(-50%);
+      color: #3949ab;
+      font-size: 1.2rem;
+      pointer-events: none;
+      z-index: 2;
+    }
+    #cycles-dropdown::-ms-expand {
+      display: none;
+    }
+    #cycles-dropdown option {
+      color: #222;
+    }
+
+    .col-1-5 {
+      flex: 0 0 12.3%;
+      max-width: 12.3%;
+    }
+
+    /* Mobile responsive styles for top buttons */
+    @media (max-width: 768px) {
+      .list-group-item { 
+        padding: 15px 8px !important;
+      }
+      .btn-day, .btn-month, .bg-big {
+        margin-top: 0.5rem;
+      }
+      .top-action-btn {
+        font-size: 0.9rem;
+        padding: 0.4rem 0.8rem;
+        margin-right: 0.3rem;
+        margin-top: 0.4rem;
+      }
+      #btn-add-member {
+        margin-top: 0rem!important;
+      }
+      .top-action-btn i {
+        font-size: 0.9rem;
+      }
+      .container {
+        padding-left: 0.5rem;
+        padding-right: 0.5rem;
+      }
+      .d-flex.justify-content-between.align-items-center.mb-4 {
+        flex-wrap: wrap;
+        gap: 0.5rem;
+      }
+      .d-flex.justify-content-between.align-items-center.mb-4 > div {
+        width: 100%;
+      }
+      .d-flex.justify-content-between.align-items-center.mb-4 > div:first-child {
+        margin-bottom: 0.5rem;
+      }
+    }
   </style>
 </head>
 <body class="bg-light">
-<div class="container py-4">
+
+<!-- JQuery -->
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+
+<div class="container py-4">  
   <div class="d-flex justify-content-between align-items-center mb-4">
     <div class="d-flex align-items-center">
-      <h2><i class="bi bi-people-fill me-2"></i>Finans Yöneticisi</h2>
+      <h2 id="page-title"><i class="bi bi-people-fill me-2"></i>Finans Yöneticisi</h2>
       <small class="text-muted ms-2">v1.1.1</small>   
     </div>
     <div>
-      <button class="top-action-btn"><a id="link-gym" href="https://savings-manager.github.io/finance/gym.html">GYM</a></button>
       <button class="top-action-btn" id="btn-load-json"><i class="bi bi-folder2-open ms-2"></i>Verileri Geri Yükle</button>
       <button class="top-action-btn" id="btn-save-json"><i class="bi bi-save ms-2"></i>Verileri Yedekle</button>
     </div>
   </div>
-  <div id="family-section">
-    <div class="mb-2">
-      <div>
-        <div id="drive-warning" class="alert alert-warning d-none mb-2">
-          <i class="bi bi-exclamation-triangle-fill me-2"></i>
-          Google Drive ile giriş yapılmadığında verileriniz tarayıcıda tutulur ve tarayıcı verileri temizlendiğinde kaybolabilir.
-          <button class="btn btn-sm btn-warning ms-2" onclick="initGoogleDrive()">
-            <i class="bi bi-google me-1"></i>Google Drive ile Giriş Yap
-          </button>
-        </div>
-        <div class="years-dropdown-wrapper">
-          <i class="bi bi-calendar3 dropdown-icon"></i>
-          <select id="years-dropdown" class="form-select form-select-sm"></select>
-        </div>
-        <span id="copy-paste-btn-group">
-          <button id="btn-clear-month" class="btn btn-circle delete ms-2" title="Bu ayın verilerini temizle"><i class="fas fa-trash"></i></button>      
-          <button onclick="toggleAllCurrencyMasks()" class="btn-circle ms-2">
-            <i id="show-hide-icon" class="fas fa-eye-slash"></i>
-          </button>
-          <button id="btn-copy-month" class="btn-circle edit ms-2" title="Bu ayın verilerini kopyala"><i class="bi bi-clipboard"></i></button>
-          <button id="btn-paste-month" class="btn-circle success ms-2" title="Bu aya yapıştır" disabled><i class="bi bi-clipboard-check"></i></button>
-          </span>
-        <!-- <div class="row col-12">
-          <div class="col-2 col-md-2 years-dropdown-wrapper">
-            <i class="bi bi-calendar3 dropdown-icon"></i>
-            <select id="years-dropdown" class="form-select form-select-sm"></select>
+  <div id="drive-warning" class="alert alert-warning d-none mb-4">
+    <i class="bi bi-exclamation-triangle-fill me-2"></i>
+    Google Drive ile giriş yapılmadığında verileriniz tarayıcıda tutulur ve tarayıcı verileri temizlendiğinde kaybolabilir.
+    <button class="btn btn-sm btn-warning ms-2" onclick="initGoogleDrive()">
+      <i class="bi bi-google me-1"></i>Google Drive ile Giriş Yap
+    </button>
+  </div>
+
+  <ul class="nav nav-tabs" id="myTab" role="tablist" style="border-bottom: 2px solid #e0e0e0;">
+    <li class="nav-item" role="presentation">
+      <button class="nav-link active" id="home-tab" data-bs-toggle="tab" data-bs-target="#home"
+        type="button" role="tab" aria-controls="home" aria-selected="true"
+        style="color: #6200ea; border: none; border-bottom: 2px solid #6200ea; font-weight: 500;">
+        Finans Yöneticisi
+      </button>
+    </li>
+    <li class="nav-item" role="presentation">
+      <button class="nav-link" id="profile-tab" data-bs-toggle="tab" data-bs-target="#profile"
+        type="button" role="tab" aria-controls="profile" aria-selected="false"
+        style="color: #6200ea; border: none;">
+        GYM Yöneticisi
+      </button>
+    </li>
+    <li class="nav-item" role="presentation">
+      <button class="nav-link" id="contact-tab" data-bs-toggle="tab" data-bs-target="#contact"
+        type="button" role="tab" aria-controls="contact" aria-selected="false"
+        style="color: #6200ea; border: none;">
+        Birikim Yöneticisi
+      </button>
+    </li>
+  </ul>
+  <div class="tab-content" id="myTabContent" style="padding: 1rem; border: 1px solid #e0e0e0; border-top: none;">
+    <div class="tab-pane fade show active" id="home" role="tabpanel" aria-labelledby="home-tab">
+      <div id="finance-section">
+        <div class="row mb-3">
+          <div class="col-1-5">
+            <div class="years-dropdown-wrapper">
+              <i class="bi bi-calendar3 dropdown-icon"></i>
+              <select id="years-dropdown" class="form-select form-select-sm"></select>
+            </div>
           </div>
-          <div class="col-6 col-md-6">
-            <button id="btn-clear-month" class="btn btn-circle delete" title="Bu ayın verilerini temizle"><i class="fas fa-trash"></i></button>      
-            <button onclick="toggleAllCurrencyMasks()" class="btn-circle ms-2">
-              <i id="show-hide-icon" class="fas fa-eye-slash"></i>
-            </button>
-            <button id="btn-copy-month" class="btn-circle edit ms-2" title="Bu ayın verilerini kopyala"><i class="bi bi-clipboard"></i></button>
-            <button id="btn-paste-month" class="btn-circle success ms-2" title="Bu aya yapıştır" disabled><i class="bi bi-clipboard-check"></i></button>
+          <div class="col-10">
+            <div id="copy-paste-btn-group" class="d-flex">
+              <button id="btn-clear-month" class="btn btn-circle delete ms-2" title="Bu ayın verilerini temizle"><i class="fas fa-trash"></i></button>      
+              <button onclick="toggleAllCurrencyMasks()" class="btn-circle ms-2">
+                <i id="show-hide-icon" class="fas fa-eye-slash"></i>
+              </button>
+              <button id="btn-copy-month" class="btn-circle edit ms-2" title="Bu ayın verilerini kopyala"><i class="bi bi-clipboard"></i></button>
+              <button id="btn-paste-month" class="btn-circle success ms-2" title="Bu aya yapıştır" disabled><i class="bi bi-clipboard-check"></i></button>
+            </div>
           </div>
-        </div> -->
+        </div>
+        <div class="d-flex justify-content-between align-items-center mb-2">   
+          <div id="months-row"></div>
+        </div>
+        <div id="family-summary" class="mb-4"></div>
+        <div class="row col-12">
+          <div class="col-7 col-md-7">
+          <h4>Kişiler</h4> 
+        </div>
+        <div class="col-5 col-md-5 d-flex justify-content-end">
+            <button class="top-action-btn" id="btn-add-member"><i class="bi bi-person-plus"></i> Kişi Ekle</button>
+        </div>
+        </div>
+        <div id="members-list" class="mt-2"></div>
       </div>
     </div>
-    <div class="d-flex justify-content-between align-items-center mb-2">   
-      <div id="months-row"></div>
+    <div class="tab-pane fade" id="profile" role="tabpanel" aria-labelledby="profile-tab">
+      <div id="gym-section">
+        <div class="mb-2">
+          <div>
+            <div class="cycles-dropdown-wrapper">
+              <i class="bi bi-calendar3 dropdown-icon"></i>
+              <select id="cycles-dropdown" class="form-select form-select-sm"></select>
+            </div>
+            <span id="copy-paste-btn-group">
+              <!-- <button id="btn-clear-day" class="btn btn-circle delete ms-2" title="Bu döngünün verilerini temizle"><i class="fas fa-trash"></i></button>       -->
+            </span>
+          </div>
+        </div>
+        <div id="days-row" class="row col-12 d-flex justify-content-between align-items-center mb-2">   
+        </div>
+      </div>
     </div>
-    <div id="family-summary" class="mb-4"></div>
-    <div class="row col-12">
-      <div class="col-7 col-md-7">
-      <h4>Kişiler</h4> 
+    <div class="tab-pane fade" id="contact" role="tabpanel" aria-labelledby="contact-tab">
+      Contact content here.
     </div>
-    <div class="col-5 col-md-5 d-flex justify-content-end">
-        <button class="top-action-btn" id="btn-add-member"><i class="bi bi-person-plus"></i> Kişi Ekle</button>
-    </div>
-    </div>
-    <div id="members-list" class="mt-2"></div>
   </div>
 </div>
 
@@ -515,8 +651,17 @@
 </div>
 
 <script>
+
 // --- Data Model ---
-let familyData = { years: {}, currentYear: getCurrentYearMonth().year, currentMonth: getCurrentYearMonth().month, lastSelectedMonthByYear: {} };
+let familyData = { 
+  years: {}, 
+  currentYear: getCurrentYearMonth().year, 
+  currentMonth: getCurrentYearMonth().month, 
+  lastSelectedMonthByYear: {},
+  activeTabIndex: 0,
+  cycles: {},
+  currentCycle: 1,
+};
 
 const APP_CODE = 'cmeaisacsy_finance_app';
 const STORAGE_KEY = `${APP_CODE}_data`;
@@ -581,15 +726,14 @@ function getMonthList(selectedYear) {
 function getMonthName(monthNum) {
   return new Date(2000, Number(monthNum) - 1, 1).toLocaleString('tr-TR', { month: 'long' });
 }
-
-function isNullOrEmpty(value) {
-  if (value === null || value === undefined) return true;
-  if (typeof value === 'string' && value.trim() === '') return true;
-  if (Array.isArray(value) && value.length === 0) return true;
-  if (typeof value === 'object' && Object.keys(value).length === 0) return true;
-  if (typeof value === 'number' && isNaN(value)) return true;
-  return false;
+function getDayList() {
+  return Array.from({ length: 13 }, (_, i) => String(i + 1));
 }
+function getDayName(dayNum) {
+  if(dayNum == 1) return 'ÖDENDİ';
+  return (dayNum-1) + '. GÜN';
+}
+
 
 // --- Google Drive API ---
 async function initGoogleDrive() {
@@ -829,6 +973,11 @@ function logOut() {
   access_token = null;
 }
 
+function saveData() {
+  saveToLocalStorage();
+  saveToGoogleDrive();
+}
+
 function saveToLocalStorage() {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(familyData));
 }
@@ -859,8 +1008,10 @@ function loadFromLocalStorage() {
   familyData.years ??= {};
   familyData.currentYear ??= getCurrentYearMonth().year;
   familyData.currentMonth ??= getCurrentYearMonth().month;
+  familyData.cycles ??= {};
+  familyData.currentCycle ??= 1;
   
-  document.getElementById('drive-warning').classList.remove('d-none');
+  $('#drive-warning').removeClass('d-none');
   saveToLocalStorage();
 }
 
@@ -868,19 +1019,13 @@ function renderInit() {
   console.log('[renderInit] Rendering initial data...');
   familyData.currentYear ??= getCurrentYearMonth().year;
   familyData.currentMonth ??= getCurrentYearMonth().month;
+  familyData.cycles ??= {};
+  familyData.currentCycle ??= 1;
 
   ensureMonthData(familyData.currentYear, familyData.currentMonth);
-  renderAll();
+  renderAll(0);
+  renderAll(1);
 }
-
-// --- Run on load ---
-window.onload = initGoogleDrive;
-renderAll();
-
-const basePath = location.href.replace(/\/[^/]*$/, '/');
-
-const link_gym = document.getElementById('link-gym');
-link_gym.href = basePath + 'gym.html';
 
 // --- Month Handling ---
 function ensureMonthData(year, month) {
@@ -908,8 +1053,7 @@ function switchMonth(year, month) {
   familyData.lastSelectedMonthByYear ??= {}; 
   familyData.lastSelectedMonthByYear[year] = month;
   ensureMonthData(year, month);  
-  saveToLocalStorage();
-  saveToGoogleDrive();
+  saveData();
   renderAll();
 }
 
@@ -984,12 +1128,65 @@ function sumSpendingsForMonth(member, year, month) {
 }
 
 // --- Render Functions ---
-function renderAll() {
-  renderYearsDropdown();
-  renderMonthsRow();
-  renderFamilySummary();
-  renderMembers();
-  setupCopyPasteHandlers();
+function renderAll(activeTabIndex= null) {
+  activeTabIndex ??= familyData.activeTabIndex;
+  console.log('[renderAll] activeTab: ', activeTabIndex);
+  if(activeTabIndex == 0) {
+    renderYearsDropdown();
+    renderMonthsRow();
+    renderFamilySummary();
+    renderMembers();
+    setupCopyPasteHandlers();
+  }
+  else if(activeTabIndex == 1) {
+    renderCycleDropdown();
+    renderDaysRow();
+  }
+}
+
+function renderCycleDropdown() {
+  const selectedCycle = familyData.currentCycle || 1;
+  familyData.cycles ??= {};
+  familyData.cycles[selectedCycle] ??= {};
+  familyData.cycles[selectedCycle].days ??= {};
+
+  const cycles = [];
+  for (let index = 0; index < 100; index++) {
+    cycles.push((index+1));
+  }
+
+  const dropdown = document.getElementById('cycles-dropdown');
+  dropdown.innerHTML = cycles.map(y => `<option value="${y}" ${y == selectedCycle ? 'selected' : ''}>${y + '. Döngü'}</option>`).join('');
+  dropdown.onchange = function () {
+    familyData.currentCycle = this.value;
+    renderDaysRow();
+  };
+}
+function renderDaysRow() {  
+  const cycle = familyData.currentCycle || 1;
+  familyData.cycles ??= {};
+  familyData.cycles[cycle] ??= {};
+  familyData.cycles[cycle].days ??= {};
+
+  console.log('renderDaysRow: ', cycle);
+
+  const days = getDayList();
+  const selectedDays = familyData.cycles[cycle]?.days;
+  
+  let html = '';
+  days.forEach(x=> {
+    html += `<div class="col-6 col-md-3 mt-2">
+              <label for="day_${x}" class="form-label">${getDayName(x)}</label>
+              <input id="day_${x}" 
+                      value="${selectedDays[x] ?? ''}" 
+                      onchange="onDateChange(${x})" 
+                      type='date' 
+                      placeholder="${getDayName(x)}" 
+                      class="form-control btn-day btn btn-sm btn-outline-primary"/>
+            </div>`
+  });
+  const row = document.getElementById('days-row');
+  row.innerHTML = html;
 }
 
 function renderMembers() {
@@ -1155,9 +1352,9 @@ function toggleSpendingPayed(memberId, spendingId) {
   
   if (spending) {
     spending.payed = !spending.payed;
-    saveToLocalStorage();
-    saveToGoogleDrive();
+    saveData();
     renderAll();
+    showToast('Harcama durumu güncellendi.'); 
   }
 }
 
@@ -1167,9 +1364,9 @@ function toggleMemberStatus(memberId) {
   const member = familyData.years[year]?.months[month]?.members?.find(m => m.id === memberId);
   if (member) {
     member.status = !member.status;
-    saveToLocalStorage();
-    saveToGoogleDrive();
+    saveData();
     renderAll();
+    showToast('Kişi durumu güncellendi.'); 
   }
 }
 
@@ -1178,11 +1375,12 @@ function toggleIncomeReceived(memberId, incomeId) {
   const month = familyData.currentMonth;
   const member = familyData.years[year]?.months[month]?.members?.find(m => m.id === memberId);
   const income = member?.incomes?.find(i => i.id === incomeId);
+
   if (income) {
     income.received = !income.received;
-    saveToLocalStorage();
-    saveToGoogleDrive();
+    saveData();
     renderAll();
+    showToast('Gelir durumu güncellendi.'); 
   }
 }
 
@@ -1222,8 +1420,7 @@ function deleteIncome(memberId, incomeId) {
       const member = members.find(m => m.id === memberId);
       if (member && member.incomes) {
         member.incomes = member.incomes.filter(i => i.id !== incomeId);
-        saveToLocalStorage();
-        saveToGoogleDrive();
+        saveData();
         renderAll();
         showToast('Gelir bilgisi silindi.');
       }
@@ -1273,8 +1470,7 @@ function deleteSpending(memberId, spendingId) {
       const member = members.find(m => m.id === memberId);
       if (member && member.spendings) {
         member.spendings = member.spendings.filter(s => s.id !== spendingId);
-        saveToLocalStorage();
-        saveToGoogleDrive();
+        saveData();
         renderAll();
         showToast('Gider bilgisi silindi.');
       }
@@ -1314,8 +1510,7 @@ function deleteCard(memberId, cardId) {
       const member = members.find(m => m.id === memberId);
       if (member && member.cards) {
         member.cards = member.cards.filter(c => c.id !== cardId);
-        saveToLocalStorage();
-        saveToGoogleDrive();
+        saveData();
         renderAll();
         showToast('Kart bilgisi silindi.');
       }
@@ -1342,15 +1537,36 @@ function deleteMember(memberId) {
       const month = familyData.currentMonth;
       let members = familyData.years[year].months[month].members;
       familyData.years[year].months[month].members = members.filter(m => m.id !== memberId);
-      saveToLocalStorage();
-      saveToGoogleDrive();
+      saveData();
       renderAll();
       showToast('Kişi bilgisi silindi.');
     }
   });
 }
 
+function onDateChange(day) {
+  const cycle = familyData.currentCycle;
+  const value = document.getElementById('day_'+day)?.value;
+
+  familyData.cycles[cycle] ??= {};
+  familyData.cycles[cycle].days ??= {};
+
+  familyData.cycles[cycle].days[day] = value;
+
+  saveData();
+  showToast("Tarih güncellendi.");
+  //renderAll();
+}
+
 // --- Utility Functions ---
+function isNullOrEmpty(value) {
+  if (value === null || value === undefined) return true;
+  if (typeof value === 'string' && value.trim() === '') return true;
+  if (Array.isArray(value) && value.length === 0) return true;
+  if (typeof value === 'object' && Object.keys(value).length === 0) return true;
+  if (typeof value === 'number' && isNaN(value)) return true;
+  return false;
+}
 function generateId(list) {
   return list.length ? Math.max(...list.map(x => x.id)) + 1 : 1;
 }
@@ -1385,9 +1601,9 @@ document.getElementById('incomeForm').onsubmit = function(e) {
     member.incomes.push({ id: generateId(member.incomes), name, value, received });
   }
 
-  saveToLocalStorage();
-  saveToGoogleDrive();
+  saveData();
   renderAll();
+  showToast('Gelir bilgisi kaydedildi.'); 
   bootstrap.Modal.getInstance(document.getElementById('incomeModal')).hide();
 };
 document.getElementById('spendingForm').onsubmit = function(e) {
@@ -1404,7 +1620,9 @@ document.getElementById('spendingForm').onsubmit = function(e) {
   const currentInstallment = Number(document.getElementById('spending-current-installment').value) || 1;
   const members = familyData.years[year].months[month].members;
   const member = members.find(m => m.id === memberId);
-  if (!member.spendings) member.spendings = [];
+  
+  member.spendings ??= [];
+
   if (spendingId) {
     // Edit
     const spending = member.spendings.find(s => s.id == spendingId);
@@ -1421,9 +1639,9 @@ document.getElementById('spendingForm').onsubmit = function(e) {
     member.spendings.push({ id: generateId(member.spendings), name, value, payed, cardId, installment, currentInstallment: currentInstallment, monthKey: month });
   }
 
-  saveToLocalStorage();
-  saveToGoogleDrive();
+  saveData();
   renderAll();
+  showToast('Harcama kaydedildi.'); 
   bootstrap.Modal.getInstance(document.getElementById('spendingModal')).hide();
 };
 
@@ -1449,6 +1667,7 @@ openAddSpending = function(memberId) {
   _openAddSpending(memberId);
   populateSpendingCardDropdown(memberId, '');
 };
+
 const _openEditSpending = openEditSpending;
 openEditSpending = function(memberId, spendingId) {
   _openEditSpending(memberId, spendingId);
@@ -1482,26 +1701,31 @@ document.getElementById('memberForm').onsubmit = function(e) {
     members.push({ id: generateId(members), name: name, status: true, incomes: [], spendings: [], cards: [] });
   }
 
-  saveToLocalStorage();
-  saveToGoogleDrive();
+  saveData();
   renderAll();
+  showToast('Kişi bilgisi kaydedildi.'); 
   bootstrap.Modal.getInstance(document.getElementById('memberModal')).hide();
 };
 
 // --- JSON Export/Import ---
 document.getElementById('btn-save-json').onclick = function() {
-  const dataStr = JSON.stringify(familyData, null, 2);
-  const blob = new Blob([dataStr], { type: 'application/json' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = FILE_NAME;
-  document.body.appendChild(a);
-  a.click();
-  setTimeout(() => {
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-  }, 0);
+  showToast('Yedek bilgisayarınıza indirilsin mi?', 'warning', 0, 'center', true).then((result) => {
+    if (result.isConfirmed) {
+        const dataStr = JSON.stringify(familyData, null, 2);
+        const blob = new Blob([dataStr], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = FILE_NAME;
+        document.body.appendChild(a);
+        a.click();
+        setTimeout(() => {
+          document.body.removeChild(a);
+          URL.revokeObjectURL(url);
+          showToast('Yedek başarıyla indirildi.'); 
+        }, 0); 
+    }
+  });
 };
 
 document.getElementById('btn-load-json').onclick = function() {
@@ -1515,10 +1739,11 @@ document.getElementById('btn-load-json').onclick = function() {
     reader.onload = function(evt) {
       try {
         const data = JSON.parse(evt.target.result);
-        familyData = data;
-        
-        saveToLocalStorage();
-        saveToGoogleDrive();
+        familyData = data;     
+        familyData.cycles ??= {};
+        familyData.currentCycle ??= 1;
+
+        saveData();
         renderAll();
         showToast('Veriler yedekten yüklendi.');
       } catch (err) {
@@ -1551,15 +1776,33 @@ function setupCopyPasteHandlers() {
 
     showToast('Ay verileri yapıştırılsın mı?', 'question', 0, 'center', true).then((result) => {
       if (result.isConfirmed) {
-        const year = familyData.currentYear;
-        const month = familyData.currentMonth;
-        familyData.years[year].months[month] = JSON.parse(JSON.stringify(copiedMonthData));
-        copiedMonthData = null;      
-        pasteBtn.disabled = true;
-        saveToLocalStorage();
-        saveToGoogleDrive();
-        renderAll();
-        showToast('Ay verileri yapıştırıldı.');
+        showToast('Taksitler otomatik olarak arttırılsın mı?', 'question', 0, 'center', true).then((result2) => {
+          if (result2.isConfirmed) {
+            copiedMonthData.members.forEach(member => {
+              let removeIds = [];
+              member.spendings.filter(x=> x.installment > 1).forEach(spending => {
+                spending.currentInstallment++;
+                if(spending.currentInstallment > spending.installment) {
+                  removeIds.push(spending.id);
+                }        
+              });
+
+              if(removeIds.length > 0) {
+                member.spendings = member.spendings.filter(x=> !removeIds.includes(x.id));
+              }
+            });
+          }
+          
+          const year = familyData.currentYear;
+          const month = familyData.currentMonth;
+          familyData.years[year].months[month] = JSON.parse(JSON.stringify(copiedMonthData));
+          copiedMonthData = null;      
+          pasteBtn.disabled = true;
+          
+          saveData();
+          renderAll();
+          showToast('Ay verileri yapıştırıldı.' + (result2.isConfirmed ? ' Taksitler otomatik olarak arttırıldı.' : ''));
+        });
       }
     });
   };
@@ -1570,8 +1813,7 @@ function setupCopyPasteHandlers() {
         const month = familyData.currentMonth;
         if (familyData?.years[year]?.months[month]) {
           familyData.years[year].months[month] = { members: [] };
-          saveToLocalStorage();
-          saveToGoogleDrive();
+          saveData();
           renderAll();
           showToast('Ay verileri temizlendi.');
         }
@@ -1592,17 +1834,6 @@ function setupCopyPasteHandlers() {
     const saveBtn = form.querySelector('button[type=submit],button:not([type])');
     if (saveBtn) saveBtn.type = 'submit';
     // Hayır-op: default form submit already works with Enter
-  }
-});
-
-// Auto-focus first input when modal is shown
-['memberModal', 'incomeModal', 'spendingModal', 'cardModal'].forEach(modalId => {
-  const modalEl = document.getElementById(modalId);
-  if (modalEl) {
-    modalEl.addEventListener('shown.bs.modal', function() {
-      const firstInput = modalEl.querySelector('input:not([type=hidden]):not([disabled]),select,textarea');
-      if (firstInput) firstInput.focus();
-    });
   }
 });
 
@@ -1627,9 +1858,9 @@ document.getElementById('cardForm').onsubmit = function(e) {
     member.cards.push({ id: generateId(member.cards), name });
   }
 
-  saveToLocalStorage();
-  saveToGoogleDrive();
+  saveData();
   renderAll();
+  showToast('Kart bilgisi kaydedildi.'); 
   bootstrap.Modal.getInstance(document.getElementById('cardModal')).hide();
 };
 
@@ -1660,7 +1891,34 @@ function toggleAllCurrencyMasks() {
   renderAll();
 }
 
+$(document).ready(function() {
+  initGoogleDrive();
+  renderAll();
+
+  $('#myTab .nav-link').on('shown.bs.tab', function (e) {
+    familyData.activeTabIndex = $(this).index($(e.target));
+    saveData();
+  });
+
+  $('#memberModal, #incomeModal, #spendingModal, #cardModal').on('shown.bs.modal', function (e) {
+    var firstInput = $('input:not([type=hidden]):not([disabled]), select, textarea', $(this)).first();
+    if (firstInput) {
+      firstInput.focus();
+    }
+  });
+});
+
+[].forEach(modalId => {
+  const modalEl = document.getElementById(modalId);
+  if (modalEl) {
+    modalEl.addEventListener('shown.bs.', function() {
+      
+    });
+  }
+});
+
 </script>
+
 <!-- Bootstrap JS -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
