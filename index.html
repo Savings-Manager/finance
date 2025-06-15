@@ -754,7 +754,7 @@ async function initGoogleDrive() {
         const expiryTime = Date.now() + (50 * 60 * 1000);
         localStorage.setItem(TOKEN_STORAGE_KEY, access_token);
         localStorage.setItem(TOKEN_EXPIRY_KEY, expiryTime.toString());
-        document.getElementById('drive-warning').classList.add('d-none');
+        $('#drive-warning').addClass('d-none');
 
         console.log('[oauth2.initTokenClient][callback] New access token received and saved.');
         
@@ -1070,20 +1070,9 @@ function switchMonth(year, month) {
 // --- Months Row ---
 function renderYearsDropdown() {
   const years = getYearList();
-  const dropdown = document.getElementById('years-dropdown');
   const selectedYear = financeData.currentYear || getCurrentYearMonth().year;
-  dropdown.innerHTML = years.map(y => `<option value="${y}"${y === selectedYear ? ' selected' : ''}>${y}</option>`).join('');
-  dropdown.onchange = function () {
-    const year = this.value;
-    const months = getMonthList(year);
-    // Use last selected month for this year if available, else default to '1'
-    let month = (financeData.lastSelectedMonthByYear && financeData.lastSelectedMonthByYear[year]) || '1';
-    if (!financeData.years[year] || !financeData.years[year].months[month]) {
-      month = '1';
-      ensureMonthData(year, month);
-    }
-    switchMonth(year, month);
-  };
+  
+  $('#years-dropdown').html(years.map(y => `<option value="${y}"${y === selectedYear ? ' selected' : ''}>${y}</option>`).join(''));
 }
 
 function renderMonthsRow() {
@@ -1163,12 +1152,7 @@ function renderCycleDropdown() {
     cycles.push((index+1));
   }
 
-  const dropdown = document.getElementById('cycles-dropdown');
-  dropdown.innerHTML = cycles.map(y => `<option value="${y}" ${y == selectedCycle ? 'selected' : ''}>${y + '. Döngü'}</option>`).join('');
-  dropdown.onchange = function () {
-    financeData.currentCycle = this.value;
-    renderDaysRow();
-  };
+  $('#cycles-dropdown').html(cycles.map(y => `<option value="${y}" ${y == selectedCycle ? 'selected' : ''}>${y + '. Döngü'}</option>`).join(''));
 }
 function renderDaysRow() {  
   const cycle = financeData.currentCycle;
@@ -1198,7 +1182,7 @@ function renderDaysRow() {
 
 function renderMembers() {
   ensureMonthData(financeData.currentYear, financeData.currentMonth);
-  const members = financeData.years[financeData.currentYear].months[financeData.currentMonth].members;
+  const members = financeData?.years[financeData.currentYear]?.months[financeData.currentMonth]?.members;
   if (!(members?.length > 0)) {
     $('#members-list').html('<div class="alert alert-info">Henüz kayıtlı kişi yok. Bir tane ekleyin!</div>');
     return;
@@ -1454,7 +1438,6 @@ function openEditIncome(memberId, incomeId) {
     $('#income-name').val(income.name);
     $('#income-value').val(income.value);
     $('#income-received').prop('checked', !!income.received);
-
     $('#incomeModal').modal('show');   
   }
 }
@@ -1462,11 +1445,10 @@ function openEditIncome(memberId, incomeId) {
 function deleteIncome(memberId, incomeId) {
   showToast('Gelir bilgisi silinsin mi?', 'warning', 0, 'center', true).then((result) => {
     if (result.isConfirmed) {
-      const year = financeData.currentYear;
-      const month = financeData.currentMonth;
-      const members = financeData.years[year].months[month].members;
-      const member = members.find(m => m.id === memberId);
-      if (member && member.incomes) {
+      const member = financeData?.years[financeData.currentYear]
+                                 ?.months[financeData.currentMonth]
+                                 ?.members?.find(m => m.id === memberId);
+      if (member?.incomes) {
         member.incomes = member.incomes.filter(i => i.id !== incomeId);
         saveData();
         renderAll();
@@ -1477,32 +1459,31 @@ function deleteIncome(memberId, incomeId) {
 }
 
 function openAddSpending(memberId) {
-  document.getElementById('spending-member-id').value = memberId;
-  document.getElementById('spending-id').value = '';
-  document.getElementById('spending-name').value = '';
-  document.getElementById('spending-value').value = '';
-  document.getElementById('spending-payed').checked = true;
-  document.getElementById('spending-card-id').value = '';
-  document.getElementById('spending-installment').value = 1;
-  document.getElementById('spending-current-installment').value = 1;
-  new bootstrap.Modal(document.getElementById('spendingModal')).show();
+  $('#spending-member-id').val(memberId);
+  $('#spending-id').val('');
+  $('#spending-name').val('');
+  $('#spending-value').val('');
+  $('#spending-payed').prop('checked', true);
+  $('#spending-card-id').val('');
+  $('#spending-installment').val(1);
+  $('#spending-current-installment').val(1);
+  $('#spendingModal').modal('show');
 }
 
 function openEditSpending(memberId, spendingId) {
   const spending = financeData?.years[financeData.currentYear]
-                            ?.months[financeData.currentMonth]
-                            ?.members?.find(m => m.id === memberId)
-                            ?.spendings?.find(s => s.id === spendingId);
-
+                              ?.months[financeData.currentMonth]
+                              ?.members?.find(m => m.id === memberId)
+                              ?.spendings?.find(s => s.id === spendingId);
   if (spending) {
-    document.getElementById('spending-member-id').value = memberId;
-    document.getElementById('spending-id').value = spendingId;
-    document.getElementById('spending-name').value = spending.name;
-    document.getElementById('spending-value').value = spending.value;
-    document.getElementById('spending-payed').checked = !!spending.payed;
-    document.getElementById('spending-card-id').value = spending.cardId || '';
-    document.getElementById('spending-installment').value = spending.installment || 1;
-    document.getElementById('spending-current-installment').value = spending.currentInstallment || 1;
+    $('#spending-member-id').val(memberId);
+    $('#spending-id').val(spendingId);
+    $('#spending-name').val(spending.name);
+    $('#spending-value').val(spending.value);
+    $('#spending-payed').prop('checked', !!spending.payed);
+    $('#spending-card-id').val(spending.cardId || '');
+    $('#spending-installment').val(spending.installment || 1);
+    $('#spending-current-installment').val(spending.currentInstallment || 1);
     $('#spendingModal').modal('show');
   }
 }
@@ -1549,11 +1530,10 @@ function openEditCard(memberId, cardId) {
 function deleteCard(memberId, cardId) {
   showToast('Kart bilgisi silinsin mi?', 'warning', 0, 'center', true).then((result) => {
     if (result.isConfirmed) {
-      const year = financeData.currentYear;
-      const month = financeData.currentMonth;
-      const members = financeData.years[year].months[month].members;
-      const member = members.find(m => m.id === memberId);
-      if (member && member.cards) {
+      const member = financeData?.years[financeData.currentYear]
+                                 ?.months[financeData.currentMonth]
+                                 ?.members?.find(m => m.id === memberId);
+      if (member?.cards) {
         member.cards = member.cards.filter(c => c.id !== cardId);
         saveData();
         renderAll();
@@ -1564,24 +1544,23 @@ function deleteCard(memberId, cardId) {
 }
 
 function openEditMember(memberId) {
-  const year = financeData.currentYear;
-  const month = financeData.currentMonth;
-  const members = financeData.years[year].months[month].members;
-  const member = members.find(m => m.id === memberId);
+  const member = financeData?.years[financeData.currentYear]
+                             ?.months[financeData.currentMonth]
+                             ?.members?.find(m => m.id === memberId);
   if (member) {
-    document.getElementById('member-id').value = memberId;
-    document.getElementById('member-name').value = member.name;
-    new bootstrap.Modal(document.getElementById('memberModal')).show();
+    $('#member-id').val(memberId);
+    $('#member-name').val(member.name);
+    $('#memberModal').modal('show');
   }
 }
 
 function deleteMember(memberId) {
   showToast('Kişi bilgisi silinsin mi?', 'warning', 0, 'center', true).then((result) => {
     if (result.isConfirmed) {
-      const year = financeData.currentYear;
-      const month = financeData.currentMonth;
-      let members = financeData.years[year].months[month].members;
-      financeData.years[year].months[month].members = members.filter(m => m.id !== memberId);
+      let members = financeData.years[financeData.currentYear].months[financeData.currentMonth].members;
+      financeData.years[financeData.currentYear]
+                 .months[financeData.currentMonth]
+                 .members = members.filter(m => m.id !== memberId);
       saveData();
       renderAll();
       showToast('Kişi bilgisi silindi.');
@@ -1590,13 +1569,12 @@ function deleteMember(memberId) {
 }
 
 function onDateChange(day) {
-  const cycle = financeData.currentCycle;
   const value = document.getElementById('day_'+day)?.value;
 
-  financeData.cycles[cycle] ??= {};
-  financeData.cycles[cycle].days ??= {};
+  financeData.cycles[financeData.currentCycle] ??= {};
+  financeData.cycles[financeData.currentCycle].days ??= {};
 
-  financeData.cycles[cycle].days[day] = value;
+  financeData.cycles[financeData.currentCycle].days[day] = value;
 
   saveData();
   showToast("Tarih güncellendi.");
@@ -1815,70 +1793,6 @@ document.getElementById('btn-load-json').onclick = function() {
 };
 
 let copiedMonthData = null;
-function setupCopyPasteHandlers() {
-  const copyBtn = document.getElementById('btn-copy-month');
-  const pasteBtn = document.getElementById('btn-paste-month');
-  const clearBtn = document.getElementById('btn-clear-month');
-  if (!copyBtn || !pasteBtn || !clearBtn) return;
-  copyBtn.onclick = function() {
-    const year = financeData.currentYear;
-    const month = financeData.currentMonth;
-    if (financeData?.years[year]?.months[month]) {
-      copiedMonthData = JSON.parse(JSON.stringify(financeData.years[year].months[month]));
-      pasteBtn.disabled = false;
-      showToast('Ay verileri kopyalandı.');
-    }
-  };
-  pasteBtn.onclick = function() {
-    if (!copiedMonthData) return;
-
-    showToast('Ay verileri yapıştırılsın mı?', 'question', 0, 'center', true).then((result) => {
-      if (result.isConfirmed) {
-        showToast('Taksitler otomatik olarak arttırılsın mı?', 'question', 0, 'center', true).then((result2) => {
-          if (result2.isConfirmed) {
-            copiedMonthData.members.forEach(member => {
-              let removeIds = [];
-              member.spendings.filter(x=> x.installment > 1).forEach(spending => {
-                spending.currentInstallment++;
-                if(spending.currentInstallment > spending.installment) {
-                  removeIds.push(spending.id);
-                }        
-              });
-
-              if(removeIds.length > 0) {
-                member.spendings = member.spendings.filter(x=> !removeIds.includes(x.id));
-              }
-            });
-          }
-          
-          const year = financeData.currentYear;
-          const month = financeData.currentMonth;
-          financeData.years[year].months[month] = JSON.parse(JSON.stringify(copiedMonthData));
-          copiedMonthData = null;      
-          pasteBtn.disabled = true;
-
-          saveData();
-          renderAll();
-          showToast('Ay verileri yapıştırıldı.' + (result2.isConfirmed ? ' Taksitler otomatik olarak arttırıldı.' : ''));
-        });
-      }
-    });
-  };
-  clearBtn.onclick = function() {
-    showToast('Ay verileri temizlensin mi?', 'warning', 0, 'center', true).then((result) => {
-      if (result.isConfirmed) {
-        const year = financeData.currentYear;
-        const month = financeData.currentMonth;
-        if (financeData?.years[year]?.months[month]) {
-          financeData.years[year].months[month] = { members: [] };
-          saveData();
-          renderAll();
-          showToast('Ay verileri temizlendi.');
-        }
-      }
-    });
-  };
-}
 
 // Ensure Enter key submits modal forms for add/edit
 ['memberForm', 'incomeForm', 'spendingForm', 'cardForm'].forEach(formId => {
@@ -1939,11 +1853,11 @@ function toggleCurrencyMask(element, originalValue) {
 function toggleAllCurrencyMasks() {
   isCurrencyMasked = !isCurrencyMasked;
   if(isCurrencyMasked) {
-    document.getElementById('show-hide-icon').classList.remove('fa-eye');
-    document.getElementById('show-hide-icon').classList.add('fa-eye-slash');
+    $('#show-hide-icon').removeClass('fa-eye');
+    $('#show-hide-icon').addClass('fa-eye-slash');
   } else {
-    document.getElementById('show-hide-icon').classList.remove('fa-eye-slash');
-    document.getElementById('show-hide-icon').classList.add('fa-eye');
+    $('#show-hide-icon').addClass('fa-eye');
+    $('#show-hide-icon').removeClass('fa-eye-slash');
   }
   renderAll();
 }
@@ -1961,11 +1875,90 @@ $(document).ready(function() {
     }
   });
 
-  $('#btn-add-member').on('click', function() {
+  $(document).on('#btn-add-member', 'change', function() {
     $('#member-id').val('');
     $('#member-name').val('');
     $('#memberModal').modal('show');
   });
+
+  $(document).on('#years-dropdown', 'change', function() {
+    const year = $(this).val();
+    const months = getMonthList(year);
+
+    let month = (financeData.lastSelectedMonthByYear && financeData.lastSelectedMonthByYear[year]) || '1';
+    if (!financeData.years[year] || !financeData.years[year].months[month]) {
+      month = '1';
+      ensureMonthData(year, month);
+    }
+    switchMonth(year, month);
+  });
+
+  $(document).on('#cycles-dropdown', 'change', function() {
+    financeData.currentCycle = $(this).val();
+    renderDaysRow();
+  });
+
+  $(document).on('#btn-copy-month', 'click', function() {
+    const year = financeData.currentYear;
+    const month = financeData.currentMonth;
+    if (financeData?.years[year]?.months[month]) {
+      copiedMonthData = JSON.parse(JSON.stringify(financeData.years[year].months[month]));
+      pasteBtn.disabled = false;
+      showToast('Ay verileri kopyalandı.');
+    }
+  });
+
+  $(document).on('#btn-paste-month', 'click', function() {
+    if (isNullOrEmpty(copiedMonthData)) {
+      return;
+    }
+
+    showToast('Ay verileri yapıştırılsın mı?', 'question', 0, 'center', true).then((result) => {
+      if (result.isConfirmed) {
+        showToast('Taksitler otomatik olarak arttırılsın mı?', 'question', 0, 'center', true).then((result2) => {
+          if (result2.isConfirmed) {
+            copiedMonthData.members.forEach(member => {
+              let removeIds = [];
+              member.spendings.filter(x=> x.installment > 1).forEach(spending => {
+                spending.currentInstallment++;
+                if(spending.currentInstallment > spending.installment) {
+                  removeIds.push(spending.id);
+                }        
+              });
+
+              if(removeIds.length > 0) {
+                member.spendings = member.spendings.filter(x=> !removeIds.includes(x.id));
+              }
+            });
+          }
+          
+          financeData.years[financeData.currentYear].months[financeData.currentMonth] = JSON.parse(JSON.stringify(copiedMonthData));
+          copiedMonthData = null;      
+          pasteBtn.disabled = true;
+
+          saveData();
+          renderAll();
+          showToast('Ay verileri yapıştırıldı.' + (result2.isConfirmed ? ' Taksitler otomatik olarak arttırıldı.' : ''));
+        });
+      }
+    });
+  });
+
+  $(document).on('#btn-clear-month', 'click', function() {
+    showToast('Ay verileri temizlensin mi?', 'warning', 0, 'center', true).then((result) => {
+      if (result.isConfirmed) {
+        const year = financeData.currentYear;
+        const month = financeData.currentMonth;
+        if (financeData?.years[year]?.months[month]) {
+          financeData.years[year].months[month] = { members: [] };
+          saveData();
+          renderAll();
+          showToast('Ay verileri temizlendi.');
+        }
+      }
+    });
+  });
+
 
   renderAll();
 
