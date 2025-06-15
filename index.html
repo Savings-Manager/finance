@@ -10,8 +10,13 @@
   <!-- Font Awesome CDN -->
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
 
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+  <script src="https://code.jquery.com/ui/1.13.2/jquery-ui.min.js"></script>
+
   <!-- Bootstrap 5 Material Theme (Bootswatch Materia) -->  
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  
   <!-- Bootstrap Icons -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
 
@@ -236,27 +241,11 @@
     }
 
     /* --- Years Dropdown Beautification --- */
-    #years-dropdown {
-      font-size: 1.08rem;
-      border-radius: 1.25rem;
-      padding: 0.5rem 0rem 0.5rem 2.5rem;
-      background: #fff;
-      color: #3949ab;
-      border: 2px solid #3949ab;
-      box-shadow: 0 2px 8px rgba(60,60,60,0.08);
-      font-weight: 500;
-      min-width: 110px;
-      max-width: 180px;
-      transition: border-color 0.2s, box-shadow 0.2s;
-    }
-    #years-dropdown:focus {
-      border-color: #579aff;
-      box-shadow: 0 0 0 2px #e3eafc;
-      outline: none;
-    }
     .years-dropdown-wrapper {
+      padding: 0;
       position: relative;
-      display: inline-block;
+      max-width: 105px;
+      min-width: 100px;
     }
     .years-dropdown-wrapper .dropdown-icon {
       position: absolute;
@@ -264,10 +253,26 @@
       top: 50%;
       transform: translateY(-50%);
       color: #3949ab;
-      font-size: 1.2rem;
+      font-size: 1.15rem;
       pointer-events: none;
       z-index: 2;
     }
+    #years-dropdown {
+      font-size: 1rem;
+      border-radius: 1.25rem;
+      padding: 0.4rem 0rem 0.4rem 2.6rem;
+      background: #fff;
+      color: #3949ab;
+      border: 2px solid #3949ab;
+      box-shadow: 0 2px 8px rgba(60,60,60,0.08);
+      font-weight: 500;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    #years-dropdown:focus {
+      border-color: #579aff;
+      box-shadow: 0 0 0 2px #e3eafc;
+      outline: none;
+    }   
     #years-dropdown::-ms-expand {
       display: none;
     }
@@ -367,9 +372,9 @@
       color: #222;
     }
 
-    .col-1-5 {
-      flex: 0 0 12.3%;
-      max-width: 12.3%;
+    .sortable-handle {
+      cursor: grab;
+      font-size:18pt;
     }
 
     /* Mobile responsive styles for top buttons */
@@ -410,15 +415,11 @@
   </style>
 </head>
 <body class="bg-light">
-
-<!-- JQuery -->
-<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
-
 <div class="container py-4">  
   <div class="d-flex justify-content-between align-items-center mb-4">
     <div class="d-flex align-items-center">
       <h2 id="page-title"><i class="bi bi-people-fill me-2"></i>Finans Yöneticisi</h2>
-      <small class="text-muted ms-2">v1.1.2</small>   
+      <small class="text-muted ms-2">v1.1.3</small>   
     </div>
     <div>
       <button class="top-action-btn" id="btn-load-json"><i class="bi bi-folder2-open ms-2"></i>Verileri Geri Yükle</button>
@@ -459,22 +460,18 @@
   <div class="tab-content" id="myTabContent" style="padding: 1rem; border: 1px solid #e0e0e0; border-top: none;">
     <div class="tab-pane fade show active" id="home" role="tabpanel" aria-labelledby="home-tab">
       <div id="finance-section">
-        <div class="row mb-3">
-          <div class="col-1-5">
-            <div class="years-dropdown-wrapper">
+        <div class="mb-3 d-flex">
+          <div class="years-dropdown-wrapper">
               <i class="bi bi-calendar3 dropdown-icon"></i>
               <select id="years-dropdown" class="form-select form-select-sm"></select>
-            </div>
           </div>
-          <div class="col-10">
-            <div id="copy-paste-btn-group" class="d-flex">
-              <button id="btn-clear-month" class="btn btn-circle delete ms-2" title="Bu ayın verilerini temizle"><i class="fas fa-trash"></i></button>      
-              <button onclick="toggleAllCurrencyMasks()" class="btn-circle ms-2">
-                <i id="show-hide-icon" class="fas fa-eye-slash"></i>
-              </button>
-              <button id="btn-copy-month" class="btn-circle edit ms-2" title="Bu ayın verilerini kopyala"><i class="bi bi-clipboard"></i></button>
-              <button id="btn-paste-month" class="btn-circle success ms-2" title="Bu aya yapıştır" disabled><i class="bi bi-clipboard-check"></i></button>
-            </div>
+          <div class="d-flex p-0 ms-2">
+            <button id="btn-clear-month" class="btn btn-circle delete" title="Bu ayın verilerini temizle"><i class="fas fa-trash"></i></button>      
+            <button onclick="toggleAllCurrencyMasks()" class="btn-circle ms-2">
+              <i id="show-hide-icon" class="fas fa-eye-slash"></i>
+            </button>
+            <button id="btn-copy-month" class="btn-circle edit ms-2" title="Bu ayın verilerini kopyala"><i class="bi bi-clipboard"></i></button>
+            <button id="btn-paste-month" class="btn-circle success ms-2" title="Bu aya yapıştır" disabled><i class="bi bi-clipboard-check"></i></button>
           </div>
         </div>
         <div class="d-flex justify-content-between align-items-center mb-2">   
@@ -500,7 +497,7 @@
               <i class="bi bi-calendar3 dropdown-icon"></i>
               <select id="cycles-dropdown" class="form-select form-select-sm"></select>
             </div>
-            <span id="copy-paste-btn-group">
+            <span>
               <!-- <button id="btn-clear-day" class="btn btn-circle delete ms-2" title="Bu döngünün verilerini temizle"><i class="fas fa-trash"></i></button>       -->
             </span>
           </div>
@@ -1029,6 +1026,10 @@ function renderInit() {
   ensureMonthData(financeData.currentYear, financeData.currentMonth);
   renderAll(0);
   renderAll(1);
+
+  console.log(financeData.activeTabIndex);
+  //$('#myTab .nav-link').removeClass('active');
+  $('#myTab .nav-link').eq(financeData.activeTabIndex).tab('show');
 }
 
 // --- Month Handling ---
@@ -1205,9 +1206,6 @@ function renderMembers() {
     const spend = sumSpendingsForMonth(member, financeData.currentYear, financeData.currentMonth);
     const net = income - spend;
     const netColor = net < 0 ? 'spending-color' : 'card-color';
-    // Order incomes by name only
-    const incomes = [...(member.incomes || [])].sort((a, b) => a.name.localeCompare(b.name));
-    // Order spendings by cardId (null first), but do not sort by payed
     const spendings = [...(member.spendings || [])].sort((a, b) => {
       if ((a.cardId || 0) !== (b.cardId || 0)) return (a.cardId || 0) - (b.cardId || 0);
       return 0;
@@ -1239,14 +1237,15 @@ function renderMembers() {
           </div>
         </div>
         <div class="row mt-3">
-          <div class="col-md-4">
+          <div class="col-md-5">
             <div class="col-md-12">
               <h6 class="income-color">Gelirler<button class="icon-btn income-color" onclick="openAddIncome(${member.id})"><i class="bi bi-plus-circle"></i></button></h6>
-              <div class="col-md-12 list-group mb-2">
-                ${incomes.map(income => `
-                  <div class="col-md-12 list-group-item d-flex justify-content-between bg-income">
-                    <div>
-                      <span class="fw-bold"><i class="bi bi-cash-coin"></i> ${income.name}</span>
+              <div data-type="0" data-memberid="${member.id}" class="col-md-12 list-group sortable-list mb-2">
+                ${member.incomes?.map(income => `
+                  <div data-incomeid="${income.id}" class="col-md-12 list-group-item sortable-item d-flex justify-content-between bg-income">
+                    <div class="fw-bold">
+                      <i class="sortable-handle bi bi-list me-2"></i>
+                      <i class="bi bi-cash-coin"></i> ${income.name}
                     </div>
                     <div class="d-flex justify-content-end align-items-center">
                       <span class="fw-bold income-color pointer" onclick="toggleCurrencyMask(this, ${income.value})">${currency(income.value, isCurrencyMasked)}</span>                                                
@@ -1260,16 +1259,19 @@ function renderMembers() {
               </div>
             </div>
             <div class="col-md-12 mt-4 mb-4">
-              <h6>Kredi Kartları <button class="icon-btn card-color" onclick="openAddCard(${member.id})"><i class="bi bi-credit-card-2-front"></i></button></h6>
-              <div class="col-md-12 list-group mb-2">
+              <h6>Kredi Kartları <button class="icon-btn card-color" onclick="openAddCard(${member.id})"><i class="bi bi-credit-card"></i></button></h6>
+              <div data-type="1" data-memberid="${member.id}" class="col-md-12 list-group sortable-list mb-2">
                 ${(member.cards || []).map(card => {
                   const cardSpend = (member.spendings || []).filter(s => s.cardId === card.id && s.payed).reduce((a, b) => {
                     if (!b.installment || b.installment < 1) b.installment = 1;
                     return a + Number(b.value) / b.installment;
                   }, 0);
                   return `
-                  <div class="list-group-item bg-card d-flex justify-content-between align-items-center">
-                    <span class="fw-bold"><i class="bi bi-credit-card-2-front"></i> ${card.name}</span>
+                  <div data-cardid="${card.id}" class="list-group-item sortable-item bg-card d-flex justify-content-between align-items-center">
+                    <div class="fw-bold">
+                      <i class="sortable-handle bi bi-list me-2"></i>
+                      <i class="bi bi-credit-card"></i> ${card.name}
+                    </div>
                     <div class="item-actions ms-2">
                       <span class="fw-bold spending-color pointer" onclick="toggleCurrencyMask(this, ${cardSpend})">${currency(cardSpend, isCurrencyMasked)}</span>
                       <button class="icon-btn edit" onclick="openEditCard(${member.id},${card.id})"><i class="fas fa-pen"></i></button>
@@ -1287,9 +1289,9 @@ function renderMembers() {
               }, 0), isCurrencyMasked)}</span></div>
             </div>
           </div>
-          <div class="col-md-8">
+          <div class="col-md-7">
             <h6 class="spending-color">Giderler<button class="icon-btn spending-color" onclick="openAddSpending(${member.id})"><i class="bi bi-plus-circle"></i></button></h6>
-            <div class="col-md-12 list-group mb-2">
+            <div data-type="2" data-memberid="${member.id}" class="col-md-12 list-group sortable-list mb-2">
               ${spendings.map(spending => {
                 const card = (member.cards || []).find(c => c.id === spending.cardId);
                 let currentInstallment = 1;
@@ -1302,13 +1304,14 @@ function renderMembers() {
                   }
                 }
                 return `
-                <div class="col-md-12 list-group-item d-flex justify-content-between bg-spending">
+                <div data-spendingid="${spending.id}" class="col-md-12 list-group-item sortable-item d-flex justify-content-between bg-spending">
                   <div class="col-md-7">
                     <div class="col-md-12 fw-bold">
+                      <i class="sortable-handle bi bi-list me-2"></i>
                       <i class="bi bi-cart-dash"></i> ${spending.name} 
                     </div>
                     <div class="col-md-12 fw-bold">
-                     ${card ? `<span class='badge card-color'><i class='bi bi-credit-card-2-front'></i> ${card.name}</span>` : ''} 
+                     ${card ? `<span class='badge card-color'><i class='bi bi-credit-card-fill'></i> ${card.name}</span>` : ''} 
                       ${spending.installment > 1 ? `<span class='badge bg-secondary'>${spending.currentInstallment > 1 
                                 ? spending.currentInstallment : currentInstallment}/${spending.installment}</span>` : ''}
                     </div>
@@ -1337,6 +1340,61 @@ function renderMembers() {
     </div>
     `;
   }).join('');
+
+  initializeSortable();
+}
+
+function initializeSortable() {
+  $('.sortable-list').sortable({
+    handle: '.sortable-handle',
+    placeholder: 'list-group-item bg-warning',
+    update: function(event, ui) {
+      const type = $(this).data('type');
+      const memberId = $(this).data('memberid');
+      const member = financeData.years[financeData.currentYear]
+                                ?.months[financeData.currentMonth]
+                                ?.members?.find(m => m.id === memberId);
+      if(type === 0) { 
+        $(this).children('.sortable-item').each(function(index) {
+          const incomeId = $(this).data('incomeid');
+          const income = member?.incomes?.find(s => s.id === incomeId);
+          if(income) {
+            income.order = index;
+          }
+        });
+
+        member.incomes.sort(function(a, b) { return a.order - b.order; });
+      }
+      else if(type === 1) { 
+        $(this).children('.sortable-item').each(function(index) {
+          const cardId = $(this).data('cardid');
+          const card = member?.cards?.find(s => s.id === cardId);
+          if(card) {
+            card.order = index;
+          }
+        });
+
+        member.cards.sort(function(a, b) { return a.order - b.order; });
+      }
+      else if(type === 2) { 
+        $(this).children('.sortable-item').each(function(index) {
+          const spendingId = $(this).data('spendingid');
+          const spending = member?.spendings?.find(s => s.id === spendingId);
+          if(spending) {
+            spending.order = index;
+          }
+        });
+
+        member.spendings.sort(function(a, b) { return a.order - b.order; });
+      }
+      
+      // console.log(member.incomes, member.spendings);
+      saveData();
+    }
+  });
+  
+  $('.sortable-list').disableSelection();
+  $('.sortable-item').disableSelection();
 }
 
 // --- CRUD and Toggle Functions ---
@@ -1347,9 +1405,10 @@ document.getElementById('btn-add-member').onclick = () => {
 };
 
 function toggleSpendingPayed(memberId, spendingId) {
-  const year = financeData.currentYear;
-  const month = financeData.currentMonth;
-  const member = financeData.years[year]?.months[month]?.members?.find(m => m.id === memberId);
+  const member = financeData?.years[financeData.currentYear]
+                            ?.months[financeData.currentMonth]
+                            ?.members?.find(m => m.id === memberId);
+                            
   const spending = member?.spendings?.find(s => s.id === spendingId);
   
   if (spending) {
@@ -1443,34 +1502,31 @@ function openAddSpending(memberId) {
 }
 
 function openEditSpending(memberId, spendingId) {
-  const year = financeData.currentYear;
-  const month = financeData.currentMonth;
-  const members = financeData.years[year].months[month].members;
-  const member = members.find(m => m.id === memberId);
-  if (member && member.spendings) {
-    const spending = member.spendings.find(s => s.id === spendingId);
-    if (spending) {
-      document.getElementById('spending-member-id').value = memberId;
-      document.getElementById('spending-id').value = spendingId;
-      document.getElementById('spending-name').value = spending.name;
-      document.getElementById('spending-value').value = spending.value;
-      document.getElementById('spending-payed').checked = !!spending.payed;
-      document.getElementById('spending-card-id').value = spending.cardId || '';
-      document.getElementById('spending-installment').value = spending.installment || 1;
-      document.getElementById('spending-current-installment').value = spending.currentInstallment || 1;
-      new bootstrap.Modal(document.getElementById('spendingModal')).show();
-    }
+  const spending = financeData?.years[financeData.currentYear]
+                            ?.months[financeData.currentMonth]
+                            ?.members?.find(m => m.id === memberId)
+                            ?.spendings?.find(s => s.id === spendingId);
+
+  if (spending) {
+    document.getElementById('spending-member-id').value = memberId;
+    document.getElementById('spending-id').value = spendingId;
+    document.getElementById('spending-name').value = spending.name;
+    document.getElementById('spending-value').value = spending.value;
+    document.getElementById('spending-payed').checked = !!spending.payed;
+    document.getElementById('spending-card-id').value = spending.cardId || '';
+    document.getElementById('spending-installment').value = spending.installment || 1;
+    document.getElementById('spending-current-installment').value = spending.currentInstallment || 1;
+    $('#spendingModal').modal('show');
   }
 }
 
 function deleteSpending(memberId, spendingId) {
   showToast('Gider bilgisi silinsin mi?', 'warning', 0, 'center', true).then((result) => {
     if (result.isConfirmed) {
-      const year = financeData.currentYear;
-      const month = financeData.currentMonth;
-      const members = financeData.years[year].months[month].members;
-      const member = members.find(m => m.id === memberId);
-      if (member && member.spendings) {
+      const member = financeData?.years[financeData.currentYear]
+                                ?.months[financeData.currentMonth]
+                                ?.members?.find(m => m.id === memberId);
+      if (member?.spendings) {
         member.spendings = member.spendings.filter(s => s.id !== spendingId);
         saveData();
         renderAll();
@@ -1638,7 +1694,17 @@ document.getElementById('spendingForm').onsubmit = function(e) {
     }
   } else {
     // Add
-    member.spendings.push({ id: generateId(member.spendings), name, value, payed, cardId, installment, currentInstallment: currentInstallment, monthKey: month });
+    member.spendings.push({ 
+      id: generateId(member.spendings), 
+      name, 
+      value, 
+      payed, 
+      cardId, 
+      installment, 
+      currentInstallment: currentInstallment, 
+      monthKey: month,
+      order: 999
+    });
   }
 
   saveData();
@@ -1673,12 +1739,10 @@ openAddSpending = function(memberId) {
 const _openEditSpending = openEditSpending;
 openEditSpending = function(memberId, spendingId) {
   _openEditSpending(memberId, spendingId);
-  // Find the cardId for this spending
-  const year = financeData.currentYear;
-  const month = financeData.currentMonth;
-  const members = financeData.years[year].months[month].members;
-  const member = members.find(m => m.id === memberId);
-  if (member && member.spendings) {
+  const member = financeData?.years[financeData.currentYear]
+                            ?.months[financeData.currentMonth]
+                            ?.members?.find(m => m.id === memberId);
+  if (member?.spendings) {
     const spending = member.spendings.find(s => s.id === spendingId);
     if (spending) {
       populateSpendingCardDropdown(memberId, spending.cardId);
@@ -1700,7 +1764,14 @@ document.getElementById('memberForm').onsubmit = function(e) {
       member.name = name;
     }
   } else {
-    members.push({ id: generateId(members), name: name, status: true, incomes: [], spendings: [], cards: [] });
+    members.push({ 
+      id: generateId(members), 
+      name: name, 
+      status: true, 
+      incomes: [], 
+      spendings: [], 
+      cards: [] 
+    });
   }
 
   saveData();
@@ -1893,9 +1964,6 @@ function toggleAllCurrencyMasks() {
 }
 
 $(document).ready(function() {
-  initGoogleDrive();
-  renderAll();
-
   $('#myTab .nav-link').on('shown.bs.tab', function (e) {
     financeData.activeTabIndex = $(this).index($(e.target));
     saveData();
@@ -1907,14 +1975,16 @@ $(document).ready(function() {
       firstInput.focus();
     }
   });
-});
 
-[].forEach(modalId => {
-  const modalEl = document.getElementById(modalId);
-  if (modalEl) {
-    modalEl.addEventListener('shown.bs.', function() {
-      
-    });
+  if(window.location.href.includes('file://')) {     
+    loadFromLocalStorage();
+    renderInit();
+  }
+  else {
+    (async function () {
+      await initGoogleDrive();
+    })();
+    renderAll();
   }
 });
 
