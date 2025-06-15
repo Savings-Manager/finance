@@ -419,7 +419,7 @@
   <div class="d-flex justify-content-between align-items-center mb-4">
     <div class="d-flex align-items-center">
       <h2 id="page-title"><i class="bi bi-people-fill me-2"></i>Finans Yöneticisi</h2>
-      <small class="text-muted ms-2">v1.1.4</small>   
+      <small class="text-muted ms-2">v1.1.5</small>   
     </div>
     <div>
       <button class="top-action-btn" id="btn-load-json"><i class="bi bi-folder2-open ms-2"></i>Verileri Geri Yükle</button>
@@ -763,6 +763,12 @@ async function initGoogleDrive() {
       error_callback: (error) => {
         console.log('[oauth2.initTokenClient][error_callback] Error: ', error);
         // user closed the popup: error.type === 'popup_closed'
+        if(!isNullOrEmpty(timeOut)) {
+          clearTimeout(timeOut);
+        }
+        if(!isNullOrEmpty(googleDriveSwal)) {
+          googleDriveSwal.close();
+        }
         logOut();          
         loadFromLocalStorage();
         renderInit();
@@ -1099,6 +1105,7 @@ function renderFamilySummary() {
     financeData.currentYear = year;
     financeData.currentMonth = month;
   }
+
   ensureMonthData(year, month);
   let totalIncome = 0, totalSpend = 0;
   const activeMembers = financeData.years[year].months[month].members.filter(x => x.status);
@@ -1185,20 +1192,19 @@ function renderDaysRow() {
                       class="form-control btn-day btn btn-sm btn-outline-primary"/>
             </div>`
   });
-  const row = document.getElementById('days-row');
-  row.innerHTML = html;
+
+  $('#days-row').html(html);
 }
 
 function renderMembers() {
   ensureMonthData(financeData.currentYear, financeData.currentMonth);
-  const list = document.getElementById('members-list');
   const members = financeData.years[financeData.currentYear].months[financeData.currentMonth].members;
   if (!(members?.length > 0)) {
-    list.innerHTML = '<div class="alert alert-info">Henüz kayıtlı kişi yok. Bir tane ekleyin!</div>';
+    $('#members-list').html('<div class="alert alert-info">Henüz kayıtlı kişi yok. Bir tane ekleyin!</div>');
     return;
   }
 
-  list.innerHTML = members.map(member => {
+  const html = members.map(member => {
     const income = (member.incomes || []).filter(i => i.received).reduce((a, b) => a + Number(b.value || 0), 0);
     const spend = sumSpendingsForMonth(member, financeData.currentYear, financeData.currentMonth);
     const net = income - spend;
@@ -1207,8 +1213,7 @@ function renderMembers() {
       if ((a.cardId || 0) !== (b.cardId || 0)) return (a.cardId || 0) - (b.cardId || 0);
       return 0;
     });
-    return `
-    <div class="card mb-3 material-shadow">
+    return `<div class="card mb-3 material-shadow">
       <div class="card-body">
         <div class="d-flex justify-content-between align-items-center">
           <div>
@@ -1238,8 +1243,7 @@ function renderMembers() {
             <div class="col-md-12">
               <h6 class="income-color">Gelirler<button class="icon-btn income-color" onclick="openAddIncome(${member.id})"><i class="bi bi-plus-circle"></i></button></h6>
               <div data-type="0" data-memberid="${member.id}" class="col-md-12 list-group sortable-list mb-2">
-                ${member.incomes?.map(income => `
-                  <div data-incomeid="${income.id}" class="col-md-12 list-group-item sortable-item d-flex justify-content-between bg-income">
+                ${member.incomes?.map(income => `<div data-incomeid="${income.id}" class="col-md-12 list-group-item sortable-item d-flex justify-content-between bg-income">
                     <div class="fw-bold">
                       <i class="sortable-handle bi bi-list me-2"></i>
                       <i class="bi bi-cash-coin"></i> ${income.name}
@@ -1263,8 +1267,7 @@ function renderMembers() {
                     if (!b.installment || b.installment < 1) b.installment = 1;
                     return a + Number(b.value) / b.installment;
                   }, 0);
-                  return `
-                  <div data-cardid="${card.id}" class="list-group-item sortable-item bg-card d-flex justify-content-between align-items-center">
+                  return `<div data-cardid="${card.id}" class="list-group-item sortable-item bg-card d-flex justify-content-between align-items-center">
                     <div class="fw-bold">
                       <i class="sortable-handle bi bi-list me-2"></i>
                       <i class="bi bi-credit-card"></i> ${card.name}
@@ -1300,8 +1303,7 @@ function renderMembers() {
                     currentInstallment = thisIdx - idx + 1;
                   }
                 }
-                return `
-                <div data-spendingid="${spending.id}" class="col-md-12 list-group-item sortable-item d-flex justify-content-between bg-spending">
+                return `<div data-spendingid="${spending.id}" class="col-md-12 list-group-item sortable-item d-flex justify-content-between bg-spending">
                   <div class="col-md-7">
                     <div class="col-md-12 fw-bold">
                       <i class="sortable-handle bi bi-list me-2"></i>
@@ -1334,9 +1336,9 @@ function renderMembers() {
           </div>
         </div>
       </div>
-    </div>
-    `;
+    </div>`;
   }).join('');
+  $('#members-list').html(html);
 
   initializeSortable();
 }
@@ -1399,7 +1401,6 @@ function toggleSpendingPayed(memberId, spendingId) {
                               ?.months[financeData.currentMonth]
                               ?.members?.find(m => m.id === memberId)
                               ?.spendings?.find(s => s.id === spendingId);
-
   if (spending) {
     spending.payed = !spending.payed;
     saveData();
@@ -1409,9 +1410,9 @@ function toggleSpendingPayed(memberId, spendingId) {
 }
 
 function toggleMemberStatus(memberId) {  
-  const year = financeData.currentYear;
-  const month = financeData.currentMonth;
-  const member = financeData.years[year]?.months[month]?.members?.find(m => m.id === memberId);
+  const member = financeData.years[financeData.currentYear]
+                           ?.months[financeData.currentMonth]
+                           ?.members?.find(m => m.id === memberId);
   if (member) {
     member.status = !member.status;
     saveData();
@@ -1421,11 +1422,10 @@ function toggleMemberStatus(memberId) {
 }
 
 function toggleIncomeReceived(memberId, incomeId) {
-  const year = financeData.currentYear;
-  const month = financeData.currentMonth;
-  const member = financeData.years[year]?.months[month]?.members?.find(m => m.id === memberId);
-  const income = member?.incomes?.find(i => i.id === incomeId);
-
+  const income = financeData.years[financeData.currentYear]
+                           ?.months[financeData.currentMonth]
+                           ?.members?.find(m => m.id === memberId)
+                           ?.incomes?.find(i => i.id === incomeId);
   if (income) {
     income.received = !income.received;
     saveData();
@@ -1435,12 +1435,12 @@ function toggleIncomeReceived(memberId, incomeId) {
 }
 
 function openAddIncome(memberId) {
-  document.getElementById('income-member-id').value = memberId;
-  document.getElementById('income-id').value = '';
-  document.getElementById('income-name').value = '';
-  document.getElementById('income-value').value = '';
-  document.getElementById('income-received').checked = true;
-  new bootstrap.Modal(document.getElementById('incomeModal')).show();
+  $('#income-member-id').val(memberId);
+  $('#income-id').val('');
+  $('#income-name').val('');
+  $('#income-value').val('');
+  $('#income-received').prop('checked', true);
+  $('#incomeModal').modal('show');
 }
 
 function openEditIncome(memberId, incomeId) {
