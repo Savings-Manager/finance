@@ -774,7 +774,6 @@ async function initGoogleDrive() {
     await new Promise((resolve, reject) => {
       gapi.load('client', {
         callback: (response) => {
-          console.log('[initGoogleDrive][gapi.load][callback] Promise: Drive API client loaded successfully', response);
           resolve();
         },
         onerror: (error) => {
@@ -796,8 +795,8 @@ async function initGoogleDrive() {
             fileRead = false;
             loadFromLocalStorage();
             renderInit();
+            googleDriveSwal.close();
           }
-          googleDriveSwal.close();
         }, 3000);
       }
     });
@@ -1109,19 +1108,17 @@ function renderFamilySummary() {
   });
   const net = totalIncome - totalSpend;
   const netColor = net < 0 ? 'spending-color' : 'card-color';
-  document.getElementById('family-summary').innerHTML = `
-    <div class="row g-2">
-      <div class="col-md-4">
-        <div class="card bg-income material-shadow p-3"><span class="fw-bold income-color"><i class="bi bi-plus-circle"></i> Toplam Gelir:</span> <span class="fs-5 fw-bold income-color pointer" onclick="toggleCurrencyMask(this, ${totalIncome})">${currency(totalIncome, isCurrencyMasked)}</span></div>
-      </div>
-      <div class="col-md-4">
-        <div class="card bg-spending material-shadow p-3"><span class="fw-bold spending-color"><i class="bi bi-dash-circle"></i> Toplam Gider:</span> <span class="fs-5 fw-bold spending-color pointer" onclick="toggleCurrencyMask(this, ${totalSpend})">${currency(totalSpend, isCurrencyMasked)}</span></div>
-      </div>
-      <div class="col-md-4">
-        <div class="card bg-card material-shadow p-3"><span class="fw-bold ${netColor}"><i class="bi bi-calculator"></i> Net:</span> <span class="fs-5 fw-bold ${netColor} pointer" onclick="toggleCurrencyMask(this, ${net})">${currency(net, isCurrencyMasked)}</span></div>
-      </div>
-    </div>
-  `;
+  $('#family-summary').html(`<div class="row g-2">
+                                <div class="col-md-4">
+                                  <div class="card bg-income material-shadow p-3"><span class="fw-bold income-color"><i class="bi bi-plus-circle"></i> Toplam Gelir:</span> <span class="fs-5 fw-bold income-color pointer" onclick="toggleCurrencyMask(this, ${totalIncome})">${currency(totalIncome, isCurrencyMasked)}</span></div>
+                                </div>
+                                <div class="col-md-4">
+                                  <div class="card bg-spending material-shadow p-3"><span class="fw-bold spending-color"><i class="bi bi-dash-circle"></i> Toplam Gider:</span> <span class="fs-5 fw-bold spending-color pointer" onclick="toggleCurrencyMask(this, ${totalSpend})">${currency(totalSpend, isCurrencyMasked)}</span></div>
+                                </div>
+                                <div class="col-md-4">
+                                  <div class="card bg-card material-shadow p-3"><span class="fw-bold ${netColor}"><i class="bi bi-calculator"></i> Net:</span> <span class="fs-5 fw-bold ${netColor} pointer" onclick="toggleCurrencyMask(this, ${net})">${currency(net, isCurrencyMasked)}</span></div>
+                                </div>
+                              </div>`);
 }
 
 // --- Spendings Sum for Month (installments) ---
@@ -1397,20 +1394,12 @@ function initializeSortable() {
   $('.sortable-item').disableSelection();
 }
 
-// --- CRUD and Toggle Functions ---
-document.getElementById('btn-add-member').onclick = () => {
-  document.getElementById('member-id').value = '';
-  document.getElementById('member-name').value = '';
-  new bootstrap.Modal(document.getElementById('memberModal')).show();
-};
-
 function toggleSpendingPayed(memberId, spendingId) {
-  const member = financeData?.years[financeData.currentYear]
-                            ?.months[financeData.currentMonth]
-                            ?.members?.find(m => m.id === memberId);
-                            
-  const spending = member?.spendings?.find(s => s.id === spendingId);
-  
+  const spending = financeData?.years[financeData.currentYear]
+                              ?.months[financeData.currentMonth]
+                              ?.members?.find(m => m.id === memberId)
+                              ?.spendings?.find(s => s.id === spendingId);
+
   if (spending) {
     spending.payed = !spending.payed;
     saveData();
@@ -1455,20 +1444,18 @@ function openAddIncome(memberId) {
 }
 
 function openEditIncome(memberId, incomeId) {
-  const year = financeData.currentYear;
-  const month = financeData.currentMonth;
-  const members = financeData.years[year].months[month].members;
-  const member = members.find(m => m.id === memberId);
-  if (member && member.incomes) {
-    const income = member.incomes.find(i => i.id === incomeId);
-    if (income) {
-      document.getElementById('income-member-id').value = memberId;
-      document.getElementById('income-id').value = incomeId;
-      document.getElementById('income-name').value = income.name;
-      document.getElementById('income-value').value = income.value;
-      document.getElementById('income-received').checked = !!income.received;
-      new bootstrap.Modal(document.getElementById('incomeModal')).show();
-    }
+  const income = financeData?.years[financeData.currentYear]
+                             ?.months[financeData.currentMonth]
+                             ?.members?.find(m => m.id === memberId)
+                             ?.incomes.find(i => i.id === incomeId);
+  if (income) {
+    $('#income-member-id').val(memberId);
+    $('#income-id').val(incomeId);
+    $('#income-name').val(income.name);
+    $('#income-value').val(income.value);
+    $('#income-received').prop('checked', !!income.received);
+
+    $('#incomeModal').modal('show');   
   }
 }
 
@@ -1827,7 +1814,6 @@ document.getElementById('btn-load-json').onclick = function() {
   input.click();
 };
 
-// Add copy/paste buttons to the right of years dropdown after DOM is ready
 let copiedMonthData = null;
 function setupCopyPasteHandlers() {
   const copyBtn = document.getElementById('btn-copy-month');
@@ -1973,6 +1959,12 @@ $(document).ready(function() {
     if (firstInput) {
       firstInput.focus();
     }
+  });
+
+  $('#btn-add-member').on('click', function() {
+    $('#member-id').val('');
+    $('#member-name').val('');
+    $('#memberModal').modal('show');
   });
 
   renderAll();
