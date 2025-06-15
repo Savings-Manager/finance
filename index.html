@@ -513,23 +513,26 @@
 </div>
 
 <!-- Member Modal -->
-<div class="modal fade" id="memberModal" tabindex="-1">
+<div class="modal fade" id="memberModal" tabindex="-1" aria-labelledby="memberModalLabel" aria-hidden="true">
   <div class="modal-dialog">
     <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title" id="memberModalLabel">Kişi Ekle/Düzenle</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-      </div>
-      <div class="modal-body">
-        <form id="memberForm">
-          <input type="hidden" id="member-id">
-          <div class="mb-3">
-            <label for="member-name" class="form-label">İsim</label>
-            <input type="text" class="form-control" id="member-name" required>
+      <form id="memberForm">
+        <input type="hidden" id="member-id">
+        <div class="modal-header modal-header-card">
+          <h5 class="modal-title" id="memberModal">Kişi Ekle/Düzenle</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Kapat"></button>
+        </div>
+        <div class="modal-body">
+          <div class="form-floating mb-3">
+            <input type="text" class="form-control" id="member-name" placeholder="Kişi Adı" required>
+            <label for="member-name">Kişi Adı</label>
           </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">İptal</button>
           <button type="submit" class="btn btn-primary">Kaydet</button>
-        </form>
-      </div>
+        </div>
+      </form>
     </div>
   </div>
 </div>
@@ -625,24 +628,28 @@
 </div>
 
 <!-- Card Modal -->
-<div class="modal fade" id="cardModal" tabindex="-1">
+<div class="modal fade" id="cardModal" tabindex="-1" aria-labelledby="cardModalLabel" aria-hidden="true">
   <div class="modal-dialog">
     <div class="modal-content">
-      <div class="modal-header modal-header-card">
-        <h5 class="modal-title" id="cardModalLabel">Kredi Kartı Ekle/Düzenle</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-      </div>
-      <div class="modal-body">
-        <form id="cardForm">
-          <input type="hidden" id="card-member-id">
-          <input type="hidden" id="card-id">
-          <div class="mb-3">
-            <label for="card-name" class="form-label">Kart Adı</label>
-            <input type="text" class="form-control" id="card-name" required>
+      <form id="cardForm">
+        <input type="hidden" id="card-member-id">
+        <input type="hidden" id="card-id">
+        <div class="modal-header modal-header-card">
+          <h5 class="modal-title" id="cardModalLabel">Kredi Kartı Ekle/Düzenle</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Kapat"></button>
+        </div>
+        <div class="modal-body">
+          <div class="form-floating mb-3">
+            <input type="text" class="form-control" id="card-name" placeholder="Kart Adı" required>
+            <label for="card-name">Kart Adı</label>
           </div>
+
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">İptal</button>
           <button type="submit" class="btn btn-primary">Kaydet</button>
-        </form>
-      </div>
+        </div>
+      </form>
     </div>
   </div>
 </div>
@@ -679,32 +686,9 @@ let gisInited = false;
 let fileRead = false;
 let googleDriveSwal = null;
 let timeOut = null;
+let copiedMonthData = null;
 
-function showToast(title, icon = "success", timer = 2000, position = "top-end", showConfirmButton = false) {
-  const Toast = Swal.mixin({
-    toast: true,
-    position: position,
-    iconColor: showConfirmButton ? null : 'white',
-    customClass: showConfirmButton ? null : { popup: 'colored-toast' },
-    showConfirmButton: showConfirmButton,
-    showCancelButton: showConfirmButton,
-    confirmButtonText: 'Evet',
-    cancelButtonText: 'Hayır',
-    confirmButtonColor: '#3085d6',
-    cancelButtonColor: '#d33',
-    timer: showConfirmButton ? undefined : timer,
-    timerProgressBar: !showConfirmButton,
-    didOpen: (toast) => {
-      toast.onmouseenter = Swal.stopTimer;
-      toast.onmouseleave = Swal.resumeTimer;
-    }
-  });
-  return Toast.fire({
-    icon: icon,
-    title: title
-  });
-}
-
+const months = Array.from({ length: 12 }, (_, i) => String(i + 1));
 
 function getCurrentYearMonth() {
   const d = new Date();
@@ -716,9 +700,6 @@ function getYearList() {
   years.push(String(new Date().getFullYear()));
   years = Array.from(new Set(years)).sort();
   return years;
-}
-function getMonthList(selectedYear) {
-  return Array.from({ length: 12 }, (_, i) => String(i + 1));
 }
 function getMonthName(monthNum) {
   return new Date(2000, Number(monthNum) - 1, 1).toLocaleString('tr-TR', { month: 'long' });
@@ -904,7 +885,6 @@ async function loadFromGoogleDrive() {
       await requestNewToken();
     } else {
       loadFromLocalStorage();
-      renderInit();
     }
   }
   renderInit();
@@ -1025,27 +1005,12 @@ function validateFinanceData() {
   financeData.activeTabIndex ??= 1; 
 }
 
-function renderInit() {
-  console.log('[renderInit] Rendering initial data...');
-  validateFinanceData();
-  ensureMonthData(financeData.currentYear, financeData.currentMonth);
-  renderAll(0);
-  renderAll(1);
-
-  console.log(financeData.activeTabIndex);
-  //$('#myTab .nav-link').removeClass('active');
-  $('#myTab .nav-link').eq(financeData.activeTabIndex).tab('show');
-}
-
-// --- Month Handling ---
 function ensureMonthData(year, month) {
     year ??= financeData.currentYear;
     month ??= financeData.currentMonth;
     financeData.years[year] ??= { months: {} };
 
   if (!financeData.years[year].months[month]) {
-    // Copy previous month or start fresh
-    const months = getMonthList(year);
     const idx = months.indexOf(month);
     let prev = null;
     for (let i = idx - 1; i >= 0; --i) if (financeData.years[year].months[months[i]]) { prev = months[i]; break; }
@@ -1057,32 +1022,374 @@ function ensureMonthData(year, month) {
   }
 }
 
-function switchMonth(year, month) {
-  financeData.currentYear = year;
+function switchMonth(month) {
   financeData.currentMonth = month;
   financeData.lastSelectedMonthByYear ??= {}; 
-  financeData.lastSelectedMonthByYear[year] = month;
-  ensureMonthData(year, month);  
+  financeData.lastSelectedMonthByYear[financeData.currentYear] = month;
+  ensureMonthData(financeData.currentYear, month);  
+  
+  setMonthData();
+  renderFamilySummary();
+  renderMembers();
+
   saveData();
-  renderAll();
 }
 
-// --- Months Row ---
+function sumSpendingsForMonth(member, year, month) {
+  return (member.spendings || []).filter(s => s.payed).reduce((a, s) => {
+    if (!s.installment || s.installment < 1) s.installment = 1;
+    return a + Number(s.value) / s.installment;
+  }, 0);
+}
+
+function toggleSpendingPayed(memberId, spendingId) {
+  const spending = financeData?.years[financeData.currentYear]
+                              ?.months[financeData.currentMonth]
+                              ?.members?.find(m => m.id === memberId)
+                              ?.spendings?.find(s => s.id === spendingId);
+  if (spending) {
+    spending.payed = !spending.payed;
+    saveData();
+
+    renderFamilySummary();
+		renderMembers();
+
+    showToast('Harcama durumu güncellendi.'); 
+  }
+}
+
+function toggleMemberStatus(memberId) {  
+  const member = financeData.years[financeData.currentYear]
+                           ?.months[financeData.currentMonth]
+                           ?.members?.find(m => m.id === memberId);
+  if (member) {
+    member.status = !member.status;
+    saveData();
+
+    renderFamilySummary();
+		renderMembers();
+    
+    showToast('Kişi durumu güncellendi.'); 
+  }
+}
+
+function toggleIncomeReceived(memberId, incomeId) {
+  const income = financeData.years[financeData.currentYear]
+                           ?.months[financeData.currentMonth]
+                           ?.members?.find(m => m.id === memberId)
+                           ?.incomes?.find(i => i.id === incomeId);
+  if (income) {
+    income.received = !income.received;
+    saveData();
+
+    renderFamilySummary();
+		renderMembers();
+    
+    showToast('Gelir durumu güncellendi.'); 
+  }
+}
+
+function openAddIncome(memberId) {
+  $('#income-member-id').val(memberId);
+  $('#income-id').val('');
+  $('#income-name').val('');
+  $('#income-value').val('');
+  $('#income-received').prop('checked', true);
+  $('#incomeModal').modal('show');
+}
+
+function openEditIncome(memberId, incomeId) {
+  const income = financeData?.years[financeData.currentYear]
+                             ?.months[financeData.currentMonth]
+                             ?.members?.find(m => m.id === memberId)
+                             ?.incomes.find(i => i.id === incomeId);
+  if (income) {
+    $('#income-member-id').val(memberId);
+    $('#income-id').val(incomeId);
+    $('#income-name').val(income.name);
+    $('#income-value').val(income.value);
+    $('#income-received').prop('checked', !!income.received);
+    $('#incomeModal').modal('show');   
+  }
+}
+
+function deleteIncome(memberId, incomeId) {
+  showToast('Gelir bilgisi silinsin mi?', 'warning', 0, 'center', true).then((result) => {
+    if (result.isConfirmed) {
+      const member = financeData?.years[financeData.currentYear]
+                                 ?.months[financeData.currentMonth]
+                                 ?.members?.find(m => m.id === memberId);
+      if (member?.incomes) {
+        member.incomes = member.incomes.filter(i => i.id !== incomeId);
+        saveData();
+
+        renderFamilySummary();
+		    renderMembers();
+    
+        showToast('Gelir bilgisi silindi.');
+      }
+    }
+  });
+}
+
+function openAddSpending(memberId) {
+  $('#spending-member-id').val(memberId);
+  $('#spending-id').val('');
+  $('#spending-name').val('');
+  $('#spending-value').val('');
+  $('#spending-payed').prop('checked', true);
+  $('#spending-card-id').val('');
+  $('#spending-installment').val(1);
+  $('#spending-current-installment').val(1);
+  $('#spendingModal').modal('show');
+}
+
+function openEditSpending(memberId, spendingId) {
+  const spending = financeData?.years[financeData.currentYear]
+                              ?.months[financeData.currentMonth]
+                              ?.members?.find(m => m.id === memberId)
+                              ?.spendings?.find(s => s.id === spendingId);
+  if (spending) {
+    $('#spending-member-id').val(memberId);
+    $('#spending-id').val(spendingId);
+    $('#spending-name').val(spending.name);
+    $('#spending-value').val(spending.value);
+    $('#spending-payed').prop('checked', !!spending.payed);
+    $('#spending-card-id').val(spending.cardId || '');
+    $('#spending-installment').val(spending.installment || 1);
+    $('#spending-current-installment').val(spending.currentInstallment || 1);
+    $('#spendingModal').modal('show');
+  }
+}
+
+function deleteSpending(memberId, spendingId) {
+  showToast('Gider bilgisi silinsin mi?', 'warning', 0, 'center', true).then((result) => {
+    if (result.isConfirmed) {
+      const member = financeData?.years[financeData.currentYear]
+                                ?.months[financeData.currentMonth]
+                                ?.members?.find(m => m.id === memberId);
+      if (member?.spendings) {
+        member.spendings = member.spendings.filter(s => s.id !== spendingId);
+        saveData();
+
+        renderFamilySummary();
+		    renderMembers();
+    
+        showToast('Gider bilgisi silindi.');
+      }
+    }
+  });
+}
+
+function openAddCard(memberId) {
+  document.getElementById('card-member-id').value = memberId;
+  document.getElementById('card-id').value = '';
+  document.getElementById('card-name').value = '';
+  new bootstrap.Modal(document.getElementById('cardModal')).show();
+}
+
+function openEditCard(memberId, cardId) {
+  const year = financeData.currentYear;
+  const month = financeData.currentMonth;
+  const members = financeData.years[year].months[month].members;
+  const member = members.find(m => m.id === memberId);
+  if (member && member.cards) {
+    const card = member.cards.find(c => c.id === cardId);
+    if (card) {
+      document.getElementById('card-member-id').value = memberId;
+      document.getElementById('card-id').value = cardId;
+      document.getElementById('card-name').value = card.name;
+      new bootstrap.Modal(document.getElementById('cardModal')).show();
+    }
+  }
+}
+
+function deleteCard(memberId, cardId) {
+  showToast('Kart bilgisi silinsin mi?', 'warning', 0, 'center', true).then((result) => {
+    if (result.isConfirmed) {
+      const member = financeData?.years[financeData.currentYear]
+                                 ?.months[financeData.currentMonth]
+                                 ?.members?.find(m => m.id === memberId);
+      if (member?.cards) {
+        member.cards = member.cards.filter(c => c.id !== cardId);
+        saveData();
+
+        renderFamilySummary();
+		    renderMembers();
+    
+        showToast('Kart bilgisi silindi.');
+      }
+    }
+  });
+}
+
+function openEditMember(memberId) {
+  const member = financeData?.years[financeData.currentYear]
+                             ?.months[financeData.currentMonth]
+                             ?.members?.find(m => m.id === memberId);
+  if (member) {
+    $('#member-id').val(memberId);
+    $('#member-name').val(member.name);
+    $('#memberModal').modal('show');
+  }
+}
+
+function deleteMember(memberId) {
+  showToast('Kişi bilgisi silinsin mi?', 'warning', 0, 'center', true).then((result) => {
+    if (result.isConfirmed) {
+      let members = financeData.years[financeData.currentYear].months[financeData.currentMonth].members;
+      financeData.years[financeData.currentYear]
+                 .months[financeData.currentMonth]
+                 .members = members.filter(m => m.id !== memberId);
+      saveData();
+
+      renderFamilySummary();
+      renderMembers();
+    
+      showToast('Kişi bilgisi silindi.');
+    }
+  });
+}
+
+function onDateChange(day) {
+  const value = document.getElementById('day_'+day)?.value;
+
+  financeData.cycles[financeData.currentCycle] ??= {};
+  financeData.cycles[financeData.currentCycle].days ??= {};
+
+  financeData.cycles[financeData.currentCycle].days[day] = value;
+
+  saveData();
+  showToast("Tarih güncellendi.");
+}
+
+// #region Utility Functions
+function showToast(title, icon = "success", timer = 2000, position = "top-end", showConfirmButton = false) {
+  const Toast = Swal.mixin({
+    toast: true,
+    position: position,
+    iconColor: showConfirmButton ? null : 'white',
+    customClass: showConfirmButton ? null : { popup: 'colored-toast' },
+    showConfirmButton: showConfirmButton,
+    showCancelButton: showConfirmButton,
+    confirmButtonText: 'Evet',
+    cancelButtonText: 'Hayır',
+    confirmButtonColor: '#3085d6',
+    cancelButtonColor: '#d33',
+    timer: showConfirmButton ? undefined : timer,
+    timerProgressBar: !showConfirmButton,
+    didOpen: (toast) => {
+      toast.onmouseenter = Swal.stopTimer;
+      toast.onmouseleave = Swal.resumeTimer;
+    }
+  });
+  return Toast.fire({
+    icon: icon,
+    title: title
+  });
+}
+function isNullOrEmpty(value) {
+  if (value === null || value === undefined) return true;
+  if (typeof value === 'string' && value.trim() === '') return true;
+  if (Array.isArray(value) && value.length === 0) return true;
+  if (typeof value === 'object' && Object.keys(value).length === 0) return true;
+  if (typeof value === 'number' && isNaN(value)) return true;
+  return false;
+}
+function generateId(list) {
+  return list.length ? Math.max(...list.map(x => x.id)) + 1 : 1;
+}
+function currency(val, shouldMask = false) {
+  if (shouldMask) return '••••••••';
+  return '₺' + Number(val).toLocaleString('tr-TR', { minimumFractionDigits: 2 });
+}
+// #endregion 
+
+// --- Populate Card Dropdown on Spending Modal ---
+function populateSpendingCardDropdown(memberId, selectedCardId) {
+  const select = document.getElementById('spending-card-id');
+
+  const member = financeData?.years[financeData.currentYear]
+                            ?.months[financeData.currentMonth]
+                            ?.members?.find(m => m.id === memberId);
+  if (!(member?.cards?.length > 0)) {
+    select.innerHTML = '<option value="">Seçiniz...</option>';
+    select.value = '';
+    return;
+  }
+
+  select.innerHTML = '<option value="">Seçiniz...</option>' + member.cards.map(card => `<option value="${card.id}">${card.name}</option>`).join('');
+  select.value = selectedCardId || '';
+}
+
+// Patch openAddSpending and openEditSpending to call this
+const _openAddSpending = openAddSpending;
+openAddSpending = function(memberId) {
+  _openAddSpending(memberId);
+  populateSpendingCardDropdown(memberId, '');
+};
+
+const _openEditSpending = openEditSpending;
+openEditSpending = function(memberId, spendingId) {
+  _openEditSpending(memberId, spendingId);
+  const member = financeData?.years[financeData.currentYear]
+                            ?.months[financeData.currentMonth]
+                            ?.members?.find(m => m.id === memberId);
+  if (member?.spendings) {
+    const spending = member.spendings.find(s => s.id === spendingId);
+    if (spending) {
+      populateSpendingCardDropdown(memberId, spending.cardId);
+    }
+  }
+};
+
+function toggleCurrencyMask(element, originalValue) {
+  const currentText = element.textContent?.trim();
+  //console.log('[toggleCurrencyMask] ', currentText, originalValue);
+  if (currentText === '••••••••') {
+    // Unmask
+    if (originalValue != undefined) {
+      element.textContent = currency(Number(originalValue));
+    }
+  } else {
+    // Mask
+    element.textContent = '••••••••';
+  }
+}
+
+function toggleAllCurrencyMasks() {
+  isCurrencyMasked = !isCurrencyMasked;
+  if(isCurrencyMasked) {
+    $('#show-hide-icon').removeClass('fa-eye');
+    $('#show-hide-icon').addClass('fa-eye-slash');
+  } else {
+    $('#show-hide-icon').addClass('fa-eye');
+    $('#show-hide-icon').removeClass('fa-eye-slash');
+  }
+  // todo: mehmet.sumer: burayi fixle jquery ile yapilir.
+  renderFamilySummary();
+  renderMembers();  
+}
+
+// #region Render Functions
+function renderInit() {
+  console.log('[renderInit] Rendering initial data...');
+  validateFinanceData();
+  ensureMonthData(financeData.currentYear, financeData.currentMonth);
+  setAllDatas();
+
+  console.log(financeData.activeTabIndex);
+  //$('#myTab .nav-link').removeClass('active');
+  $('#myTab .nav-link').eq(financeData.activeTabIndex).tab('show');
+}
+
 function renderYearsDropdown() {
   const years = getYearList();
-  const selectedYear = financeData.currentYear || getCurrentYearMonth().year;
-  
-  $('#years-dropdown').html(years.map(y => `<option value="${y}"${y === selectedYear ? ' selected' : ''}>${y}</option>`).join(''));
+  $('#years-dropdown').html(years.map(y => `<option value="${y}">${y}</option>`).join(''));
 }
-
 function renderMonthsRow() {
-  const selectedYear = financeData.currentYear || getCurrentYearMonth().year;
-  const months = getMonthList(selectedYear);
-  const row = document.getElementById('months-row');
-  row.innerHTML = months.map(m => `<button class="btn-month btn btn-sm me-2 ${financeData.currentMonth === m ? 'btn-primary active fw-bold' : 'btn-outline-primary'}" onclick="switchMonth('${selectedYear}','${m}')">${getMonthName(m)}</button>`).join('');
+  $('#months-row').html(months.map(m => `<button data-month="${m}" class="btn-outline-primary btn-month btn btn-sm me-2" onclick="switchMonth('${m}')">${getMonthName(m)}</button>`).join(''));
 }
-
-// --- Family Summary ---
 function renderFamilySummary() {
   let year = financeData.currentYear;
   let month = financeData.currentMonth;
@@ -1116,32 +1423,6 @@ function renderFamilySummary() {
                                 </div>
                               </div>`);
 }
-
-// --- Spendings Sum for Month (installments) ---
-function sumSpendingsForMonth(member, year, month) {
-  return (member.spendings || []).filter(s => s.payed).reduce((a, s) => {
-    if (!s.installment || s.installment < 1) s.installment = 1;
-    return a + Number(s.value) / s.installment;
-  }, 0);
-}
-
-// --- Render Functions ---
-function renderAll(activeTabIndex= null) {
-  activeTabIndex ??= financeData.activeTabIndex;
-  console.log('[renderAll] activeTab: ', activeTabIndex);
-  if(activeTabIndex == 0) {
-    renderYearsDropdown();
-    renderMonthsRow();
-    renderFamilySummary();
-    renderMembers();
-    setupCopyPasteHandlers();
-  }
-  else if(activeTabIndex == 1) {
-    renderCycleDropdown();
-    renderDaysRow();
-  }
-}
-
 function renderCycleDropdown() {
   const selectedCycle = financeData.currentCycle;
   financeData.cycles[selectedCycle] ??= {};
@@ -1179,7 +1460,6 @@ function renderDaysRow() {
 
   $('#days-row').html(html);
 }
-
 function renderMembers() {
   ensureMonthData(financeData.currentYear, financeData.currentMonth);
   const members = financeData?.years[financeData.currentYear]?.months[financeData.currentMonth]?.members;
@@ -1280,7 +1560,6 @@ function renderMembers() {
                 const card = (member.cards || []).find(c => c.id === spending.cardId);
                 let currentInstallment = 1;
                 if (spending.installment && spending.installment > 1) {
-                  const months = getMonthList(financeData.currentYear);
                   const idx = months.indexOf(spending.monthKey ? String(Number(spending.monthKey)) : financeData.currentMonth);
                   const thisIdx = months.indexOf(String(financeData.currentMonth));
                   if (thisIdx >= idx) {
@@ -1326,7 +1605,6 @@ function renderMembers() {
 
   initializeSortable();
 }
-
 function initializeSortable() {
   $('.sortable-list').sortable({
     handle: '.sortable-handle',
@@ -1379,536 +1657,72 @@ function initializeSortable() {
   $('.sortable-list').disableSelection();
   $('.sortable-item').disableSelection();
 }
+// #endregion
 
-function toggleSpendingPayed(memberId, spendingId) {
-  const spending = financeData?.years[financeData.currentYear]
-                              ?.months[financeData.currentMonth]
-                              ?.members?.find(m => m.id === memberId)
-                              ?.spendings?.find(s => s.id === spendingId);
-  if (spending) {
-    spending.payed = !spending.payed;
-    saveData();
-    renderAll();
-    showToast('Harcama durumu güncellendi.'); 
-  }
+// #region Set Data Functions
+function setAllDatas() {
+  setYearData();
+  setMonthData();
 }
-
-function toggleMemberStatus(memberId) {  
-  const member = financeData.years[financeData.currentYear]
-                           ?.months[financeData.currentMonth]
-                           ?.members?.find(m => m.id === memberId);
-  if (member) {
-    member.status = !member.status;
-    saveData();
-    renderAll();
-    showToast('Kişi durumu güncellendi.'); 
-  }
+function setYearData() {
+  const currentYear = financeData?.currentYear ?? getCurrentYearMonth().year;
+  $('#years-dropdown').val(currentYear).change();
 }
+function setMonthData() {
+  const year = financeData?.currentYear ?? getCurrentYearMonth().year;
+  const month = financeData?.currentMonth;
 
-function toggleIncomeReceived(memberId, incomeId) {
-  const income = financeData.years[financeData.currentYear]
-                           ?.months[financeData.currentMonth]
-                           ?.members?.find(m => m.id === memberId)
-                           ?.incomes?.find(i => i.id === incomeId);
-  if (income) {
-    income.received = !income.received;
-    saveData();
-    renderAll();
-    showToast('Gelir durumu güncellendi.'); 
-  }
+  console.log(year, month, $(`#months-row button[data-month="${month}"]`));
+
+  $('#months-row button.active').removeClass('btn-primary active fw-bold');
+  $(`#months-row button[data-month="${month}"]`).addClass('btn-primary active fw-bold');
 }
-
-function openAddIncome(memberId) {
-  $('#income-member-id').val(memberId);
-  $('#income-id').val('');
-  $('#income-name').val('');
-  $('#income-value').val('');
-  $('#income-received').prop('checked', true);
-  $('#incomeModal').modal('show');
-}
-
-function openEditIncome(memberId, incomeId) {
-  const income = financeData?.years[financeData.currentYear]
-                             ?.months[financeData.currentMonth]
-                             ?.members?.find(m => m.id === memberId)
-                             ?.incomes.find(i => i.id === incomeId);
-  if (income) {
-    $('#income-member-id').val(memberId);
-    $('#income-id').val(incomeId);
-    $('#income-name').val(income.name);
-    $('#income-value').val(income.value);
-    $('#income-received').prop('checked', !!income.received);
-    $('#incomeModal').modal('show');   
-  }
-}
-
-function deleteIncome(memberId, incomeId) {
-  showToast('Gelir bilgisi silinsin mi?', 'warning', 0, 'center', true).then((result) => {
-    if (result.isConfirmed) {
-      const member = financeData?.years[financeData.currentYear]
-                                 ?.months[financeData.currentMonth]
-                                 ?.members?.find(m => m.id === memberId);
-      if (member?.incomes) {
-        member.incomes = member.incomes.filter(i => i.id !== incomeId);
-        saveData();
-        renderAll();
-        showToast('Gelir bilgisi silindi.');
-      }
-    }
-  });
-}
-
-function openAddSpending(memberId) {
-  $('#spending-member-id').val(memberId);
-  $('#spending-id').val('');
-  $('#spending-name').val('');
-  $('#spending-value').val('');
-  $('#spending-payed').prop('checked', true);
-  $('#spending-card-id').val('');
-  $('#spending-installment').val(1);
-  $('#spending-current-installment').val(1);
-  $('#spendingModal').modal('show');
-}
-
-function openEditSpending(memberId, spendingId) {
-  const spending = financeData?.years[financeData.currentYear]
-                              ?.months[financeData.currentMonth]
-                              ?.members?.find(m => m.id === memberId)
-                              ?.spendings?.find(s => s.id === spendingId);
-  if (spending) {
-    $('#spending-member-id').val(memberId);
-    $('#spending-id').val(spendingId);
-    $('#spending-name').val(spending.name);
-    $('#spending-value').val(spending.value);
-    $('#spending-payed').prop('checked', !!spending.payed);
-    $('#spending-card-id').val(spending.cardId || '');
-    $('#spending-installment').val(spending.installment || 1);
-    $('#spending-current-installment').val(spending.currentInstallment || 1);
-    $('#spendingModal').modal('show');
-  }
-}
-
-function deleteSpending(memberId, spendingId) {
-  showToast('Gider bilgisi silinsin mi?', 'warning', 0, 'center', true).then((result) => {
-    if (result.isConfirmed) {
-      const member = financeData?.years[financeData.currentYear]
-                                ?.months[financeData.currentMonth]
-                                ?.members?.find(m => m.id === memberId);
-      if (member?.spendings) {
-        member.spendings = member.spendings.filter(s => s.id !== spendingId);
-        saveData();
-        renderAll();
-        showToast('Gider bilgisi silindi.');
-      }
-    }
-  });
-}
-
-function openAddCard(memberId) {
-  document.getElementById('card-member-id').value = memberId;
-  document.getElementById('card-id').value = '';
-  document.getElementById('card-name').value = '';
-  new bootstrap.Modal(document.getElementById('cardModal')).show();
-}
-
-function openEditCard(memberId, cardId) {
-  const year = financeData.currentYear;
-  const month = financeData.currentMonth;
-  const members = financeData.years[year].months[month].members;
-  const member = members.find(m => m.id === memberId);
-  if (member && member.cards) {
-    const card = member.cards.find(c => c.id === cardId);
-    if (card) {
-      document.getElementById('card-member-id').value = memberId;
-      document.getElementById('card-id').value = cardId;
-      document.getElementById('card-name').value = card.name;
-      new bootstrap.Modal(document.getElementById('cardModal')).show();
-    }
-  }
-}
-
-function deleteCard(memberId, cardId) {
-  showToast('Kart bilgisi silinsin mi?', 'warning', 0, 'center', true).then((result) => {
-    if (result.isConfirmed) {
-      const member = financeData?.years[financeData.currentYear]
-                                 ?.months[financeData.currentMonth]
-                                 ?.members?.find(m => m.id === memberId);
-      if (member?.cards) {
-        member.cards = member.cards.filter(c => c.id !== cardId);
-        saveData();
-        renderAll();
-        showToast('Kart bilgisi silindi.');
-      }
-    }
-  });
-}
-
-function openEditMember(memberId) {
-  const member = financeData?.years[financeData.currentYear]
-                             ?.months[financeData.currentMonth]
-                             ?.members?.find(m => m.id === memberId);
-  if (member) {
-    $('#member-id').val(memberId);
-    $('#member-name').val(member.name);
-    $('#memberModal').modal('show');
-  }
-}
-
-function deleteMember(memberId) {
-  showToast('Kişi bilgisi silinsin mi?', 'warning', 0, 'center', true).then((result) => {
-    if (result.isConfirmed) {
-      let members = financeData.years[financeData.currentYear].months[financeData.currentMonth].members;
-      financeData.years[financeData.currentYear]
-                 .months[financeData.currentMonth]
-                 .members = members.filter(m => m.id !== memberId);
-      saveData();
-      renderAll();
-      showToast('Kişi bilgisi silindi.');
-    }
-  });
-}
-
-function onDateChange(day) {
-  const value = document.getElementById('day_'+day)?.value;
-
-  financeData.cycles[financeData.currentCycle] ??= {};
-  financeData.cycles[financeData.currentCycle].days ??= {};
-
-  financeData.cycles[financeData.currentCycle].days[day] = value;
-
-  saveData();
-  showToast("Tarih güncellendi.");
-  //renderAll();
-}
-
-// --- Utility Functions ---
-function isNullOrEmpty(value) {
-  if (value === null || value === undefined) return true;
-  if (typeof value === 'string' && value.trim() === '') return true;
-  if (Array.isArray(value) && value.length === 0) return true;
-  if (typeof value === 'object' && Object.keys(value).length === 0) return true;
-  if (typeof value === 'number' && isNaN(value)) return true;
-  return false;
-}
-function generateId(list) {
-  return list.length ? Math.max(...list.map(x => x.id)) + 1 : 1;
-}
-function currency(val, shouldMask = false) {
-  if (shouldMask) return '••••••••';
-  return '₺' + Number(val).toLocaleString('tr-TR', { minimumFractionDigits: 2 });
-}
-
-// --- Modal Save Logic Fixes ---
-document.getElementById('incomeForm').onsubmit = function(e) {
-  e.preventDefault();
-  const year = financeData.currentYear;
-  const month = financeData.currentMonth;
-  const memberId = Number(document.getElementById('income-member-id').value);
-  const incomeId = document.getElementById('income-id').value;
-  const name = document.getElementById('income-name').value;
-  const value = Number(document.getElementById('income-value').value);
-  const received = document.getElementById('income-received').checked;
-  const members = financeData.years[year].months[month].members;
-  const member = members.find(m => m.id === memberId);
-  if (!member.incomes) member.incomes = [];
-  if (incomeId) {
-    // Edit
-    const income = member.incomes.find(i => i.id == incomeId);
-    if (income) {
-      income.name = name;
-      income.value = value;
-      income.received = received;
-    }
-  } else {
-    // Add
-    member.incomes.push({ id: generateId(member.incomes), name, value, received });
-  }
-
-  saveData();
-  renderAll();
-  showToast('Gelir bilgisi kaydedildi.'); 
-  bootstrap.Modal.getInstance(document.getElementById('incomeModal')).hide();
-};
-document.getElementById('spendingForm').onsubmit = function(e) {
-  e.preventDefault();
-  const year = financeData.currentYear;
-  const month = financeData.currentMonth;
-  const memberId = Number(document.getElementById('spending-member-id').value);
-  const spendingId = document.getElementById('spending-id').value;
-  const name = document.getElementById('spending-name').value;
-  const value = Number(document.getElementById('spending-value').value);
-  const payed = document.getElementById('spending-payed').checked;
-  const cardId = document.getElementById('spending-card-id').value ? Number(document.getElementById('spending-card-id').value) : null;
-  const installment = Number(document.getElementById('spending-installment').value) || 1;
-  const currentInstallment = Number(document.getElementById('spending-current-installment').value) || 1;
-  const members = financeData.years[year].months[month].members;
-  const member = members.find(m => m.id === memberId);
-  
-  member.spendings ??= [];
-
-  if (spendingId) {
-    // Edit
-    const spending = member.spendings.find(s => s.id == spendingId);
-    if (spending) {
-      spending.name = name;
-      spending.value = value;
-      spending.payed = payed;
-      spending.cardId = cardId;
-      spending.installment = installment;
-      spending.currentInstallment = currentInstallment;
-    }
-  } else {
-    // Add
-    member.spendings.push({ 
-      id: generateId(member.spendings), 
-      name, 
-      value, 
-      payed, 
-      cardId, 
-      installment, 
-      currentInstallment: currentInstallment, 
-      monthKey: month,
-      order: 999
-    });
-  }
-
-  saveData();
-  renderAll();
-  showToast('Harcama kaydedildi.'); 
-  bootstrap.Modal.getInstance(document.getElementById('spendingModal')).hide();
-};
-
-// --- Populate Card Dropdown on Spending Modal ---
-function populateSpendingCardDropdown(memberId, selectedCardId) {
-  const year = financeData.currentYear;
-  const month = financeData.currentMonth;
-  const members = financeData.years[year].months[month].members;
-  const member = members.find(m => m.id === memberId);
-  const select = document.getElementById('spending-card-id');
-  if (!member || !member.cards || !member.cards.length) {
-    select.innerHTML = '<option value="">Hayır cards</option>';
-    select.value = '';
-    return;
-  }
-  select.innerHTML = '<option value="">None</option>' + member.cards.map(card => `<option value="${card.id}">${card.name}</option>`).join('');
-  select.value = selectedCardId || '';
-}
-
-// Patch openAddSpending and openEditSpending to call this
-const _openAddSpending = openAddSpending;
-openAddSpending = function(memberId) {
-  _openAddSpending(memberId);
-  populateSpendingCardDropdown(memberId, '');
-};
-
-const _openEditSpending = openEditSpending;
-openEditSpending = function(memberId, spendingId) {
-  _openEditSpending(memberId, spendingId);
-  const member = financeData?.years[financeData.currentYear]
-                            ?.months[financeData.currentMonth]
-                            ?.members?.find(m => m.id === memberId);
-  if (member?.spendings) {
-    const spending = member.spendings.find(s => s.id === spendingId);
-    if (spending) {
-      populateSpendingCardDropdown(memberId, spending.cardId);
-    }
-  }
-};
-
-// --- Member Modal Save Logic ---
-document.getElementById('memberForm').onsubmit = function(e) {
-  e.preventDefault();
-  const year = financeData.currentYear;
-  const month = financeData.currentMonth;
-  const memberId = document.getElementById('member-id').value;
-  const name = document.getElementById('member-name').value;
-  const members = financeData.years[year]?.months[month]?.members;
-  if (memberId) {
-    const member = members?.find(m => m.id == memberId);
-    if (member) {
-      member.name = name;
-    }
-  } else {
-    members.push({ 
-      id: generateId(members), 
-      name: name, 
-      status: true, 
-      incomes: [], 
-      spendings: [], 
-      cards: [] 
-    });
-  }
-
-  saveData();
-  renderAll();
-  showToast('Kişi bilgisi kaydedildi.'); 
-  bootstrap.Modal.getInstance(document.getElementById('memberModal')).hide();
-};
-
-// --- JSON Export/Import ---
-document.getElementById('btn-save-json').onclick = function() {
-  showToast('Yedek bilgisayarınıza indirilsin mi?', 'warning', 0, 'center', true).then((result) => {
-    if (result.isConfirmed) {
-        const dataStr = JSON.stringify(financeData, null, 2);
-        const blob = new Blob([dataStr], { type: 'application/json' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = FILE_NAME;
-        document.body.appendChild(a);
-        a.click();
-        setTimeout(() => {
-          document.body.removeChild(a);
-          URL.revokeObjectURL(url);
-          showToast('Yedek başarıyla indirildi.'); 
-        }, 0); 
-    }
-  });
-};
-
-document.getElementById('btn-load-json').onclick = function() {
-  const input = document.createElement('input');
-  input.type = 'file';
-  input.accept = '.json';
-  input.onchange = function(e) {
-    const file = e.target.files[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = function(evt) {
-      try {
-        const data = JSON.parse(evt.target.result);
-        financeData = data;   
-        
-        validateFinanceData(); 
-        saveData();
-        renderAll();
-        showToast('Veriler yedekten yüklendi.');
-      } catch (err) {
-        showToast('Geçersiz JSON dosyası.', 'error');
-      }
-    };
-    reader.readAsText(file);
-  };
-  input.click();
-};
-
-let copiedMonthData = null;
-
-// Ensure Enter key submits modal forms for add/edit
-['memberForm', 'incomeForm', 'spendingForm', 'cardForm'].forEach(formId => {
-  const form = document.getElementById(formId);
-  if (form) {
-    // Remove any accidental type=button from inputs
-    Array.from(form.querySelectorAll('input')).forEach(input => {
-      if (input.type === 'button') input.type = 'text';
-    });
-    // The Save button should be type=submit
-    const saveBtn = form.querySelector('button[type=submit],button:not([type])');
-    if (saveBtn) saveBtn.type = 'submit';
-  }
-});
-
-document.getElementById('cardForm').onsubmit = function(e) {
-  e.preventDefault();
-  const year = financeData.currentYear;
-  const month = financeData.currentMonth;
-  const memberId = Number(document.getElementById('card-member-id').value);
-  const cardId = document.getElementById('card-id').value;
-  const name = document.getElementById('card-name').value;
-  const members = financeData.years[year].months[month].members;
-  const member = members.find(m => m.id === memberId);
-  if (!member.cards) member.cards = [];
-  if (cardId) {
-    // Edit
-    const card = member.cards.find(c => c.id == cardId);
-    if (card) {
-      card.name = name;
-    }
-  } else {
-    // Add
-    member.cards.push({ id: generateId(member.cards), name });
-  }
-
-  saveData();
-  renderAll();
-  showToast('Kart bilgisi kaydedildi.'); 
-  bootstrap.Modal.getInstance(document.getElementById('cardModal')).hide();
-};
-
-// Add toggle currency mask function
-function toggleCurrencyMask(element, originalValue) {
-  const currentText = element.textContent?.trim();
-  //console.log('[toggleCurrencyMask] ', currentText, originalValue);
-  if (currentText === '••••••••') {
-    // Unmask
-    if (originalValue != undefined) {
-      element.textContent = currency(Number(originalValue));
-    }
-  } else {
-    // Mask
-    element.textContent = '••••••••';
-  }
-}
-
-function toggleAllCurrencyMasks() {
-  isCurrencyMasked = !isCurrencyMasked;
-  if(isCurrencyMasked) {
-    $('#show-hide-icon').removeClass('fa-eye');
-    $('#show-hide-icon').addClass('fa-eye-slash');
-  } else {
-    $('#show-hide-icon').addClass('fa-eye');
-    $('#show-hide-icon').removeClass('fa-eye-slash');
-  }
-  renderAll();
-}
+// #endregion
 
 $(document).ready(function() {
-  $('#myTab .nav-link').on('shown.bs.tab', function (e) {
+  // #region Document Handlers
+  $(document).on('shown.bs.tab', '#myTab .nav-link', function(e) {
     financeData.activeTabIndex = $(this).index($(e.target));
     saveData();
   });
-
   $('#memberModal, #incomeModal, #spendingModal, #cardModal').on('shown.bs.modal', function (e) {
     var firstInput = $('input:not([type=hidden]):not([disabled]), select, textarea', $(this)).first();
     if (firstInput) {
       firstInput.focus();
     }
   });
+  
+  $(document).on('change', '#years-dropdown', function() {
+    financeData.currentYear = $(this).val();
 
-  $(document).on('#btn-add-member', 'change', function() {
+    let month = (financeData.lastSelectedMonthByYear 
+                    && financeData.lastSelectedMonthByYear[financeData.currentYear]) || '1';
+    if (!financeData.years[financeData.currentYear] || !financeData.years[financeData.currentYear].months[month]) {
+      month = '1';
+      ensureMonthData(financeData.currentYear, month);
+    }
+    switchMonth(month);
+  });
+  $(document).on('change', '#cycles-dropdown', function() {
+    financeData.currentCycle = $(this).val();
+    renderDaysRow();
+  });
+  
+  $(document).on('click', '#btn-add-member', function() {
     $('#member-id').val('');
     $('#member-name').val('');
     $('#memberModal').modal('show');
   });
-
-  $(document).on('#years-dropdown', 'change', function() {
-    const year = $(this).val();
-    const months = getMonthList(year);
-
-    let month = (financeData.lastSelectedMonthByYear && financeData.lastSelectedMonthByYear[year]) || '1';
-    if (!financeData.years[year] || !financeData.years[year].months[month]) {
-      month = '1';
-      ensureMonthData(year, month);
-    }
-    switchMonth(year, month);
-  });
-
-  $(document).on('#cycles-dropdown', 'change', function() {
-    financeData.currentCycle = $(this).val();
-    renderDaysRow();
-  });
-
-  $(document).on('#btn-copy-month', 'click', function() {
+  $(document).on('click', '#btn-copy-month', function() {
     const year = financeData.currentYear;
     const month = financeData.currentMonth;
     if (financeData?.years[year]?.months[month]) {
       copiedMonthData = JSON.parse(JSON.stringify(financeData.years[year].months[month]));
-      pasteBtn.disabled = false;
+      $('#btn-paste-month').removeAttr('disabled');
       showToast('Ay verileri kopyalandı.');
     }
   });
-
-  $(document).on('#btn-paste-month', 'click', function() {
+  $(document).on('click', '#btn-paste-month',function() {
     if (isNullOrEmpty(copiedMonthData)) {
       return;
     }
@@ -1933,18 +1747,21 @@ $(document).ready(function() {
           }
           
           financeData.years[financeData.currentYear].months[financeData.currentMonth] = JSON.parse(JSON.stringify(copiedMonthData));
-          copiedMonthData = null;      
-          pasteBtn.disabled = true;
+          copiedMonthData = null;  
+     
+          $(this).attr('disabled', true);    
 
           saveData();
-          renderAll();
+
+          renderFamilySummary();
+		      renderMembers();
+    
           showToast('Ay verileri yapıştırıldı.' + (result2.isConfirmed ? ' Taksitler otomatik olarak arttırıldı.' : ''));
         });
       }
     });
   });
-
-  $(document).on('#btn-clear-month', 'click', function() {
+  $(document).on('click', '#btn-clear-month', function() {
     showToast('Ay verileri temizlensin mi?', 'warning', 0, 'center', true).then((result) => {
       if (result.isConfirmed) {
         const year = financeData.currentYear;
@@ -1952,25 +1769,258 @@ $(document).ready(function() {
         if (financeData?.years[year]?.months[month]) {
           financeData.years[year].months[month] = { members: [] };
           saveData();
-          renderAll();
+
+          renderFamilySummary();
+		      renderMembers();
+    
           showToast('Ay verileri temizlendi.');
         }
       }
     });
   });
+  $(document).on('click', '#btn-save-json', function() {
+    showToast('Yedek bilgisayarınıza indirilsin mi?', 'warning', 0, 'center', true).then((result) => {
+      if (result.isConfirmed) {
+          const dataStr = JSON.stringify(financeData, null, 2);
+          const blob = new Blob([dataStr], { type: 'application/json' });
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = FILE_NAME;
+          document.body.appendChild(a);
+          a.click();
+          setTimeout(() => {
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            showToast('Yedek başarıyla indirildi.'); 
+          }, 0); 
+      }
+    });
+  });
+  $(document).on('click','#btn-load-json', function() {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = '.json';
+    input.onchange = function(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = function(evt) {
+        try {
+          const data = JSON.parse(evt.target.result);
+          financeData = data;   
+          
+          validateFinanceData(); 
+          saveData();
 
+          renderFamilySummary();
+		      renderMembers();
+    
+          showToast('Veriler yedekten yüklendi.');
+        } catch (err) {
+          showToast('Geçersiz JSON dosyası.', 'error');
+        }
+      };
+      reader.readAsText(file);
+    };
+    input.click();
+  });
+  
+  $(document).on('submit', '#incomeForm', function(e) {
+    e.preventDefault();
 
-  renderAll();
+    const memberId = Number($('#income-member-id').val());
+    const incomeId = $('#income-id').val();
+    const name = $('#income-name').val();
+    const value = Number($('#income-value').val());
+    const received = $('#income-received').prop('checked');
 
-  var checkGoogle = setInterval(function() {
-    console.log('checkGoogle: checkGoogle');
-    if (typeof google !== 'undefined' && google.accounts?.oauth2) {
-      clearInterval(checkGoogle);
-      (async function () {
-        await initGoogleDrive();
-      })();
+    const member = financeData?.years[financeData.currentYear]
+                              ?.months[financeData.currentMonth]
+                              ?.members?.find(m => m.id === memberId);
+    if(!member) { 
+      return;
     }
-  }, 250);
+
+    member.incomes ??= [];
+    if (incomeId) {
+      // Edit
+      const income = member.incomes.find(i => i.id == incomeId);
+      if (income) {
+        income.name = name;
+        income.value = value;
+        income.received = received;
+      }
+    } else {
+      // Add
+      member.incomes.push({ id: generateId(member.incomes), name, value, received });
+    }
+
+    saveData();		
+    
+    renderFamilySummary();
+		renderMembers();
+
+    showToast('Gelir bilgisi kaydedildi.'); 
+
+    $('#incomeModal').modal('hide');
+  });
+  $(document).on('submit', '#spendingForm', function(e) {
+    e.preventDefault();
+
+    const memberId = Number($('#spending-member-id').val());
+    const spendingId = $('#spending-id').val();
+    const name = $('#spending-name').val();
+    const value = Number($('#spending-value').val());
+    const payed = $('#spending-payed').prop('checked');
+    const cardId = $('#spending-card-id').val() ? Number($('#spending-card-id').val()) : null;
+    const installment = Number($('#spending-installment').val()) || 1;
+    const currentInstallment = Number($('#spending-current-installment').val()) || 1;
+
+    const member = financeData?.years[financeData.currentYear]
+                              ?.months[financeData.currentMonth]
+                              ?.members?.find(m => m.id === memberId);
+    if(!member) {
+      $('#spendingModal').modal('hide');
+      return;
+    }
+
+    member.spendings ??= [];
+
+    if (spendingId) {
+      // Edit
+      const spending = member.spendings.find(s => s.id == spendingId);
+      if (spending) {
+        spending.name = name;
+        spending.value = value;
+        spending.payed = payed;
+        spending.cardId = cardId;
+        spending.installment = installment;
+        spending.currentInstallment = currentInstallment;
+      }
+    } else {
+      // Add
+      member.spendings.push({ 
+        id: generateId(member.spendings), 
+        name, 
+        value, 
+        payed, 
+        cardId, 
+        installment, 
+        currentInstallment: currentInstallment, 
+        monthKey: financeData.currentMonth,
+        order: 999
+      });
+    }
+
+    saveData();		
+    
+    renderFamilySummary();
+		renderMembers();
+
+    showToast('Harcama kaydedildi.'); 
+
+    $('#spendingModal').modal('hide');
+  });
+  $(document).on('submit', '#cardForm', function(e) {
+    e.preventDefault();
+
+    const memberId = Number($('#card-member-id').val());
+    const cardId = $('#card-id').val();
+    const name = $('#card-name').val();
+
+    const member = financeData?.years[financeData.currentYear]
+                              ?.months[financeData.currentMonth]
+                              ?.members?.find(m => m.id === memberId);
+    if(!member) {
+      $('#cardModal').modal('hide');
+      return;
+    }
+
+    member.cards ??= [];
+    if (cardId) {
+      // Edit
+      const card = member.cards.find(c => c.id == cardId);
+      if (card) {
+        card.name = name;
+      }
+    } else {
+      // Add
+      member.cards.push({ id: generateId(member.cards), name });
+    }
+
+    saveData();
+
+    renderFamilySummary();
+		renderMembers();
+
+    showToast('Kart bilgisi kaydedildi.'); 
+
+    $('#cardModal').modal('hide');
+  });
+  $(document).on('submit', '#memberForm', function(e) {
+    e.preventDefault();
+
+    const memberId = $('#member-id').val();
+    const name = $('#member-name').val();
+
+    const members = financeData?.years[financeData.currentYear]
+                               ?.months[financeData.currentMonth]?.members;
+    if (memberId) {
+      const member = members?.find(m => m.id == memberId);
+      if (member) {
+        member.name = name;
+      }
+    } else {
+      members.push({ 
+        id: generateId(members), 
+        name: name, 
+        status: true, 
+        incomes: [], 
+        spendings: [], 
+        cards: [] 
+      });
+    }
+
+    saveData();
+
+    renderFamilySummary();
+    renderMembers();
+
+    showToast('Kişi bilgisi kaydedildi.'); 
+    
+    $('#memberModal').modal('hide');
+  });
+  // #endregion
+
+  if(window.location.href.includes('file://')) {
+    loadFromLocalStorage();
+  }
+  else {
+      var checkGoogle = setInterval(function() {
+        console.log('checkGoogle: checkGoogle');
+        if (typeof google !== 'undefined' && google.accounts?.oauth2) {
+          clearInterval(checkGoogle);
+          (async function () {
+            await initGoogleDrive();
+          })();
+        }
+      }, 250);
+  }
+
+  // #region Render Initial HTML
+  renderYearsDropdown();
+  renderMonthsRow();
+  renderFamilySummary();
+  renderMembers();
+
+  renderCycleDropdown();
+  renderDaysRow();
+
+  // select year by financeData: 
+  setAllDatas();
+    
+  // #endregion
 });
 
 </script>
