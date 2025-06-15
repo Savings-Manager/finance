@@ -1454,7 +1454,7 @@ function renderDaysRow() {
                       onchange="onDateChange(${x})" 
                       type='date' 
                       placeholder="${getDayName(x)}" 
-                      class="form-control btn-day btn btn-sm btn-outline-primary"/>
+                      class="form-control btn-day ${!isNullOrEmpty(selectedDays[x]) ? 'btn-success' : ''} btn btn-sm btn-outline-primary"/>
             </div>`
   });
 
@@ -1676,6 +1676,10 @@ function setMonthData() {
 
   $('#months-row button.active').removeClass('btn-primary active fw-bold');
   $(`#months-row button[data-month="${month}"]`).addClass('btn-primary active fw-bold');
+}
+
+function setGymDayData() {
+  $('.btn-day').removeClass();
 }
 // #endregion
 
