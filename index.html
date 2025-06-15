@@ -419,7 +419,7 @@
   <div class="d-flex justify-content-between align-items-center mb-4">
     <div class="d-flex align-items-center">
       <h2 id="page-title"><i class="bi bi-people-fill me-2"></i>Finans Yöneticisi</h2>
-      <small class="text-muted ms-2">v1.1.6</small>   
+      <small class="text-muted ms-2">v1.1.7</small>   
     </div>
     <div>
       <button class="top-action-btn" id="btn-load-json"><i class="bi bi-folder2-open ms-2"></i>Verileri Geri Yükle</button>
@@ -689,6 +689,7 @@ let timeOut = null;
 let copiedMonthData = null;
 
 const months = Array.from({ length: 12 }, (_, i) => String(i + 1));
+const days = Array.from({ length: 13 }, (_, i) => String(i + 1));
 
 function getCurrentYearMonth() {
   const d = new Date();
@@ -703,9 +704,6 @@ function getYearList() {
 }
 function getMonthName(monthNum) {
   return new Date(2000, Number(monthNum) - 1, 1).toLocaleString('tr-TR', { month: 'long' });
-}
-function getDayList() {
-  return Array.from({ length: 13 }, (_, i) => String(i + 1));
 }
 function getDayName(dayNum) {
   if(dayNum == 1) return 'ÖDENDİ';
@@ -1252,10 +1250,16 @@ function deleteMember(memberId) {
 }
 
 function onDateChange(day) {
-  const value = document.getElementById('day_'+day)?.value;
-
   financeData.cycles[financeData.currentCycle] ??= {};
   financeData.cycles[financeData.currentCycle].days ??= {};
+
+  const $elem = $(`#day_${day}`);
+  const value = $elem.val();
+  if(!isNullOrEmpty(value)) {
+    $($elem).addClass('btn-outline-success');
+  } else {
+    $($elem).removeClass('btn-outline-success');
+  }
 
   financeData.cycles[financeData.currentCycle].days[day] = value;
 
@@ -1377,10 +1381,6 @@ function renderInit() {
   validateFinanceData();
   ensureMonthData(financeData.currentYear, financeData.currentMonth);
   setAllDatas();
-
-  console.log(financeData.activeTabIndex);
-  //$('#myTab .nav-link').removeClass('active');
-  $('#myTab .nav-link').eq(financeData.activeTabIndex).tab('show');
 }
 
 function renderYearsDropdown() {
@@ -1436,29 +1436,13 @@ function renderCycleDropdown() {
   $('#cycles-dropdown').html(cycles.map(y => `<option value="${y}" ${y == selectedCycle ? 'selected' : ''}>${y + '. Döngü'}</option>`).join(''));
 }
 function renderDaysRow() {  
-  const cycle = financeData.currentCycle;
-  financeData.cycles[cycle] ??= {};
-  financeData.cycles[cycle].days ??= {};
-
-  console.log('renderDaysRow: ', cycle);
-
-  const days = getDayList();
-  const selectedDays = financeData.cycles[cycle]?.days;
-  
-  let html = '';
-  days.forEach(x=> {
-    html += `<div class="col-6 col-md-3 mt-2">
+  $('#days-row').html(days.map(x=> `<div class="col-6 col-md-3 mt-2">
               <label for="day_${x}" class="form-label">${getDayName(x)}</label>
               <input id="day_${x}" 
-                      value="${selectedDays[x] ?? ''}" 
-                      onchange="onDateChange(${x})" 
-                      type='date' 
-                      placeholder="${getDayName(x)}" 
-                      class="form-control btn-day ${!isNullOrEmpty(selectedDays[x]) ? 'btn-success' : ''} btn btn-sm btn-outline-primary"/>
-            </div>`
-  });
-
-  $('#days-row').html(html);
+                      value="" onchange="onDateChange(${x})" 
+                      type='date' placeholder="${getDayName(x)}" 
+                      class="form-control btn-day btn-outline-primary btn btn-sm"/>
+            </div>`).join(''));
 }
 function renderMembers() {
   ensureMonthData(financeData.currentYear, financeData.currentMonth);
@@ -1663,6 +1647,12 @@ function initializeSortable() {
 function setAllDatas() {
   setYearData();
   setMonthData();
+  setGymDayData();
+  setActiveTab();
+}
+function setActiveTab() {
+  console.log('setActiveTab: ', financeData.activeTabIndex);
+  $('#myTab .nav-link').eq(financeData.activeTabIndex).tab('show');
 }
 function setYearData() {
   const currentYear = financeData?.currentYear ?? getCurrentYearMonth().year;
@@ -1679,14 +1669,31 @@ function setMonthData() {
 }
 
 function setGymDayData() {
-  $('.btn-day').removeClass();
+  $('.btn-day').removeClass('btn-outline-success');
+
+  const cycle = financeData.currentCycle;
+  financeData.cycles[cycle] ??= {};
+  financeData.cycles[cycle].days ??= {};
+
+  const selectedDays = financeData.cycles[cycle].days;
+  for (const key in selectedDays) {
+    if (selectedDays.hasOwnProperty(key)) {
+      const $elem = $(`#day_${key}`);
+      const value = selectedDays[key];
+      $elem.val(value);
+      if(!isNullOrEmpty(value)) {
+        $elem.addClass('btn-outline-success');
+      }
+    }
+  }
+  console.log('setGymDayData: ', cycle, selectedDays);
 }
 // #endregion
 
 $(document).ready(function() {
   // #region Document Handlers
-  $(document).on('shown.bs.tab', '#myTab .nav-link', function(e) {
-    financeData.activeTabIndex = $(this).index($(e.target));
+  $(document).on('shown.bs.tab', '#myTab .nav-item', function() {
+    financeData.activeTabIndex = $(this).index();
     saveData();
   });
   $('#memberModal, #incomeModal, #spendingModal, #cardModal').on('shown.bs.modal', function (e) {
@@ -1709,7 +1716,7 @@ $(document).ready(function() {
   });
   $(document).on('change', '#cycles-dropdown', function() {
     financeData.currentCycle = $(this).val();
-    renderDaysRow();
+    setGymDayData();
   });
   
   $(document).on('click', '#btn-add-member', function() {
