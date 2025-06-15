@@ -419,7 +419,7 @@
   <div class="d-flex justify-content-between align-items-center mb-4">
     <div class="d-flex align-items-center">
       <h2 id="page-title"><i class="bi bi-people-fill me-2"></i>Finans Yöneticisi</h2>
-      <small class="text-muted ms-2">v1.1.7</small>   
+      <small class="text-muted ms-2">v1.1.8</small>   
     </div>
     <div>
       <button class="top-action-btn" id="btn-load-json"><i class="bi bi-folder2-open ms-2"></i>Verileri Geri Yükle</button>
@@ -1437,7 +1437,7 @@ function renderCycleDropdown() {
 }
 function renderDaysRow() {  
   $('#days-row').html(days.map(x=> `<div class="col-6 col-md-3 mt-2">
-              <label for="day_${x}" class="form-label">${getDayName(x)}</label>
+              <label for="day_${x}" class="day-label form-label fw-bold">${getDayName(x)}</label>
               <input id="day_${x}" 
                       value="" onchange="onDateChange(${x})" 
                       type='date' placeholder="${getDayName(x)}" 
@@ -1670,6 +1670,8 @@ function setMonthData() {
 
 function setGymDayData() {
   $('.btn-day').removeClass('btn-outline-success');
+  $('.btn-day').val('');
+  $('.day-label').removeClass('income-color');
 
   const cycle = financeData.currentCycle;
   financeData.cycles[cycle] ??= {};
@@ -1683,6 +1685,7 @@ function setGymDayData() {
       $elem.val(value);
       if(!isNullOrEmpty(value)) {
         $elem.addClass('btn-outline-success');
+        $(`label[for="day_${key}"]`).addClass('income-color');
       }
     }
   }
