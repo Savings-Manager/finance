@@ -380,8 +380,22 @@
       font-size:18pt;
     }
 
+    .tab-content {
+      padding: 1rem 0.7rem 1rem 0.7rem; 
+      border: 1px solid #e0e0e0; 
+      border-top: none;
+    }
+
     /* Mobile responsive styles for top buttons */
     @media (max-width: 768px) {
+      .col-md-12, .col-12, .row {
+        padding: 0;
+      }
+      .tab-content {
+        padding: 1rem 0.2rem 1rem 0.2rem; 
+        border: 1px solid #e0e0e0; 
+        border-top: none;
+      }
       .list-group-item { 
         padding: 15px 8px !important;
       }
@@ -460,7 +474,7 @@
       </button>
     </li>
   </ul>
-  <div class="tab-content" id="myTabContent" style="padding: 1rem; border: 1px solid #e0e0e0; border-top: none;">
+  <div class="tab-content" id="myTabContent">
     <div class="tab-pane fade show active" id="home" role="tabpanel" aria-labelledby="home-tab">
       <div id="finance-section">
         <div class="mb-3 d-flex">
@@ -510,7 +524,93 @@
       </div>
     </div>
     <div class="tab-pane fade" id="contact" role="tabpanel" aria-labelledby="contact-tab">
-      Contact content here.
+        <div id="savings-section">
+          <div class="container py-4">
+
+  <div class="card shadow-sm mb-4">
+    <div class="card-body">
+      <h5 class="card-title mb-3">Para Birimi Yönetimi</h5>
+
+      <div class="row g-2">
+        <div class="col-md-6">
+          <label class="form-label" for="currency">Para Birimi Seç</label>
+          <select id="currency" class="form-select"></select>
+          <button id="addSelectedCurrency" class="btn btn-primary mt-2 w-100">Seçili Para Birimini Ekle</button>
+        </div>
+        <div class="col-md-6">
+          <label class="form-label" for="newCurrency">Yeni Para Birimi</label>
+          <input type="text" id="newCurrency" class="form-control mb-2" placeholder="Örn: Gram Altın">
+          <input type="number" id="newCurrencyValue" class="form-control mb-2" placeholder="Değer, Örn: 2500">
+          <button id="addNewCurrency" class="btn btn-success w-100">Yeni Para Birimi Ekle</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card shadow-sm mb-4">
+    <div class="card-body">
+      <h5 class="card-title">Birikimler</h5>
+      <div class="row g-2 mb-2">
+        <div class="col-md-1">
+            <button id="removeCustom" class="col-md-3 btn btn-outline-danger w-100">Sil</button>
+          </div>
+        <div class="col-md-5">
+            <select id="customCurrencies" class="form-select"></select>
+        </div>
+        <div class="col-md-4">
+          <input type="number" id="quantity" class="form-control" placeholder="Miktar">
+        </div>
+        <div class="col-md-2">
+          <button id="addSavings" class="btn btn-primary w-100">Birikim Ekle</button>
+        </div>
+      </div>
+
+      <table id="savingsTable" class="table table-bordered table-striped">
+        <thead class="table-light">
+          <tr>
+            <th>Para Birimi</th>
+            <th>Miktar</th>
+            <th>Toplam (₺)</th>
+            <th>Sil</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+      <h5 class="text-end">Toplam Birikim: <span id="totalSavings" class="text-success">0</span></h5>
+    </div>
+  </div>
+
+  <div class="card shadow-sm mb-4">
+    <div class="card-body">
+      <h5 class="card-title">Hedefler</h5>
+      <div class="row g-2 mb-2">
+        <div class="col-md-6">
+          <input type="text" id="goalInput" class="form-control" placeholder="Örn: Laptop Al">
+        </div>
+        <div class="col-md-4">
+          <input type="number" id="goalAmountInput" class="form-control" placeholder="Tutar (₺)">
+        </div>
+        <div class="col-md-2">
+          <button id="addGoal" class="btn btn-success w-100">Hedef Ekle</button>
+        </div>
+      </div>
+
+      <table id="goalsTable" class="table table-bordered table-striped">
+        <thead class="table-light">
+          <tr>
+            <th>Hedef</th>
+            <th>Tutar (₺)</th>
+            <th>Sil</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+      <h5 class="text-end">Kalan Miktar: <span id="moneyLeft" class="text-primary">0</span></h5>
+    </div>
+  </div>
+</div>
+
+        </div>
     </div>
   </div>
 </div>
@@ -1492,11 +1592,11 @@ function renderMembers() {
           </div>
         </div>
         <div class="row mt-3">
-          <div class="col-md-5">
+          <div class="col-12 col-md-5">
             <div class="col-md-12">
               <h6 class="income-color">Gelirler<button class="icon-btn income-color" onclick="openAddIncome(${member.id})"><i class="bi bi-plus-circle"></i></button></h6>
               <div data-type="0" data-memberid="${member.id}" class="col-md-12 list-group sortable-list mb-2">
-                ${member.incomes?.map(income => `<div data-incomeid="${income.id}" class="col-md-12 list-group-item sortable-item d-flex justify-content-between bg-income">
+                ${member.incomes?.map(income => `<div data-incomeid="${income.id}" class="mb-1 col-md-12 list-group-item sortable-item d-flex justify-content-between bg-income">
                     <div class="fw-bold">
                       <i class="sortable-handle bi bi-list me-2"></i>
                       <i class="bi bi-cash-coin"></i> ${income.name}
@@ -1520,7 +1620,7 @@ function renderMembers() {
                     if (!b.installment || b.installment < 1) b.installment = 1;
                     return a + Number(b.value) / b.installment;
                   }, 0);
-                  return `<div data-cardid="${card.id}" class="list-group-item sortable-item bg-card d-flex justify-content-between align-items-center">
+                  return `<div data-cardid="${card.id}" class="mb-1 list-group-item sortable-item bg-card d-flex justify-content-between align-items-center">
                     <div class="fw-bold">
                       <i class="sortable-handle bi bi-list me-2"></i>
                       <i class="bi bi-credit-card"></i> ${card.name}
@@ -1533,7 +1633,7 @@ function renderMembers() {
                   </div>`
                 }).join('')}
               </div>
-              <div class="fw-bold">Toplam Kart Harcaması: <span class="spending-color pointer" onclick="toggleCurrencyMask(this, '${(member.spendings || []).filter(s => s.cardId && s.payed).reduce((a, b) => {
+              <div class="fw-bold ms-2">Toplam Kart Harcaması: <span class="spending-color pointer" onclick="toggleCurrencyMask(this, '${(member.spendings || []).filter(s => s.cardId && s.payed).reduce((a, b) => {
                 if (!b.installment || b.installment < 1) b.installment = 1;
                 return a + Number(b.value) / b.installment;
               }, 0)}')">${currency((member.spendings || []).filter(s => s.cardId && s.payed).reduce((a, b) => {
@@ -1542,7 +1642,7 @@ function renderMembers() {
               }, 0), isCurrencyMasked)}</span></div>
             </div>
           </div>
-          <div class="col-md-7">
+          <div class="col-12 col-md-7">
             <h6 class="spending-color">Giderler<button class="icon-btn spending-color" onclick="openAddSpending(${member.id})"><i class="bi bi-plus-circle"></i></button></h6>
             <div data-type="2" data-memberid="${member.id}" class="col-md-12 list-group sortable-list mb-2">
               ${spendings.map(spending => {
@@ -1555,17 +1655,17 @@ function renderMembers() {
                     currentInstallment = thisIdx - idx + 1;
                   }
                 }
-                return `<div data-spendingid="${spending.id}" class="col-md-12 list-group-item sortable-item d-flex justify-content-between bg-spending">
+                return `<div data-spendingid="${spending.id}" class="mb-1 col-md-12 list-group-item sortable-item d-flex justify-content-between bg-spending">
                   <div class="col-md-7">
                     <div class="col-md-12 fw-bold">
                       <i class="sortable-handle bi bi-list me-2"></i>
                       <i class="bi bi-cart-dash"></i> ${spending.name} 
-                    </div>
-                    <div class="col-md-12 fw-bold">
-                     ${card ? `<span class='badge card-color'><i class='bi bi-credit-card-fill'></i> ${card.name}</span>` : ''} 
-                      ${spending.installment > 1 ? `<span class='badge bg-secondary'>${spending.currentInstallment > 1 
-                                ? spending.currentInstallment : currentInstallment}/${spending.installment}</span>` : ''}
-                    </div>
+                    </div>${(card || spending.installment > 1) ? `<div class="col-md-12 fw-bold">
+                     ${card ? `<span class='badge card-color'><i class='bi bi-credit-card-fill'></i> ${card.name}</span>` 
+                            : ''} ${spending.installment > 1 ? `<span class='badge bg-secondary'>${spending.currentInstallment > 1 
+                                ? spending.currentInstallment 
+                                : currentInstallment}/${spending.installment}</span>` : ''}
+                    </div>` : ''}                  
                   </div>
                   <div class="d-flex justify-content-end align-items-center">
                     <div> 
@@ -1584,7 +1684,7 @@ function renderMembers() {
                 </div>`;
               }).join('')}
             </div>
-            <div class="fw-bold">Toplam: <span class="spending-color pointer" onclick="toggleCurrencyMask(this, ${spend})">${currency(spend, isCurrencyMasked)}</span></div>
+            <div class="fw-bold ms-2">Toplam: <span class="spending-color pointer" onclick="toggleCurrencyMask(this, ${spend})">${currency(spend, isCurrencyMasked)}</span></div>
           </div>
         </div>
       </div>
@@ -2052,6 +2152,337 @@ $(document).ready(function() {
   // #endregion
 });
 
+</script>
+
+<script>
+  $(document).ready(function() {
+const currencySelect = document.getElementById('currency');
+    const customCurrencySelect = document.getElementById('customCurrencies');
+    const newCurrencyInput = document.getElementById('newCurrency');
+    const newCurrencyValueInput = document.getElementById('newCurrencyValue');
+    const addNewCurrencyButton = document.getElementById('addNewCurrency');
+    const addSelectedCurrencyButton = document.getElementById('addSelectedCurrency');
+    const removeCustomButton = document.getElementById('removeCustom');
+    const quantityInput = document.getElementById('quantity');
+    const addSavingsButton = document.getElementById('addSavings');
+    const savingsTableBody = document.querySelector('#savingsTable tbody');
+    const totalSavingsSpan = document.getElementById('totalSavings');
+    const moneyLeftSpan = document.getElementById('moneyLeft'); 
+    const goalInput = document.getElementById('goalInput');
+    const goalAmountInput = document.getElementById('goalAmountInput');
+    const addGoalButton = document.getElementById('addGoal');
+    const goalsTableBody = document.querySelector('#goalsTable tbody');
+
+    let rates = {};
+
+    const formatTL = new Intl.NumberFormat('tr-TR', {
+      style: 'currency',
+      currency: 'TRY',
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
+    });
+
+    function parseCurrencyToNumber(currencyString) {
+      // Para birimi sembolü ve boşlukları kaldır
+      const cleanString = currencyString.replace('₺', '').replace('TRY', '').trim();
+      
+      // Noktayı kaldır ve virgülü noktaya çevir
+      const numberString = cleanString.replace(/\./g, '').replace(',', '.');
+      
+      // Sayıyı parse et
+      return parseFloat(numberString);
+    }
+
+    // Fetch currency rates from API
+    function fetchRates() {
+      const apiUrl = 'https://api.exchangerate-api.com/v4/latest/TRY';
+
+      fetch(apiUrl)
+        .then(response => response.json())
+        .then(data => {
+          rates = data.rates;
+          populateCurrencySelect();
+          loadCustomCurrencies();
+          loadGoals();
+          loadSavings();
+        })
+        .catch(error => {
+          console.error('Error fetching rates:', error);
+          loadCustomCurrencies();
+          loadGoals();
+          loadSavings();
+        });
+    }
+
+    // Populate currency select with rates from API
+    function populateCurrencySelect() {
+      currencySelect.innerHTML = '';
+      for (const currency in rates) {
+        const option = document.createElement('option');
+        option.value = rates[currency];
+        option.textContent = currency;
+        currencySelect.appendChild(option);
+      }
+    }
+
+    // Add predefined custom currencies
+    function addPredefinedCurrencies() {
+      let gramAltinValue = 2500;
+      const predefinedCurrencies = {
+        'Gram Altın': gramAltinValue,
+        'Çeyrek Altın': 1.65 * gramAltinValue,
+        'Yarım Altın': 3.3 * gramAltinValue,
+        'Tam Altın': 6.63 * gramAltinValue
+      };
+
+      saveCustomCurrencies(predefinedCurrencies);
+
+      for (const currency in predefinedCurrencies) {
+        addOptionToCustomCurrencies(currency, predefinedCurrencies[currency]);
+      }
+    }
+
+    // Update predefined currencies based on gram altın value
+    function updatePredefinedCurrencies(gramAltinValue) {
+      const predefinedCurrencies = {
+        'Gram Altın': gramAltinValue,
+        'Çeyrek Altın': 1.65 * gramAltinValue,
+        'Yarım Altın': 3.3 * gramAltinValue,
+        'Tam Altın': 6.63 * gramAltinValue
+      };
+
+      for (const option of customCurrencySelect.options) {
+        if (predefinedCurrencies[option.textContent] !== undefined) {
+          option.value = predefinedCurrencies[option.textContent];
+        }
+      }
+
+      // todo:mehmet.sumer: Update savings table if gram altın value changes
+      //updateSavingsTable();
+    }
+
+    // Add selected currency to customCurrencies
+    addSelectedCurrencyButton.addEventListener('click', () => {
+      const selectedCurrency = currencySelect.options[currencySelect.selectedIndex].textContent;
+      const rate = currencySelect.value;
+
+      if (selectedCurrency && rate) {
+        const customCurrencies = getCustomCurrencies();
+        if (!customCurrencies[selectedCurrency]) {
+          customCurrencies[selectedCurrency] = (1 / rate).toFixed(2);
+          saveCustomCurrencies(customCurrencies);
+          addOptionToCustomCurrencies(selectedCurrency, (1 / rate).toFixed(2));
+        }
+      }
+    });
+
+    // Add new custom currency
+    addNewCurrencyButton.addEventListener('click', () => {
+      const newCurrency = newCurrencyInput.value;
+      const newCurrencyValue = parseFloat(newCurrencyValueInput.value);
+
+      if (newCurrency && !isNaN(newCurrencyValue)) {
+        const customCurrencies = getCustomCurrencies();
+        if (newCurrency === 'Gram Altın') {
+          updatePredefinedCurrencies(newCurrencyValue);
+        } else if (!customCurrencies[newCurrency]) {
+          customCurrencies[newCurrency] = newCurrencyValue;
+          saveCustomCurrencies(customCurrencies);
+          addOptionToCustomCurrencies(newCurrency, newCurrencyValue);
+        }
+        newCurrencyInput.value = '';
+        newCurrencyValueInput.value = '';
+      }
+    });
+
+    // Remove selected custom currency
+    removeCustomButton.addEventListener('click', () => {
+      const selectedCurrency = customCurrencySelect.options[customCurrencySelect.selectedIndex].textContent;
+      if (selectedCurrency) {
+        const customCurrencies = getCustomCurrencies();
+        if (customCurrencies[selectedCurrency]) {
+          delete customCurrencies[selectedCurrency];
+          saveCustomCurrencies(customCurrencies);
+          loadCustomCurrencies();
+        }
+      }
+    });
+
+    // Add savings
+    addSavingsButton.addEventListener('click', () => {
+      const selectedCurrencyText = customCurrencySelect.options[customCurrencySelect.selectedIndex].textContent;
+      const selectedCurrencyValue = parseFloat(customCurrencySelect.value);
+      const quantity = parseFloat(quantityInput.value);
+
+      if (selectedCurrencyText && !isNaN(selectedCurrencyValue) && !isNaN(quantity)) {
+        const total = (quantity * selectedCurrencyValue).toFixed(2);
+        addRowToSavingsTable(selectedCurrencyText, quantity, total);
+        updateTotalSavings();
+        quantityInput.value = '';
+      }
+    });
+
+    // Add goal
+    addGoalButton.addEventListener('click', () => {
+      const goalText = goalInput.value;
+      const goalAmount = parseFloat(goalAmountInput.value);
+
+      if (goalText && !isNaN(goalAmount)) {
+        addRowToGoalsTable(goalText, goalAmount);
+        saveGoals();
+        goalInput.value = '';
+        goalAmountInput.value = '';
+        updateTotalSavings();
+      }
+    });
+
+    // Add row to savings table
+    function addRowToSavingsTable(currency, quantity, total) {
+      const row = document.createElement('tr');
+      row.innerHTML = `
+        <td>${currency}</td>
+        <td>${quantity}</td>
+        <td>${formatTL.format(total)}</td>
+        <td><button class="btn btn-danger btn-sm delete-savings">X</button></td>
+      `;
+      row.querySelector('.delete-savings').addEventListener('click', () => {
+        row.remove();
+        updateTotalSavings();
+        saveSavings();
+      });
+      savingsTableBody.appendChild(row);
+      saveSavings();
+    }
+
+    // Add row to goals table
+    function addRowToGoalsTable(goal, amount) {
+      const row = document.createElement('tr');
+      row.innerHTML = `
+        <td>${goal}</td>
+        <td>${formatTL.format(amount)}</td>
+        <td><button class="btn btn-danger btn-sm delete-goal">X</button></td>
+      `;
+      row.querySelector('.delete-goal').addEventListener('click', () => {
+        row.remove();
+        saveGoals();
+        updateTotalSavings();
+      });
+      goalsTableBody.appendChild(row);
+      saveGoals();
+    }
+
+    // Update total savings
+    function updateTotalSavings() {
+      let total = 0;
+      document.querySelectorAll('#savingsTable tbody tr').forEach(row => {
+        const totalCell = row.children[2].textContent;
+        
+        const amount = parseCurrencyToNumber(totalCell);
+        total += amount;
+      });
+      totalSavingsSpan.textContent = formatTL.format(total);
+
+      let goalsTotal = 0;
+      document.querySelectorAll('#goalsTable tbody tr').forEach(row => {
+        const totalCell = row.children[1].textContent;
+        const amount = parseCurrencyToNumber(totalCell);
+        goalsTotal += amount;
+      });
+      moneyLeftSpan.textContent = formatTL.format(goalsTotal - total);
+    }
+
+    // Save custom currencies to local storage
+    function saveCustomCurrencies(currencies) {
+      localStorage.setItem('customCurrencies', JSON.stringify(currencies));
+    }
+
+    // Get custom currencies from local storage
+    function getCustomCurrencies() {
+      const jsonStr = localStorage.getItem('customCurrencies');
+      if (jsonStr === '{}' || !jsonStr) return null;
+      return JSON.parse(jsonStr);
+    }
+
+    // update currencies by latest rates
+    function updateCurrencies(customCurrencies) {
+      for (const currency in customCurrencies) {
+        if(rates[currency]) {
+          customCurrencies[currency] = (1 / rates[currency]).toFixed(2);
+        }
+      }
+      saveCustomCurrencies(customCurrencies);     
+    }
+
+    // Load custom currencies
+    function loadCustomCurrencies() {
+      const customCurrencies = getCustomCurrencies();
+      if (!customCurrencies) {
+        addPredefinedCurrencies();
+        customCurrencies = getCustomCurrencies();
+      }
+      else {
+        updateCurrencies(customCurrencies);
+      }
+      customCurrencySelect.innerHTML = '';
+
+      for (const currency in customCurrencies) {
+        addOptionToCustomCurrencies(currency, customCurrencies[currency]);
+      }
+    }
+
+    function addOptionToCustomCurrencies(currency, value) {
+      const option = document.createElement('option');
+      option.value = value;
+      option.textContent = currency;
+      customCurrencySelect.appendChild(option);
+    }
+
+    // Save savings to local storage
+    function saveSavings() {
+      const savings = [];
+      document.querySelectorAll('#savingsTable tbody tr').forEach(row => {
+        const currency = row.children[0].textContent;
+        const quantity = parseFloat(row.children[1].textContent);
+        const total = parseCurrencyToNumber(row.children[2].textContent);
+        savings.push({ currency, quantity, total });
+      });
+      localStorage.setItem('savings', JSON.stringify(savings));
+    }
+
+    // Load savings from local storage
+    function loadSavings() {
+      const savings = JSON.parse(localStorage.getItem('savings')) || [];
+      savings.forEach(({ currency, quantity, total }) => {
+        if(rates[currency]) {
+          total = (quantity / rates[currency]).toFixed(2);
+        }
+        addRowToSavingsTable(currency, quantity, total);
+      });
+      updateTotalSavings();
+    }
+
+    // Save goals to local storage
+    function saveGoals() {
+      const goals = [];
+      document.querySelectorAll('#goalsTable tbody tr').forEach(row => {
+        const goal = row.children[0].textContent;
+        const amount = parseCurrencyToNumber(row.children[1].textContent);
+        goals.push({ goal, amount });
+      });
+      localStorage.setItem('goals', JSON.stringify(goals));
+    }
+
+    // Load goals from local storage
+    function loadGoals() {
+      const goals = JSON.parse(localStorage.getItem('goals')) || [];
+      goals.forEach(({ goal, amount }) => {
+        addRowToGoalsTable(goal, amount);
+      });
+    }
+
+    // Initialize the app
+    fetchRates();
+  });
 </script>
 
 <!-- Bootstrap JS -->
