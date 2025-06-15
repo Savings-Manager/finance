@@ -26,7 +26,7 @@
 
   <!-- Google API scripts -->
   <script src="https://apis.google.com/js/api.js"></script>
-  <script src="https://accounts.google.com/gsi/client" async defer></script>
+  <script src="https://accounts.google.com/gsi/client" async defer onload="initGoogleDrive()"></script>
   
   <style>
     .swal2-warning {
@@ -419,7 +419,7 @@
   <div class="d-flex justify-content-between align-items-center mb-4">
     <div class="d-flex align-items-center">
       <h2 id="page-title"><i class="bi bi-people-fill me-2"></i>Finans Yöneticisi</h2>
-      <small class="text-muted ms-2">v1.1.3</small>   
+      <small class="text-muted ms-2">v1.1.4</small>   
     </div>
     <div>
       <button class="top-action-btn" id="btn-load-json"><i class="bi bi-folder2-open ms-2"></i>Verileri Geri Yükle</button>
@@ -1905,7 +1905,6 @@ function setupCopyPasteHandlers() {
     // The Save button should be type=submit
     const saveBtn = form.querySelector('button[type=submit],button:not([type])');
     if (saveBtn) saveBtn.type = 'submit';
-    // Hayır-op: default form submit already works with Enter
   }
 });
 
@@ -1976,16 +1975,7 @@ $(document).ready(function() {
     }
   });
 
-  if(window.location.href.includes('file://')) {     
-    loadFromLocalStorage();
-    renderInit();
-  }
-  else {
-    (async function () {
-      await initGoogleDrive();
-    })();
-    renderAll();
-  }
+  renderAll();
 });
 
 </script>
