@@ -442,7 +442,7 @@
   <div class="d-flex justify-content-between align-items-center mb-4">
     <div class="d-flex align-items-center">
       <h2 id="page-title"><i class="bi bi-people-fill me-2"></i>Finans Yöneticisi</h2>
-      <small class="text-muted ms-2">v1.2.2</small>   
+      <small class="text-muted ms-2">v1.2.3</small>   
     </div>
     <div>
       <button class="top-action-btn" id="btn-load-json"><i class="bi bi-folder2-open ms-2"></i>Verileri Geri Yükle</button>
@@ -974,10 +974,7 @@ async function loadFromGoogleDrive() {
     const data = await contentResponse.json();
     if(data) {
       financeData = data;
-      fileRead = true;    
-
-      validateFinanceData();  
-      setAllDatas();  
+      fileRead = true;     
 
       if(!isNullOrEmpty(timeOut)) {
         clearTimeout(timeOut);
@@ -985,7 +982,11 @@ async function loadFromGoogleDrive() {
       if(!isNullOrEmpty(googleDriveSwal)) {
         googleDriveSwal.close();
       }
+      
       console.log('[loadFromGoogleDrive] Data loaded successfully from Drive: ', data);
+      
+      validateFinanceData();  
+      setAllDatas(); 
     } 
   } catch (error) {
     console.error('[loadFromGoogleDrive] Error:', error);
