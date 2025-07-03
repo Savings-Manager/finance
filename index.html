@@ -1744,7 +1744,46 @@ function renderDaysRow() {
     dateFormat: "d.m.Y",
     altFormat: "d.m.Y",
     locale: "tr",
-    disableMobile: true
+    disableMobile: true,  
+    //altInput: true,
+    onOpen: function(selectedDates, dateStr, instance) {
+      // Takvim popup'u DOM elementi
+      const calendarContainer = instance.calendarContainer;
+
+      // Önce varsa eski clear button’u kaldır
+      const existingClearBtn = calendarContainer.querySelector(".flatpickr-clear-calendar");
+      if (existingClearBtn) existingClearBtn.remove();
+
+      // X buton oluştur
+      const clearDiv = document.createElement("div");
+      const clearBtn = document.createElement("button");
+      clearDiv.className = "flatpickr-clear-calendar";
+      clearDiv.style.position = "absolute";
+      clearDiv.style.bottom = "-30px";
+      clearDiv.style.left = "4px";
+      clearDiv.style.width = '97%'
+      clearDiv.style.height = '25px'
+      clearDiv.style.border = "none";
+      clearDiv.style.background = "white";
+      clearDiv.style.cursor = "pointer";
+
+      clearBtn.type = "button";
+      clearBtn.className = "flatpickr-clear-calendar";
+      clearBtn.textContent = "✖"; // İstersen ikon da koyabilirsin
+      clearBtn.style.border = "none";
+      clearBtn.style.background = "white";
+      clearBtn.style.fontSize = "20px";
+      clearBtn.style.cursor = "pointer";
+
+      clearBtn.onclick = () => {
+        instance.clear();    // Tarihi temizle
+        instance.close();    // Takvimi kapat
+      };
+
+      clearDiv.appendChild(clearBtn);
+      // Takvim container'a ekle
+      calendarContainer.appendChild(clearDiv);
+    }
   });         
 }
 
