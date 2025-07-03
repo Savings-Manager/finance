@@ -442,7 +442,7 @@
   <div class="d-flex justify-content-between align-items-center mb-4">
     <div class="d-flex align-items-center">
       <h2 id="page-title"><i class="bi bi-people-fill me-2"></i>Finans Yöneticisi</h2>
-      <small class="text-muted ms-2">v1.2.1</small>   
+      <small class="text-muted ms-2">v1.2.2</small>   
     </div>
     <div>
       <button class="top-action-btn" id="btn-load-json"><i class="bi bi-folder2-open ms-2"></i>Verileri Geri Yükle</button>
@@ -1362,8 +1362,8 @@ function deleteMember(memberId) {
 
 function onDateChange(day) {
   const $elem = $(`#day_${day}`);
-  const value = $elem.val();
-
+  const value = formatDateToTr($elem.val());
+  console.log('[onDateChange] ', value);
   financeData.cycles[financeData.currentCycle] ??= {};
   financeData.cycles[financeData.currentCycle].days ??= {};
   financeData.cycles[financeData.currentCycle].days[day] = value;
@@ -1419,6 +1419,44 @@ function generateId(list) {
 function currency(val, shouldMask = false) {
   if (shouldMask) return '••••••••';
   return '₺' + Number(val).toLocaleString('tr-TR', { minimumFractionDigits: 2 });
+}
+function formatDateToTr(input) {
+  if (!input) return "";
+
+  // Ayraçları normalize et
+  const normalized = input.replace(/[-\/]/g, ".");
+
+  let day, month, year;
+
+  // Eğer format YYYY.MM.DD ise
+  const isoMatch = normalized.match(/^(\d{4})\.(\d{1,2})\.(\d{1,2})$/);
+  if (isoMatch) {
+    [ , year, month, day ] = isoMatch;
+  }
+
+  // Eğer format DD.MM.YYYY ise
+  const trMatch = normalized.match(/^(\d{1,2})\.(\d{1,2})\.(\d{4})$/);
+  if (trMatch) {
+    [ , day, month, year ] = trMatch;
+  }
+
+  // Geçerli parça varsa sıfırları tamamla
+  if (day && month && year) {
+    day = day.padStart(2, "0");
+    month = month.padStart(2, "0");
+    return `${day}.${month}.${year}`;
+  }
+
+  // Tarayıcıya bırak (Date parse etmeye çalış)
+  const d = new Date(input);
+  if (!isNaN(d.getTime())) {
+    const dd = String(d.getDate()).padStart(2, '0');
+    const mm = String(d.getMonth() + 1).padStart(2, '0');
+    const yyyy = d.getFullYear();
+    return `${dd}.${mm}.${yyyy}`;
+  }
+
+  return ""; // Formatlanamayan tarih
 }
 // #endregion 
 
@@ -1820,7 +1858,8 @@ function setGymDayData() {
   for (const key in selectedDays) {
     if (selectedDays.hasOwnProperty(key)) {
       const $elem = $(`#day_${key}`);
-      const value = selectedDays[key];
+      const value = formatDateToTr(selectedDays[key]);
+      console.log('[setGymDayData] ', key, value);
       $elem.val(value);
       if(!isNullOrEmpty(value)) {
         $elem.addClass('btn-outline-success');
@@ -1828,7 +1867,6 @@ function setGymDayData() {
       }
     }
   }
-  console.log('[setGymDayData] ', cycle, selectedDays);
 }
 // #endregion
 
