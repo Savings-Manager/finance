@@ -827,7 +827,7 @@ async function initGoogleDrive() {
 
           logOut();          
           loadFromLocalStorage();
-          renderInit();
+          setAllDatas();
           return;
         }
 
@@ -853,7 +853,7 @@ async function initGoogleDrive() {
         }
         logOut();          
         loadFromLocalStorage();
-        renderInit();
+        setAllDatas();
       }
     });
     
@@ -882,7 +882,7 @@ async function initGoogleDrive() {
             console.log('[initGoogleDrive][gapi.client.init] Drive API TIMED OUT.');    
             fileRead = false;
             loadFromLocalStorage();
-            renderInit();
+            setAllDatas();
             googleDriveSwal.close();
           }
         }, 3000);
@@ -917,7 +917,7 @@ async function initGoogleDrive() {
     console.error('Error during Google Drive initialization:', error);
     fileRead = false;
     loadFromLocalStorage();
-    renderInit();
+    setAllDatas();
   }
 }
 
@@ -947,6 +947,7 @@ async function loadFromGoogleDrive() {
     if (!(response?.result?.files?.length > 0)) {
       console.log('[loadFromGoogleDrive] Hayır existing file found in Drive. Starting with empty data.');
       loadFromLocalStorage();
+      setAllDatas();
       return;
     }
 
@@ -970,6 +971,7 @@ async function loadFromGoogleDrive() {
       fileRead = true;    
 
       validateFinanceData();  
+      setAllDatas();  
 
       if(!isNullOrEmpty(timeOut)) {
         clearTimeout(timeOut);
@@ -986,9 +988,9 @@ async function loadFromGoogleDrive() {
       await requestNewToken();
     } else {
       loadFromLocalStorage();
+      setAllDatas();
     }
   }
-  renderInit();
 }
 
 async function saveToGoogleDrive() {
@@ -1481,73 +1483,20 @@ function toggleAllCurrencyMasks() {
 }
 
 // #region Render Functions
-function renderInit() {
-  console.log('[renderInit] Rendering initial data...');
-  validateFinanceData();
-  ensureMonthData(financeData.currentYear, financeData.currentMonth);
-  setAllDatas();
-}
+// function renderInit() {
+//   console.log('[renderInit] Rendering initial data...');
+//   validateFinanceData();
+//   ensureMonthData(financeData.currentYear, financeData.currentMonth);
+//   setAllDatas();
+// }
 
+// tab-1
 function renderYearsDropdown() {
   const years = getYearList();
   $('#years-dropdown').html(years.map(y => `<option value="${y}">${y}</option>`).join(''));
 }
 function renderMonthsRow() {
   $('#months-row').html(months.map(m => `<button data-month="${m}" class="btn-outline-primary btn-month btn btn-sm me-2" onclick="switchMonth('${m}')">${getMonthName(m)}</button>`).join(''));
-}
-function renderFamilySummary() {
-  let year = financeData.currentYear;
-  let month = financeData.currentMonth;
-  if (!year || !financeData.years[year] || !financeData.years[year].months[month]) {
-    const now = getCurrentYearMonth();
-    year = now.year;
-    month = now.month;
-    ensureMonthData(year, month);
-    financeData.currentYear = year;
-    financeData.currentMonth = month;
-  }
-
-  ensureMonthData(year, month);
-  let totalIncome = 0, totalSpend = 0;
-  const activeMembers = financeData.years[year].months[month].members.filter(x => x.status);
-  activeMembers.forEach(m => {
-    totalIncome += (m.incomes || []).filter(i => i.received).reduce((a, b) => a + Number(b.value || 0), 0);
-    totalSpend += sumSpendingsForMonth(m, year, month);
-  });
-  const net = totalIncome - totalSpend;
-  const netColor = net < 0 ? 'spending-color' : 'card-color';
-  $('#family-summary').html(`<div class="row g-2">
-                                <div class="col-md-4">
-                                  <div class="card bg-income material-shadow p-3"><span class="fw-bold income-color"><i class="bi bi-plus-circle"></i> Toplam Gelir:</span> <span class="fs-5 fw-bold income-color pointer" onclick="toggleCurrencyMask(this, ${totalIncome})">${currency(totalIncome, isCurrencyMasked)}</span></div>
-                                </div>
-                                <div class="col-md-4">
-                                  <div class="card bg-spending material-shadow p-3"><span class="fw-bold spending-color"><i class="bi bi-dash-circle"></i> Toplam Gider:</span> <span class="fs-5 fw-bold spending-color pointer" onclick="toggleCurrencyMask(this, ${totalSpend})">${currency(totalSpend, isCurrencyMasked)}</span></div>
-                                </div>
-                                <div class="col-md-4">
-                                  <div class="card bg-card material-shadow p-3"><span class="fw-bold ${netColor}"><i class="bi bi-calculator"></i> Net:</span> <span class="fs-5 fw-bold ${netColor} pointer" onclick="toggleCurrencyMask(this, ${net})">${currency(net, isCurrencyMasked)}</span></div>
-                                </div>
-                              </div>`);
-}
-function renderCycleDropdown() {
-  const selectedCycle = financeData.currentCycle;
-  financeData.cycles[selectedCycle] ??= {};
-  financeData.cycles[selectedCycle].days ??= {};
-
-  const cycles = [];
-  for (let index = 0; index < 100; index++) {
-    cycles.push((index+1));
-  }
-
-  $('#cycles-dropdown').html(cycles.map(y => `<option value="${y}" ${y == selectedCycle ? 'selected' : ''}>${y + '. Döngü'}</option>`).join(''));
-}
-function renderDaysRow() {  
-  $('#days-row').html(days.map(x=> `<div class="col-6 col-md-3 mt-2">
-              <label for="day_${x}" class="day-label form-label fw-bold">${getDayName(x)}</label>
-              <input id="day_${x}" 
-                      value="" onchange="onDateChange(${x})" 
-                      type='date' placeholder="${getDayName(x)}" 
-                      class="form-control btn-day btn-outline-primary btn btn-sm"/>
-            </div>`).join(''));
 }
 function renderMembers() {
   ensureMonthData(financeData.currentYear, financeData.currentMonth);
@@ -1694,6 +1643,59 @@ function renderMembers() {
 
   initializeSortable();
 }
+function renderFamilySummary() {
+  let year = financeData.currentYear;
+  let month = financeData.currentMonth;
+  if (!year || !financeData.years[year] || !financeData.years[year].months[month]) {
+    const now = getCurrentYearMonth();
+    year = now.year;
+    month = now.month;
+    ensureMonthData(year, month);
+    financeData.currentYear = year;
+    financeData.currentMonth = month;
+  }
+
+  ensureMonthData(year, month);
+  let totalIncome = 0, totalSpend = 0;
+  const activeMembers = financeData.years[year].months[month].members.filter(x => x.status);
+  activeMembers.forEach(m => {
+    totalIncome += (m.incomes || []).filter(i => i.received).reduce((a, b) => a + Number(b.value || 0), 0);
+    totalSpend += sumSpendingsForMonth(m, year, month);
+  });
+  const net = totalIncome - totalSpend;
+  const netColor = net < 0 ? 'spending-color' : 'card-color';
+  $('#family-summary').html(`<div class="row g-2">
+                                <div class="col-md-4">
+                                  <div class="card bg-income material-shadow p-3"><span class="fw-bold income-color"><i class="bi bi-plus-circle"></i> Toplam Gelir:</span> <span class="fs-5 fw-bold income-color pointer" onclick="toggleCurrencyMask(this, ${totalIncome})">${currency(totalIncome, isCurrencyMasked)}</span></div>
+                                </div>
+                                <div class="col-md-4">
+                                  <div class="card bg-spending material-shadow p-3"><span class="fw-bold spending-color"><i class="bi bi-dash-circle"></i> Toplam Gider:</span> <span class="fs-5 fw-bold spending-color pointer" onclick="toggleCurrencyMask(this, ${totalSpend})">${currency(totalSpend, isCurrencyMasked)}</span></div>
+                                </div>
+                                <div class="col-md-4">
+                                  <div class="card bg-card material-shadow p-3"><span class="fw-bold ${netColor}"><i class="bi bi-calculator"></i> Net:</span> <span class="fs-5 fw-bold ${netColor} pointer" onclick="toggleCurrencyMask(this, ${net})">${currency(net, isCurrencyMasked)}</span></div>
+                                </div>
+                              </div>`);
+}
+
+// tab-2
+function renderCycleDropdown() {
+  const cycles = [];
+  for (let index = 0; index < 100; index++) {
+    cycles.push((index+1));
+  }
+
+  $('#cycles-dropdown').html(cycles.map(y => `<option value="${y}">${y + '. Döngü'}</option>`).join(''));
+}
+function renderDaysRow() {  
+  $('#days-row').html(days.map(x=> `<div class="col-6 col-md-3 mt-2">
+              <label for="day_${x}" class="day-label form-label fw-bold">${getDayName(x)}</label>
+              <input id="day_${x}" 
+                      value="" onchange="onDateChange(${x})" 
+                      type='date' placeholder="${getDayName(x)}" 
+                      class="form-control btn-day btn-outline-primary btn btn-sm"/>
+            </div>`).join(''));
+}
+
 function initializeSortable() {
   document.querySelectorAll('.sortable-list').forEach(list => {
     new Sortable(list, {
@@ -1762,9 +1764,16 @@ function initializeSortable() {
 
 // #region Set Data Functions
 function setAllDatas() {
+  console.log('[setAllDatas] All datas are SET.');
+  // tab-1
   setYearData();
   setMonthData();
+
+  // tab-2
+  setCycleData();
   setGymDayData();
+
+  // all tabs
   setActiveTab();
 }
 function setActiveTab() {
@@ -1783,6 +1792,10 @@ function setMonthData() {
   $(`#months-row button[data-month="${month}"]`).addClass('btn-primary active fw-bold');
 }
 
+function setCycleData() {
+  const currentCycle = financeData.currentCycle ?? 1;
+  $('#cycles-dropdown').val(currentCycle).change();
+}
 function setGymDayData() {
   $('.btn-day').removeClass('btn-outline-success');
   $('.btn-day').val('');
@@ -1804,7 +1817,7 @@ function setGymDayData() {
       }
     }
   }
-  console.log('setGymDayData: ', cycle, selectedDays);
+  console.log('[setGymDayData] ', cycle, selectedDays);
 }
 // #endregion
 
@@ -1926,7 +1939,7 @@ $(document).ready(function() {
       }
     });
   });
-  $(document).on('click','#btn-load-json', function() {
+  $(document).on('click', '#btn-load-json', function() {
     const input = document.createElement('input');
     input.type = 'file';
     input.accept = '.json';
@@ -2122,6 +2135,12 @@ $(document).ready(function() {
   });
   // #endregion
 
+  // financeData olmadan render edilebilecek kisimlar buraya:
+  renderYearsDropdown();
+  renderMonthsRow();
+  renderCycleDropdown();
+  renderDaysRow();
+
   if(window.location.href.includes('file://')) {
     loadFromLocalStorage();
   }
@@ -2138,15 +2157,10 @@ $(document).ready(function() {
   }
 
   // #region Render Initial HTML
-  renderYearsDropdown();
-  renderMonthsRow();
   renderFamilySummary();
   renderMembers();
 
-  renderCycleDropdown();
-  renderDaysRow();
-
-  // select year by financeData: 
+  // select all datas by financeData: 
   setAllDatas();
     
   // #endregion
@@ -2156,7 +2170,7 @@ $(document).ready(function() {
 
 <script>
   $(document).ready(function() {
-const currencySelect = document.getElementById('currency');
+    const currencySelect = document.getElementById('currency');
     const customCurrencySelect = document.getElementById('customCurrencies');
     const newCurrencyInput = document.getElementById('newCurrency');
     const newCurrencyValueInput = document.getElementById('newCurrencyValue');
@@ -2224,6 +2238,24 @@ const currencySelect = document.getElementById('currency');
         currencySelect.appendChild(option);
       }
     }
+
+    async function fetchGramAltinFiyati() {
+      try {
+        const response = await fetch('https://api.genelpara.com/embed/altin');
+        const data = await response.json();
+
+        console.log('fetchGramAltinFiyati: ', data);
+        
+        const gramAltin = data['GA'];
+        if (gramAltin) {
+          const fiyat = gramAltin['satis'];
+          document.getElementById('gramAltinFiyat').innerText = `${fiyat} ₺`;
+        }
+      } catch (error) {
+        console.error('Gram altın fiyatı alınamadı:', error);
+        document.getElementById('gramAltinFiyat').innerText = 'Hata';
+      }
+    }  
 
     // Add predefined custom currencies
     function addPredefinedCurrencies() {
