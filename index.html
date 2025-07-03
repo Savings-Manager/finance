@@ -14,6 +14,12 @@
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
   <script src="https://code.jquery.com/ui/1.13.2/jquery-ui.min.js"></script>
   
+  <!-- Flatpickr CSS ve JS -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+  <!-- Türkçe Dil Paketi -->
+  <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/tr.js"></script>
+
   <!-- SortableJS -->  
   <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
 
@@ -436,7 +442,7 @@
   <div class="d-flex justify-content-between align-items-center mb-4">
     <div class="d-flex align-items-center">
       <h2 id="page-title"><i class="bi bi-people-fill me-2"></i>Finans Yöneticisi</h2>
-      <small class="text-muted ms-2">v1.2.0</small>   
+      <small class="text-muted ms-2">v1.2.1</small>   
     </div>
     <div>
       <button class="top-action-btn" id="btn-load-json"><i class="bi bi-folder2-open ms-2"></i>Verileri Geri Yükle</button>
@@ -1691,9 +1697,14 @@ function renderDaysRow() {
               <label for="day_${x}" class="day-label form-label fw-bold">${getDayName(x)}</label>
               <input id="day_${x}" 
                       value="" onchange="onDateChange(${x})" 
-                      type='date' placeholder="${getDayName(x)}" 
-                      class="form-control btn-day btn-outline-primary btn btn-sm"/>
+                      type='text' placeholder="${getDayName(x)}" 
+                      class="flat-date form-control btn-day btn-outline-primary btn btn-sm"/>
             </div>`).join(''));
+
+  flatpickr(".flat-date", {
+    dateFormat: "d.m.Y",
+    locale: "tr"
+  });         
 }
 
 function initializeSortable() {
