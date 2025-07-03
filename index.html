@@ -10,7 +10,6 @@
   <!-- Font Awesome CDN -->
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
 
-
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
   <script src="https://code.jquery.com/ui/1.13.2/jquery-ui.min.js"></script>
   
@@ -36,6 +35,12 @@
   <!-- Google API scripts -->
   <script src="https://apis.google.com/js/api.js"></script>
   <script src="https://accounts.google.com/gsi/client" async defer></script>
+  
+  <!-- Moment.js -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.4/moment.min.js"></script>
+
+  <!-- Türkçe dil desteği -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.4/locale/tr.min.js"></script>
   
   <style>
     .swal2-warning {
@@ -530,93 +535,88 @@
       </div>
     </div>
     <div class="tab-pane fade" id="contact" role="tabpanel" aria-labelledby="contact-tab">
-        <div id="savings-section">
-          <div class="container py-4">
-
-  <div class="card shadow-sm mb-4">
-    <div class="card-body">
-      <h5 class="card-title mb-3">Para Birimi Yönetimi</h5>
-
-      <div class="row g-2">
-        <div class="col-md-6">
-          <label class="form-label" for="currency">Para Birimi Seç</label>
-          <select id="currency" class="form-select"></select>
-          <button id="addSelectedCurrency" class="btn btn-primary mt-2 w-100">Seçili Para Birimini Ekle</button>
-        </div>
-        <div class="col-md-6">
-          <label class="form-label" for="newCurrency">Yeni Para Birimi</label>
-          <input type="text" id="newCurrency" class="form-control mb-2" placeholder="Örn: Gram Altın">
-          <input type="number" id="newCurrencyValue" class="form-control mb-2" placeholder="Değer, Örn: 2500">
-          <button id="addNewCurrency" class="btn btn-success w-100">Yeni Para Birimi Ekle</button>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <div class="card shadow-sm mb-4">
-    <div class="card-body">
-      <h5 class="card-title">Birikimler</h5>
-      <div class="row g-2 mb-2">
-        <div class="col-md-1">
-            <button id="removeCustom" class="col-md-3 btn btn-outline-danger w-100">Sil</button>
+      <div id="savings-section">
+        <div class="container py-4">
+          <div class="card shadow-sm mb-4">
+            <div class="card-body">
+              <h5 class="card-title mb-3">Para Birimi Yönetimi</h5>
+              <div class="row g-2">
+                <div class="col-md-6">
+                  <label class="form-label" for="currency">Para Birimi Seç</label>
+                  <select id="currency" class="form-select"></select>
+                  <button id="addSelectedCurrency" class="btn btn-primary mt-2 w-100">Seçili Para Birimini Ekle</button>
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label" for="newCurrency">Yeni Para Birimi</label>
+                  <input type="text" id="newCurrency" class="form-control mb-2" placeholder="Örn: Gram Altın">
+                  <input type="number" id="newCurrencyValue" class="form-control mb-2" placeholder="Değer, Örn: 2500">
+                  <button id="addNewCurrency" class="btn btn-success w-100">Yeni Para Birimi Ekle</button>
+                </div>
+              </div>
+            </div>
           </div>
-        <div class="col-md-5">
-            <select id="customCurrencies" class="form-select"></select>
-        </div>
-        <div class="col-md-4">
-          <input type="number" id="quantity" class="form-control" placeholder="Miktar">
-        </div>
-        <div class="col-md-2">
-          <button id="addSavings" class="btn btn-primary w-100">Birikim Ekle</button>
+          <div class="card shadow-sm mb-4">
+            <div class="card-body">
+              <h5 class="card-title">Birikimler</h5>
+              <div class="row g-2 mb-2">
+                <div class="col-md-1">
+                    <button id="removeCustom" class="col-md-3 btn btn-outline-danger w-100">Sil</button>
+                  </div>
+                <div class="col-md-5">
+                    <select id="customCurrencies" class="form-select"></select>
+                </div>
+                <div class="col-md-4">
+                  <input type="number" id="quantity" class="form-control" placeholder="Miktar">
+                </div>
+                <div class="col-md-2">
+                  <button id="addSavings" class="btn btn-primary w-100">Birikim Ekle</button>
+                </div>
+              </div>
+
+              <table id="savingsTable" class="table table-bordered table-striped">
+                <thead class="table-light">
+                  <tr>
+                    <th>Para Birimi</th>
+                    <th>Miktar</th>
+                    <th>Toplam (₺)</th>
+                    <th>Sil</th>
+                  </tr>
+                </thead>
+                <tbody></tbody>
+              </table>
+              <h5 class="text-end">Toplam Birikim: <span id="totalSavings" class="text-success">0</span></h5>
+            </div>
+          </div>
+          <div class="card shadow-sm mb-4">
+            <div class="card-body">
+              <h5 class="card-title">Hedefler</h5>
+              <div class="row g-2 mb-2">
+                <div class="col-md-6">
+                  <input type="text" id="goalInput" class="form-control" placeholder="Örn: Laptop Al">
+                </div>
+                <div class="col-md-4">
+                  <input type="number" id="goalAmountInput" class="form-control" placeholder="Tutar (₺)">
+                </div>
+                <div class="col-md-2">
+                  <button id="addGoal" class="btn btn-success w-100">Hedef Ekle</button>
+                </div>
+              </div>
+
+              <table id="goalsTable" class="table table-bordered table-striped">
+                <thead class="table-light">
+                  <tr>
+                    <th>Hedef</th>
+                    <th>Tutar (₺)</th>
+                    <th>Sil</th>
+                  </tr>
+                </thead>
+                <tbody></tbody>
+              </table>
+              <h5 class="text-end">Kalan Miktar: <span id="moneyLeft" class="text-primary">0</span></h5>
+            </div>
+          </div>
         </div>
       </div>
-
-      <table id="savingsTable" class="table table-bordered table-striped">
-        <thead class="table-light">
-          <tr>
-            <th>Para Birimi</th>
-            <th>Miktar</th>
-            <th>Toplam (₺)</th>
-            <th>Sil</th>
-          </tr>
-        </thead>
-        <tbody></tbody>
-      </table>
-      <h5 class="text-end">Toplam Birikim: <span id="totalSavings" class="text-success">0</span></h5>
-    </div>
-  </div>
-
-  <div class="card shadow-sm mb-4">
-    <div class="card-body">
-      <h5 class="card-title">Hedefler</h5>
-      <div class="row g-2 mb-2">
-        <div class="col-md-6">
-          <input type="text" id="goalInput" class="form-control" placeholder="Örn: Laptop Al">
-        </div>
-        <div class="col-md-4">
-          <input type="number" id="goalAmountInput" class="form-control" placeholder="Tutar (₺)">
-        </div>
-        <div class="col-md-2">
-          <button id="addGoal" class="btn btn-success w-100">Hedef Ekle</button>
-        </div>
-      </div>
-
-      <table id="goalsTable" class="table table-bordered table-striped">
-        <thead class="table-light">
-          <tr>
-            <th>Hedef</th>
-            <th>Tutar (₺)</th>
-            <th>Sil</th>
-          </tr>
-        </thead>
-        <tbody></tbody>
-      </table>
-      <h5 class="text-end">Kalan Miktar: <span id="moneyLeft" class="text-primary">0</span></h5>
-    </div>
-  </div>
-</div>
-
-        </div>
     </div>
   </div>
 </div>
@@ -705,11 +705,7 @@
             <label class="form-check-label" for="spending-payed">Ödendi</label>
           </div>
           <div class="form-floating mb-3">
-            <select class="form-select" id="spending-card-id" aria-label="Kart seçimi">
-              <option selected disabled>Seçiniz</option>
-              <option value="1">Kart 1</option>
-              <option value="2">Kart 2</option>
-            </select>
+            <select class="form-select" id="spending-card-id" aria-label="Kart seçimi"></select>
             <label for="spending-card-id">Kart</label>
           </div>
           <div class="row g-3">
@@ -752,7 +748,14 @@
             <input type="text" class="form-control" id="card-name" placeholder="Kart Adı" required>
             <label for="card-name">Kart Adı</label>
           </div>
-
+          <div class="form-floating mb-3">
+            <input type="text" class="form-control flat-date" id="card-date" placeholder="Hesap Kesim Tarihi" required>
+            <label for="card-date">Hesap Kesim Tarihi</label>
+          </div>
+          <div class="form-check form-switch mb-3">
+            <input class="form-check-input" type="checkbox" id="card-payed">
+            <label class="form-check-label" for="card-payed">Ödendi</label>
+          </div>
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">İptal</button>
@@ -1152,6 +1155,21 @@ function sumSpendingsForMonth(member, year, month) {
   }, 0);
 }
 
+function toggleCardPayed(memberId, cardId) {
+  const card = financeData?.years[financeData.currentYear]
+                              ?.months[financeData.currentMonth]
+                              ?.members?.find(m => m.id === memberId)
+                              ?.cards?.find(s => s.id === cardId);
+  if (card) {
+    card.payed = !card.payed;
+    saveData();
+
+    renderFamilySummary();
+		renderMembers();
+
+    showToast('Kart durumu güncellendi.'); 
+  }
+}
 function toggleSpendingPayed(memberId, spendingId) {
   const spending = financeData?.years[financeData.currentYear]
                               ?.months[financeData.currentMonth]
@@ -1292,10 +1310,12 @@ function deleteSpending(memberId, spendingId) {
 }
 
 function openAddCard(memberId) {
-  document.getElementById('card-member-id').value = memberId;
-  document.getElementById('card-id').value = '';
-  document.getElementById('card-name').value = '';
-  new bootstrap.Modal(document.getElementById('cardModal')).show();
+  $('#card-member-id').val(memberId);
+  $('#card-id').val('');
+  $('#card-name').val('');
+  $('#card-date').val('');
+  $('#card-payed').prop('checked', false);
+  $('#cardModal').modal('show');
 }
 
 function openEditCard(memberId, cardId) {
@@ -1306,10 +1326,12 @@ function openEditCard(memberId, cardId) {
   if (member && member.cards) {
     const card = member.cards.find(c => c.id === cardId);
     if (card) {
-      document.getElementById('card-member-id').value = memberId;
-      document.getElementById('card-id').value = cardId;
-      document.getElementById('card-name').value = card.name;
-      new bootstrap.Modal(document.getElementById('cardModal')).show();
+      $('#card-member-id').val(memberId);
+      $('#card-id').val(cardId);
+      $('#card-name').val(card.name);
+      $('#card-date').val(card.date);
+      $('#card-payed').prop('checked', card.payed);
+      $('#cardModal').modal('show');
     }
   }
 }
@@ -1363,7 +1385,7 @@ function deleteMember(memberId) {
 
 function onDateChange(day) {
   const $elem = $(`#day_${day}`);
-  const value = formatDateToTr($elem.val());
+  const value = formatDateString($elem.val());
   console.log('[onDateChange] ', value);
   financeData.cycles[financeData.currentCycle] ??= {};
   financeData.cycles[financeData.currentCycle].days ??= {};
@@ -1421,43 +1443,33 @@ function currency(val, shouldMask = false) {
   if (shouldMask) return '••••••••';
   return '₺' + Number(val).toLocaleString('tr-TR', { minimumFractionDigits: 2 });
 }
-function formatDateToTr(input) {
-  if (!input) return "";
 
-  // Ayraçları normalize et
-  const normalized = input.replace(/[-\/]/g, ".");
+moment.locale('tr');
+const DEFAULT_DATE_FORMAT = 'DD.MM.YYYY';
+// HH:mm:ss
 
-  let day, month, year;
+function formatDateString(input, format = null) {
+  const m = moment(input, format ?? DEFAULT_DATE_FORMAT);
+  return m.isValid() ? m.format(format ?? DEFAULT_DATE_FORMAT) : "";
+}
+function stringToDate(input, format = null) {
+  const m = moment(input, format ?? DEFAULT_DATE_FORMAT);
+  return m.isValid() ? m : input;
+}
 
-  // Eğer format YYYY.MM.DD ise
-  const isoMatch = normalized.match(/^(\d{4})\.(\d{1,2})\.(\d{1,2})$/);
-  if (isoMatch) {
-    [ , year, month, day ] = isoMatch;
-  }
+function startOfDay(date, format = null) {
+  const m = moment(date, format ?? DEFAULT_DATE_FORMAT).startOf('day');
+  return m.isValid() ? m : date;
+}
 
-  // Eğer format DD.MM.YYYY ise
-  const trMatch = normalized.match(/^(\d{1,2})\.(\d{1,2})\.(\d{4})$/);
-  if (trMatch) {
-    [ , day, month, year ] = trMatch;
-  }
+function endOfDay(date, format = null) {
+  const m = moment(date, format ?? DEFAULT_DATE_FORMAT).endOf('day');
+  return m.isValid() ? m : date;
+}
 
-  // Geçerli parça varsa sıfırları tamamla
-  if (day && month && year) {
-    day = day.padStart(2, "0");
-    month = month.padStart(2, "0");
-    return `${day}.${month}.${year}`;
-  }
-
-  // Tarayıcıya bırak (Date parse etmeye çalış)
-  const d = new Date(input);
-  if (!isNaN(d.getTime())) {
-    const dd = String(d.getDate()).padStart(2, '0');
-    const mm = String(d.getMonth() + 1).padStart(2, '0');
-    const yyyy = d.getFullYear();
-    return `${dd}.${mm}.${yyyy}`;
-  }
-
-  return ""; // Formatlanamayan tarih
+function addDays(date, days, format = null) {
+  const m = moment(date, format ?? DEFAULT_DATE_FORMAT).add(days, 'days');
+  return m.isValid() ? m : date;
 }
 // #endregion 
 
@@ -1528,12 +1540,54 @@ function toggleAllCurrencyMasks() {
 }
 
 // #region Render Functions
-// function renderInit() {
-//   console.log('[renderInit] Rendering initial data...');
-//   validateFinanceData();
-//   ensureMonthData(financeData.currentYear, financeData.currentMonth);
-//   setAllDatas();
-// }
+function renderDateInputs() {
+  console.log('[renderDateInputs] Rendering...');
+  flatpickr(".flat-date", {
+    dateFormat: "d.m.Y",
+    altFormat: "d.m.Y",
+    locale: "tr",
+    disableMobile: true,  
+    //altInput: true,
+    onOpen: function(selectedDates, dateStr, instance) {
+      // Takvim popup'u DOM elementi
+      const calendarContainer = instance.calendarContainer;
+
+      // Önce varsa eski clear button’u kaldır
+      const existingClearBtn = calendarContainer.querySelector(".flatpickr-clear-calendar");
+      if (existingClearBtn) existingClearBtn.remove();
+
+      // X buton oluştur
+      const clearDiv = document.createElement("div");
+      const clearBtn = document.createElement("button");
+      clearDiv.className = "flatpickr-clear-div";
+      clearDiv.style.position = "absolute";
+      clearDiv.style.bottom = "-30px";
+      clearDiv.style.left = "4px";
+      clearDiv.style.width = '97%'
+      clearDiv.style.height = '27px'
+      clearDiv.style.border = "none";
+      clearDiv.style.background = "white";
+      clearDiv.style.cursor = "pointer";
+
+      clearBtn.type = "button";
+      clearBtn.className = "flatpickr-clear-button";
+      clearBtn.textContent = "✖"; // İstersen ikon da koyabilirsin
+      clearBtn.style.border = "none";
+      clearBtn.style.background = "white";
+      clearBtn.style.fontSize = "20px";
+      clearBtn.style.cursor = "pointer";
+
+      clearBtn.onclick = () => {
+        instance.clear();    // Tarihi temizle
+        instance.close();    // Takvimi kapat
+      };
+
+      clearDiv.appendChild(clearBtn);
+      // Takvim container'a ekle
+      calendarContainer.appendChild(clearDiv);
+    }
+  });      
+}
 
 // tab-1
 function renderYearsDropdown() {
@@ -1615,12 +1669,21 @@ function renderMembers() {
                     return a + Number(b.value) / b.installment;
                   }, 0);
                   return `<div data-cardid="${card.id}" class="mb-1 list-group-item sortable-item bg-card d-flex justify-content-between align-items-center">
-                    <div class="fw-bold">
-                      <i class="sortable-handle bi bi-list me-2"></i>
-                      <i class="bi bi-credit-card"></i> ${card.name}
+                    <div class="col-md-7">
+                      <div class="col-md-12 fw-bold">
+                        <i class="sortable-handle bi bi-list me-2"></i>
+                        <i class="bi bi-credit-card"></i> ${card.name}
+                      </div>
+                      ${card.date ? 
+                      `<div class="col-md-12 fw-bold">
+                        <span class='badge card-color ${addDays(endOfDay(stringToDate(card.date)), 10) < today && !card.payed ? 'spending-color' : 'income-color'}'>${formatDateString(addDays(endOfDay(stringToDate(card.date)), 10), 'DD.MM.YYYY')}</span>
+                      </div>` : ''}                  
                     </div>
-                    <div class="item-actions ms-2">
+                    <div class="d-flex justify-content-end align-items-center">
                       <span class="fw-bold spending-color pointer" onclick="toggleCurrencyMask(this, ${cardSpend})">${currency(cardSpend, isCurrencyMasked)}</span>
+                      <div class="form-check form-switch ms-3">
+                        <input class="form-check-input" type="checkbox" name="card-received" title="Alındı" ${card.payed ? 'checked' : ''} onchange="toggleCardPayed(${member.id},${card.id})">
+                      </div>
                       <button class="icon-btn edit" onclick="openEditCard(${member.id},${card.id})"><i class="fas fa-pen"></i></button>
                       <button class="icon-btn delete" onclick="deleteCard(${member.id},${card.id})"><i class="fas fa-trash"></i></button>
                     </div>
@@ -1739,13 +1802,7 @@ function renderDaysRow() {
                       type='text' placeholder="${getDayName(x)}" 
                       class="flat-date form-control btn-day btn-outline-primary btn btn-sm"/>
             </div>`).join(''));
-
-  flatpickr(".flat-date", {
-    dateFormat: "d.m.Y",
-    altFormat: "d.m.Y",
-    locale: "tr",
-    disableMobile: true
-  });         
+  renderDateInputs();
 }
 
 function initializeSortable() {
@@ -1861,7 +1918,7 @@ function setGymDayData() {
   for (const key in selectedDays) {
     if (selectedDays.hasOwnProperty(key)) {
       const $elem = $(`#day_${key}`);
-      const value = formatDateToTr(selectedDays[key]);
+      const value = formatDateString(selectedDays[key]);
       console.log('[setGymDayData] ', key, value);
       $elem.val(value);
       if(!isNullOrEmpty(value)) {
@@ -1872,6 +1929,8 @@ function setGymDayData() {
   }
 }
 // #endregion
+
+var today = moment();
 
 $(document).ready(function() {
   // #region Document Handlers
@@ -2122,6 +2181,10 @@ $(document).ready(function() {
     const memberId = Number($('#card-member-id').val());
     const cardId = $('#card-id').val();
     const name = $('#card-name').val();
+    const date = $('#card-date').val();
+    const payed = $('#card-payed').prop('checked');
+    
+    console.log('card-date: ', date);
 
     const member = financeData?.years[financeData.currentYear]
                               ?.months[financeData.currentMonth]
@@ -2137,10 +2200,12 @@ $(document).ready(function() {
       const card = member.cards.find(c => c.id == cardId);
       if (card) {
         card.name = name;
+        card.date = formatDateString(date);
+        card.payed = payed;
       }
     } else {
       // Add
-      member.cards.push({ id: generateId(member.cards), name });
+      member.cards.push({ id: generateId(member.cards), name: name, date: formatDateString(date), payed: false });
     }
 
     saveData();
@@ -2188,6 +2253,7 @@ $(document).ready(function() {
   // #endregion
 
   // financeData olmadan render edilebilecek kisimlar buraya:
+  renderDateInputs();
   renderYearsDropdown();
   renderMonthsRow();
   renderCycleDropdown();
