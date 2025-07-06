@@ -397,6 +397,24 @@
       border-top: none;
     }
 
+    /* .flatpickr-clear-div {
+      position: absolute;
+      bottom: -30px;
+      left: 4px;
+      width: 97%;
+      height: 27px;
+      border: none;
+      background: white;
+      cursor: pointer;
+    } */
+
+    .flatpickr-clear-button {
+      border: none;
+      background: white;
+      font-size: 20px;
+      cursor: pointer;
+    }
+
     /* Mobile responsive styles for top buttons */
     @media (max-width: 768px) {
       .col-md-12, .col-12, .row {
@@ -447,7 +465,7 @@
   <div class="d-flex justify-content-between align-items-center mb-4">
     <div class="d-flex align-items-center">
       <h2 id="page-title"><i class="bi bi-people-fill me-2"></i>Finans Yöneticisi</h2>
-      <small class="text-muted ms-2">v1.2.4</small>   
+      <small class="text-muted ms-2">v1.2.5</small>   
     </div>
     <div>
       <button class="top-action-btn" id="btn-load-json"><i class="bi bi-folder2-open ms-2"></i>Verileri Geri Yükle</button>
@@ -799,6 +817,7 @@ let fileRead = false;
 let googleDriveSwal = null;
 let timeOut = null;
 let copiedMonthData = null;
+let copiedMonth = null;
 
 const months = Array.from({ length: 12 }, (_, i) => String(i + 1));
 const days = Array.from({ length: 13 }, (_, i) => String(i + 1));
@@ -1329,7 +1348,7 @@ function openEditCard(memberId, cardId) {
       $('#card-member-id').val(memberId);
       $('#card-id').val(cardId);
       $('#card-name').val(card.name);
-      $('#card-date').val(card.date);
+      $('#card-date').val(formatDateString(card.date));
       $('#card-payed').prop('checked', card.payed);
       $('#cardModal').modal('show');
     }
@@ -1448,28 +1467,37 @@ moment.locale('tr');
 const DEFAULT_DATE_FORMAT = 'DD.MM.YYYY';
 // HH:mm:ss
 
-function formatDateString(input, format = null) {
-  const m = moment(input, format ?? DEFAULT_DATE_FORMAT);
-  return m.isValid() ? m.format(format ?? DEFAULT_DATE_FORMAT) : "";
+function isValidDate(input, format = DEFAULT_DATE_FORMAT) {
+  const m = moment(input, format, false)
+  return m.isValid() ? m : false;
 }
-function stringToDate(input, format = null) {
-  const m = moment(input, format ?? DEFAULT_DATE_FORMAT);
-  return m.isValid() ? m : input;
+function formatDateString(input, format = DEFAULT_DATE_FORMAT) {
+  const m = moment(input, format);
+  return m.isValid() ? m.format(format) : "";
 }
-
-function startOfDay(date, format = null) {
-  const m = moment(date, format ?? DEFAULT_DATE_FORMAT).startOf('day');
-  return m.isValid() ? m : date;
-}
-
-function endOfDay(date, format = null) {
-  const m = moment(date, format ?? DEFAULT_DATE_FORMAT).endOf('day');
-  return m.isValid() ? m : date;
+function stringToDate(input, format = DEFAULT_DATE_FORMAT) {
+  const m = moment(input, format);
+  return m.isValid() ? m : null;
 }
 
-function addDays(date, days, format = null) {
-  const m = moment(date, format ?? DEFAULT_DATE_FORMAT).add(days, 'days');
-  return m.isValid() ? m : date;
+function startOfDay(date, format = DEFAULT_DATE_FORMAT) {
+  const m = moment(date, format)?.startOf('day');
+  return m.isValid() ? m : null;
+}
+
+function endOfDay(date, format = DEFAULT_DATE_FORMAT) {
+  const m = moment(date, format)?.endOf('day');
+  return m.isValid() ? m : null;
+}
+
+function addDays(date, days, format = DEFAULT_DATE_FORMAT) {
+  const m = moment(date, format)?.add(days, 'days');
+  return m.isValid() ? m : null;
+}
+
+function addMonths(date, months, format = DEFAULT_DATE_FORMAT) {
+  const m = moment(date, format)?.add(months, 'months');
+  return m.isValid() ? m : null;
 }
 // #endregion 
 
@@ -1547,43 +1575,29 @@ function renderDateInputs() {
     altFormat: "d.m.Y",
     locale: "tr",
     disableMobile: true,  
-    //altInput: true,
     onOpen: function(selectedDates, dateStr, instance) {
       // Takvim popup'u DOM elementi
       const calendarContainer = instance.calendarContainer;
 
       // Önce varsa eski clear button’u kaldır
-      const existingClearBtn = calendarContainer.querySelector(".flatpickr-clear-calendar");
+      const existingClearBtn = calendarContainer.querySelector(".flatpickr-clear-div");
       if (existingClearBtn) existingClearBtn.remove();
 
       // X buton oluştur
       const clearDiv = document.createElement("div");
-      const clearBtn = document.createElement("button");
       clearDiv.className = "flatpickr-clear-div";
-      clearDiv.style.position = "absolute";
-      clearDiv.style.bottom = "-30px";
-      clearDiv.style.left = "4px";
-      clearDiv.style.width = '97%'
-      clearDiv.style.height = '27px'
-      clearDiv.style.border = "none";
-      clearDiv.style.background = "white";
-      clearDiv.style.cursor = "pointer";
 
+      const clearBtn = document.createElement("button");
       clearBtn.type = "button";
       clearBtn.className = "flatpickr-clear-button";
       clearBtn.textContent = "✖"; // İstersen ikon da koyabilirsin
-      clearBtn.style.border = "none";
-      clearBtn.style.background = "white";
-      clearBtn.style.fontSize = "20px";
-      clearBtn.style.cursor = "pointer";
 
       clearBtn.onclick = () => {
-        instance.clear();    // Tarihi temizle
-        instance.close();    // Takvimi kapat
+        instance.clear();
+        instance.close();
       };
 
       clearDiv.appendChild(clearBtn);
-      // Takvim container'a ekle
       calendarContainer.appendChild(clearDiv);
     }
   });      
@@ -1674,9 +1688,9 @@ function renderMembers() {
                         <i class="sortable-handle bi bi-list me-2"></i>
                         <i class="bi bi-credit-card"></i> ${card.name}
                       </div>
-                      ${card.date ? 
+                      ${isValidDate(card.date) ? 
                       `<div class="col-md-12 fw-bold">
-                        <span class='badge card-color ${addDays(endOfDay(stringToDate(card.date)), 10) < today && !card.payed ? 'spending-color' : 'income-color'}'>${formatDateString(addDays(endOfDay(stringToDate(card.date)), 10), 'DD.MM.YYYY')}</span>
+                        <span class='badge card-color ${addDays(endOfDay(stringToDate(card.date)), 10).isBefore(today) && !card.payed ? 'spending-color' : 'income-color'}'>${formatDateString(addDays(endOfDay(stringToDate(card.date)), 10), 'DD.MM.YYYY')}</span>
                       </div>` : ''}                  
                     </div>
                     <div class="d-flex justify-content-end align-items-center">
@@ -1919,7 +1933,6 @@ function setGymDayData() {
     if (selectedDays.hasOwnProperty(key)) {
       const $elem = $(`#day_${key}`);
       const value = formatDateString(selectedDays[key]);
-      console.log('[setGymDayData] ', key, value);
       $elem.val(value);
       if(!isNullOrEmpty(value)) {
         $elem.addClass('btn-outline-success');
@@ -1970,6 +1983,7 @@ $(document).ready(function() {
     const year = financeData.currentYear;
     const month = financeData.currentMonth;
     if (financeData?.years[year]?.months[month]) {
+      copiedMonth = month;
       copiedMonthData = JSON.parse(JSON.stringify(financeData.years[year].months[month]));
       $('#btn-paste-month').removeAttr('disabled');
       showToast('Ay verileri kopyalandı.');
@@ -1998,9 +2012,23 @@ $(document).ready(function() {
               }
             });
           }
+
+          copiedMonthData.members.forEach(member => {
+            member.cards.forEach(card => {
+              card.payed = false;
+              const date = isValidDate(card.date);
+              if(date) {
+                const monthDiff = parseInt(financeData.currentMonth) - parseInt(copiedMonth);
+                date.month(date.month() + monthDiff);
+                date.year(parseInt(financeData.currentYear));
+                card.date = formatDateString(date);  
+              }     
+            });
+          });
           
           financeData.years[financeData.currentYear].months[financeData.currentMonth] = JSON.parse(JSON.stringify(copiedMonthData));
           copiedMonthData = null;  
+          copiedMonth = null;  
      
           $(this).attr('disabled', true);    
 
@@ -2181,10 +2209,9 @@ $(document).ready(function() {
     const memberId = Number($('#card-member-id').val());
     const cardId = $('#card-id').val();
     const name = $('#card-name').val();
-    const date = $('#card-date').val();
     const payed = $('#card-payed').prop('checked');
-    
-    console.log('card-date: ', date);
+    const date = formatDateString($('#card-date').val());
+    console.log("date: ", date);
 
     const member = financeData?.years[financeData.currentYear]
                               ?.months[financeData.currentMonth]
@@ -2200,12 +2227,12 @@ $(document).ready(function() {
       const card = member.cards.find(c => c.id == cardId);
       if (card) {
         card.name = name;
-        card.date = formatDateString(date);
+        card.date = date;
         card.payed = payed;
       }
     } else {
       // Add
-      member.cards.push({ id: generateId(member.cards), name: name, date: formatDateString(date), payed: false });
+      member.cards.push({ id: generateId(member.cards), name: name, date: date, payed: false });
     }
 
     saveData();
