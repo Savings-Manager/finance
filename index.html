@@ -465,7 +465,7 @@
   <div class="d-flex justify-content-between align-items-center mb-4">
     <div class="d-flex align-items-center">
       <h2 id="page-title"><i class="bi bi-people-fill me-2"></i>Finans Yöneticisi</h2>
-      <small class="text-muted ms-2">v1.2.5</small>   
+      <small class="text-muted ms-2">v1.2.6</small>   
     </div>
     <div>
       <button class="top-action-btn" id="btn-load-json"><i class="bi bi-folder2-open ms-2"></i>Verileri Geri Yükle</button>
@@ -1624,9 +1624,16 @@ function renderMembers() {
     const spend = sumSpendingsForMonth(member, financeData.currentYear, financeData.currentMonth);
     const net = income - spend;
     const netColor = net < 0 ? 'spending-color' : 'card-color';
+
+    const cardOrderMap = new Map(member.cards.map(card => [card.id, card.order || 0]));
     const spendings = [...(member.spendings || [])].sort((a, b) => {
-      if ((a.cardId || 0) !== (b.cardId || 0)) return (a.cardId || 0) - (b.cardId || 0);
-      return 0;
+      const orderA = cardOrderMap.get(a.cardId) ?? 0;
+      const orderB = cardOrderMap.get(b.cardId) ?? 0;
+
+      if (orderA !== orderB) return orderA - orderB;
+
+      // order aynıysa, cardId'ye göre sırala (opsiyonel)
+      return (a.cardId || 0) - (b.cardId || 0);
     });
     return `<div class="card mb-3 material-shadow">
       <div class="card-body">
