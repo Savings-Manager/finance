@@ -465,7 +465,7 @@
   <div class="d-flex justify-content-between align-items-center mb-4">
     <div class="d-flex align-items-center">
       <h2 id="page-title"><i class="bi bi-people-fill me-2"></i>Finans Yöneticisi</h2>
-      <small class="text-muted ms-2">v1.2.8</small>   
+      <small class="text-muted ms-2">v1.2.9</small>   
     </div>
     <div>
       <button class="top-action-btn" id="btn-load-json"><i class="bi bi-folder2-open ms-2"></i>Verileri Geri Yükle</button>
@@ -532,7 +532,7 @@
             <button class="top-action-btn" id="btn-add-member"><i class="bi bi-person-plus"></i> Kişi Ekle</button>
         </div>
         </div>
-        <div id="members-list" class="mt-2"></div>
+        <div id="members-list" data-type="3" class="mt-2 sortable-list"></div>
       </div>
     </div>
     <div class="tab-pane fade" id="profile" role="tabpanel" aria-labelledby="profile-tab">
@@ -1653,11 +1653,14 @@ function renderMembers() {
       // order aynıysa, cardId'ye göre sırala (opsiyonel)
       return (a.cardId || 0) - (b.cardId || 0);
     });
-    return `<div class="card mb-3 material-shadow">
+    return `<div data-memberid="${member.id}" class="card mb-3 material-shadow sortable-item">
       <div class="card-body">
         <div class="d-flex justify-content-between align-items-center">
           <div>
-            <h5 class="card-title mb-1"><i class="bi bi-person-circle me-2"></i>${member.name}</h5>
+            <h5 class="card-title mb-1">
+              <i class="sortable-handle bi bi-list me-2"></i>
+              <i class="bi bi-person-circle me-2"></i> ${member.name}
+            </h5>
             <div class="mb-2">
               <div class="badge bg-big bg-income me-1 income-color">
                 <i class="bi bi-plus-circle"></i> <span class="income-color pointer" onclick="toggleCurrencyMask(this, ${income})">${currency(income, isCurrencyMasked)}</span>
@@ -1740,7 +1743,7 @@ function renderMembers() {
           </div>
           <div class="col-12 col-md-7">
             <h6 class="spending-color">Giderler<button class="icon-btn spending-color" onclick="openAddSpending(${member.id})"><i class="bi bi-plus-circle"></i></button></h6>
-            <div data-type="2" data-memberid="${member.id}" class="col-md-12 list-group sortable-list mb-2">
+            <div style="max-height: 546px; overflow-x: hidden; overflow-y: overlay;" data-type="2" data-memberid="${member.id}" class="col-md-12 list-group sortable-list mb-2">
               ${spendings.map(spending => {
                 const card = (member.cards || []).find(c => c.id === spending.cardId);
                 let currentInstallment = 1;
@@ -1852,15 +1855,14 @@ function initializeSortable() {
       onEnd: function (event) {
         const $parent = $(event.item).parent();
         const type = $parent.data('type');
-        const memberId = $parent.data('memberid');
+        const memberId = $parent.data('memberid') ?? $(event.item).data('memberid');
 
-        const member = financeData.years[financeData.currentYear]
-                                  ?.months[financeData.currentMonth]
-                                  ?.members?.find(m => m.id === memberId);
+        const currentMonthData = financeData.years[financeData.currentYear].months[financeData.currentMonth];
+        const member = currentMonthData.members.find(m => m.id === memberId);                               
         if(type === 0) { 
           $parent.children('.sortable-item').each(function(index) {
             const incomeId = $(this).data('incomeid');
-            const income = member?.incomes?.find(s => s.id === incomeId);
+            const income = member.incomes.find(s => s.id === incomeId);
             if(income) {
               income.order = index;
             }
@@ -1871,7 +1873,7 @@ function initializeSortable() {
         else if(type === 1) { 
           $parent.children('.sortable-item').each(function(index) {
             const cardId = $(this).data('cardid');
-            const card = member?.cards?.find(s => s.id === cardId);
+            const card = member.cards.find(s => s.id === cardId);
             if(card) {
               card.order = index;
             }
@@ -1882,7 +1884,7 @@ function initializeSortable() {
         else if(type === 2) { 
           $parent.children('.sortable-item').each(function(index) {
             const spendingId = $(this).data('spendingid');
-            const spending = member?.spendings?.find(s => s.id === spendingId);
+            const spending = member.spendings.find(s => s.id === spendingId);
             if(spending) {
               spending.order = index;
             }
@@ -1890,21 +1892,26 @@ function initializeSortable() {
 
           member.spendings.sort(function(a, b) { return a.order - b.order; });
         }
+        else if(type === 3) { 
+          $parent.children('.sortable-item').each(function(index) {
+            const memberEditId = $(this).data('memberid');
+
+            const memberEdit = currentMonthData.members.find(m => m.id === memberEditId);                               
+            console.log('members: ', memberEditId, memberEdit);
+
+            if(memberEdit) {
+              memberEdit.order = index;
+            }
+          });
+
+          currentMonthData.members.sort(function(a, b) { return a.order - b.order; });
+        }
         
-        // console.log(member.incomes, member.spendings);
         saveData();
       }
     });
   });
-  
 
-  // $('.sortable-list').sortable({
-  //   handle: '.sortable-handle',
-  //   placeholder: 'list-group-item bg-warning',
-  //   update: function(event, ui) { 
-  //   }
-  // });
-  
   $('.sortable-list').disableSelection();
   $('.sortable-item').disableSelection();
 }
@@ -2341,6 +2348,7 @@ $(document).ready(function() {
 $(document).ready(function () {
 
   let rates = {};
+  let totalSavings = 0;
 
   $(document).on('click', '#addSelectedCurrency', function(e) {
       const value = $('#currency').val();
@@ -2607,8 +2615,7 @@ $(document).ready(function () {
   }
 
   function populateCurrencySelect() {
-    const $currencySelect = $("#currency");
-    $currencySelect.html(`<option value='${rates.EURTRY.code}'>EURO</option>
+    $("#currency").html(`<option value='${rates.EURTRY.code}'>EURO</option>
                           <option value='${rates.USDTRY.code}'>DOLAR</option>
                           <option value='${rates.AYAR22.code}'>22 AYAR ALTIN</option>
                           <option value='${rates.ALTIN.code}'>HAS ALTIN</option>
@@ -2625,8 +2632,6 @@ $(document).ready(function () {
       $("#customCurrencies").append($("<option>").val(row.code).text(row.text));
     });
   }
-
-  let totalSavings = 0;
 
   function renderSavings() {
     const $tbody = $("#savingsTable tbody");
