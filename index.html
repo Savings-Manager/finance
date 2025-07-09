@@ -465,7 +465,7 @@
   <div class="d-flex justify-content-between align-items-center mb-4">
     <div class="d-flex align-items-center">
       <h2 id="page-title"><i class="bi bi-people-fill me-2"></i>Finans Yöneticisi</h2>
-      <small class="text-muted ms-2">v1.2.9</small>   
+      <small class="text-muted ms-2">v1.3.0</small>   
     </div>
     <div>
       <button class="top-action-btn" id="btn-load-json"><i class="bi bi-folder2-open ms-2"></i>Verileri Geri Yükle</button>
@@ -790,7 +790,6 @@
 </div>
 
 <script>
-
 // --- Data Model ---
 let financeData = { 
   years: {}, 
@@ -803,6 +802,18 @@ let financeData = {
   savings: {},
 };
 
+moment.locale('tr');
+
+const formatTL = new Intl.NumberFormat("tr-TR", {
+  style: "currency",
+  currency: "TRY",
+  minimumFractionDigits: 2,
+  maximumFractionDigits: 2,
+});
+const FIX_DATE_FORMAT = 'YYYY-MM-DD';
+const DEFAULT_DATE_FORMAT = 'DD.MM.YYYY';
+const DEFAULT_DATE_TIME_FORMAT = 'DD.MM.YYYY HH:mm:ss';
+
 const APP_CODE = 'cmeaisacsy_finance_app';
 const STORAGE_KEY = `${APP_CODE}_data`;
 const TOKEN_STORAGE_KEY = `${APP_CODE}_access_token`;
@@ -813,6 +824,7 @@ const CLIENT_ID = '1004280494239-bm24eig1gk63rgvk3in8rjh9bp5gcd6t.apps.googleuse
 const API_KEY = 'AIzaSyDWgrMTLb2iygiApN18mtNiGfZlpk0pA0E'; // Replace with your actual API key
 const SCOPES = 'https://www.googleapis.com/auth/drive.file';
 
+let today = moment();
 let access_token = null;
 let fileId = null;
 let isCurrencyMasked = true;
@@ -824,6 +836,8 @@ let googleDriveSwal = null;
 let timeOut = null;
 let copiedMonthData = null;
 let copiedMonth = null;
+let rates = {};
+let totalSavings = 0;
 
 const months = Array.from({ length: 12 }, (_, i) => String(i + 1));
 const days = Array.from({ length: 13 }, (_, i) => String(i + 1));
@@ -846,7 +860,6 @@ function getDayName(dayNum) {
   if(dayNum == 1) return 'ÖDENDİ';
   return (dayNum-1) + '. GÜN';
 }
-
 
 // --- Google Drive API ---
 async function initGoogleDrive() {
@@ -1473,11 +1486,6 @@ function currency(val, shouldMask = false) {
   return '₺' + Number(val).toLocaleString('tr-TR', { minimumFractionDigits: 2 });
 }
 
-moment.locale('tr');
-const FIX_DATE_FORMAT = 'YYYY-MM-DD';
-const DEFAULT_DATE_FORMAT = 'DD.MM.YYYY';
-const DEFAULT_DATE_TIME_FORMAT = 'DD.MM.YYYY HH:mm:ss';
-
 function getValidDate(input, format = DEFAULT_DATE_FORMAT) {
   let m = moment(input, format);
   if(!m.isValid() && format != DEFAULT_DATE_FORMAT) m = moment(input, DEFAULT_DATE_FORMAT);
@@ -1497,27 +1505,73 @@ function stringToDate(input, format = DEFAULT_DATE_FORMAT) {
   const m = getValidDate(input, format);
   return m.isValid() ? m : null;
 }
-
 function startOfDay(input, format = DEFAULT_DATE_FORMAT) {
   const m = getValidDate(input, format)?.startOf('day');
   return m.isValid() ? m : null;
 }
-
 function endOfDay(input, format = DEFAULT_DATE_FORMAT) {
   const m = getValidDate(input, format)?.endOf('day');
   return m.isValid() ? m : null;
 }
-
 function addDays(input, days, format = DEFAULT_DATE_FORMAT) {
   const m = getValidDate(input, format)?.add(days, 'days');
   return m.isValid() ? m : null;
 }
-
 function addMonths(input, months, format = DEFAULT_DATE_FORMAT) {
   const m = getValidDate(input, format)?.add(months, 'months');
   return m.isValid() ? m : null;
 }
+
+function normalizeString(str) {
+  return str.toLowerCase()
+            .replace(/ç/g, 'c')
+            .replace(/ğ/g, 'g')
+            .replace(/ş/g, 's')
+            .replace(/ü/g, 'u')
+            .replace(/ö/g, 'o')
+            .replace(/ı/g, 'i')
+            .replace(/[^a-z0-9]+/g, '_') // Türkçe dışı karakterleri _ ile değiştir
+            .replace(/^_+|_+$/g, '')      // Baş ve sondaki _'leri temizle
+            .replace(/_{2,}/g, '_');      // Birden fazla _ yerine tek _
+}
+function parseStringToNumber(currencyString) {
+  currencyString = currencyString?.toString();
+  if(!(currencyString?.length > 0)) return 0;
+  return parseFloat(currencyString.replaceAll("TRY", "")
+                                  .replaceAll("₺", "")
+                                  .replaceAll("\u20BA", "")
+                                  .replaceAll(",", ".")
+                                  .trim());
+}
 // #endregion 
+
+function populateCurrencySelect() {
+  $("#currency").html(`<option value='${rates.EURTRY.code}'>EURO</option>
+                        <option value='${rates.USDTRY.code}'>DOLAR</option>
+                        <option value='${rates.AYAR22.code}'>22 AYAR ALTIN</option>
+                        <option value='${rates.ALTIN.code}'>HAS ALTIN</option>
+                        <option value='${rates.CEYREK_YENI.code}'>ÇEYREK ALTIN</option>
+                        <option value='${rates.YARIM_YENI.code}'>YARIM ALTIN</option>
+                        <option value='${rates.TEK_YENI.code}'>TAM ALTIN</option>
+                        <option value='${rates.ATA_YENI.code}'>ATA ALTIN</option>
+                        <option value='${rates.GREMESE_YENI.code}'>GREMSE</option>`);
+}
+
+function updateCurrenciesFromApi() {
+    $.each(financeData.savings.currencies, function (key, row) {
+      const rate = rates[row.code];
+      if(rate) {
+        row.alis = rate.alis ?? row.alis;
+        row.dusuk = rate.dusuk ?? row.dusuk;
+        row.kapanis = rate.kapanis ?? row.kapanis;
+        row.satis = rate.satis ?? row.satis;
+        row.tarih = formatDateString(rate.tarih, DEFAULT_DATE_TIME_FORMAT) ?? row.tarih;
+        row.yuksek = rate.yuksek ?? row.yuksek;
+        row.dir = rate.dir ?? row.dir;
+      }
+  });
+  saveData();
+}
 
 // --- Populate Card Dropdown on Spending Modal ---
 function populateSpendingCardDropdown(memberId, selectedCardId) {
@@ -1586,41 +1640,6 @@ function toggleAllCurrencyMasks() {
 }
 
 // #region Render Functions
-function renderDateInputs() {
-  console.log('[renderDateInputs] Rendering...');
-  flatpickr(".flat-date", {
-    dateFormat: "d.m.Y",
-    altFormat: "d.m.Y",
-    locale: "tr",
-    disableMobile: true,  
-    onOpen: function(selectedDates, dateStr, instance) {
-      // Takvim popup'u DOM elementi
-      const calendarContainer = instance.calendarContainer;
-
-      // Önce varsa eski clear button’u kaldır
-      const existingClearBtn = calendarContainer.querySelector(".flatpickr-clear-div");
-      if (existingClearBtn) existingClearBtn.remove();
-
-      // X buton oluştur
-      const clearDiv = document.createElement("div");
-      clearDiv.className = "flatpickr-clear-div";
-
-      const clearBtn = document.createElement("button");
-      clearBtn.type = "button";
-      clearBtn.className = "flatpickr-clear-button";
-      clearBtn.textContent = "✖"; // İstersen ikon da koyabilirsin
-
-      clearBtn.onclick = () => {
-        instance.clear();
-        instance.close();
-      };
-
-      clearDiv.appendChild(clearBtn);
-      calendarContainer.appendChild(clearDiv);
-    }
-  });      
-}
-
 // tab-1
 function renderYearsDropdown() {
   const years = getYearList();
@@ -1828,6 +1847,40 @@ function renderFamilySummary() {
 }
 
 // tab-2
+function renderDateInputs() {
+  console.log('[renderDateInputs] Rendering...');
+  flatpickr(".flat-date", {
+    dateFormat: "d.m.Y",
+    altFormat: "d.m.Y",
+    locale: "tr",
+    disableMobile: true,  
+    onOpen: function(selectedDates, dateStr, instance) {
+      // Takvim popup'u DOM elementi
+      const calendarContainer = instance.calendarContainer;
+
+      // Önce varsa eski clear button’u kaldır
+      const existingClearBtn = calendarContainer.querySelector(".flatpickr-clear-div");
+      if (existingClearBtn) existingClearBtn.remove();
+
+      // X buton oluştur
+      const clearDiv = document.createElement("div");
+      clearDiv.className = "flatpickr-clear-div";
+
+      const clearBtn = document.createElement("button");
+      clearBtn.type = "button";
+      clearBtn.className = "flatpickr-clear-button";
+      clearBtn.textContent = "✖"; // İstersen ikon da koyabilirsin
+
+      clearBtn.onclick = () => {
+        instance.clear();
+        instance.close();
+      };
+
+      clearDiv.appendChild(clearBtn);
+      calendarContainer.appendChild(clearDiv);
+    }
+  });      
+}
 function renderCycleDropdown() {
   const cycles = [];
   for (let index = 0; index < 100; index++) {
@@ -1845,6 +1898,68 @@ function renderDaysRow() {
                       class="flat-date form-control btn-day btn-outline-primary btn btn-sm"/>
             </div>`).join(''));
   renderDateInputs();
+}
+
+// tab-3
+function renderCurrencies() {
+  $("#customCurrencies").empty();
+  $.each(financeData.savings.currencies, function (key, row) {
+    $("#customCurrencies").append($("<option>").val(row.code).text(row.text));
+  });
+}
+function renderSavings() {
+  const $tbody = $("#savingsTable tbody");
+  $tbody.html('');
+  totalSavings = 0;
+  $.each(financeData.savings.savings, function (key, row) {
+    let rowTotal = 0;
+
+    const currency = financeData.savings.currencies.find(x=> x.code == row.currencyCode);
+    if(currency) {
+      rowTotal = row.quantity * parseStringToNumber(currency.alis);
+      totalSavings += rowTotal;
+
+      const $row = $("<tr>").append(
+        `<td>${currency.text}</td>
+        <td>${formatTL.format(currency.alis)}</td>
+        <td>${row.quantity}</td>
+        <td>${formatTL.format(rowTotal)}</td>
+        <td>
+          <button class="icon-btn edit btn-edit-saving" data-code="${row.currencyCode}"><i class="fas fa-edit"></i></button>
+          <button class="icon-btn delete btn-delete-saving" data-code="${row.currencyCode}"><i class="fas fa-trash"></i></button>
+        </td>`);
+      $tbody.append($row);
+    }
+  });
+
+  $('#quantity').val('');
+  $('#addSavings').text('Birikim Ekle');
+  $('#totalSavings').html(formatTL.format(totalSavings));
+}
+function renderGoals() {
+  const $tbody = $("#goalsTable tbody");
+  $tbody.html('');
+  let total = 0;
+  $.each(financeData.savings.goals, function (key, row) {
+    total += row.amount;
+
+    const $row = $("<tr>").append(
+      `<td>${row.name}</td>
+      <td>${formatTL.format(row.amount)}</td>
+      <td>
+        <button class="icon-btn edit btn-edit-goal" data-key="${row.key}"><i class="fas fa-edit"></i></button>
+        <button class="icon-btn delete btn-delete-goal" data-key="${row.key}"><i class="fas fa-trash"></i></button>
+      </td>`);
+    $tbody.append($row);    
+  });
+
+  $('#goalName').val('');
+  $('#goalAmount').val('');
+  $('#addGoals').text('Hedef Ekle');
+  $('#totalGoals').html(formatTL.format(total));
+  $('#moneyLeft').html(formatTL.format(total-totalSavings));
+  $('#moneyLeft').removeClass('text-success').removeClass('text-danger');  
+  $('#moneyLeft').addClass(total-totalSavings < 0 ? 'text-success' : 'text-danger');  
 }
 
 function initializeSortable() {
@@ -1918,23 +2033,7 @@ function initializeSortable() {
 // #endregion
 
 // #region Set Data Functions
-function setAllDatas() {
-  console.log('[setAllDatas] All datas are SET.');
-  // tab-1
-  setYearData();
-  // setMonthData(); // years-dropdown onChange'de zaten calisiyor.
-
-  // tab-2
-  setCycleData();
-  // setGymDayData(); // cycles-dropdown onChange'de zaten calisiyor.
-
-  // all tabs
-  setActiveTab();
-}
-function setActiveTab() {
-  console.log('setActiveTab: ', financeData.activeTabIndex);
-  $('#myTab .nav-link').eq(financeData.activeTabIndex).tab('show');
-}
+// tab-1
 function setYearData() {
   const currentYear = financeData?.currentYear ?? getCurrentYearMonth().year;
   $('#years-dropdown').val(currentYear).change();
@@ -1947,6 +2046,7 @@ function setMonthData() {
   $(`#months-row button[data-month="${month}"]`).addClass('btn-primary active fw-bold');
 }
 
+// tab-2
 function setCycleData() {
   const currentCycle = financeData.currentCycle ?? 1;
   $('#cycles-dropdown').val(currentCycle).change();
@@ -1973,9 +2073,46 @@ function setGymDayData() {
     }
   }
 }
-// #endregion
 
-var today = moment();
+// tab-3
+function setRatesData() {
+  $.getJSON("https://canlipiyasalar.haremaltin.com/tmp/altin.json?dil_kodu=tr").done(function(response) {
+    // todo: buranin bos gelme ihtimalini de goz onunde bulundur.
+    rates = response.data;
+
+    console.log('rates: ', rates);
+
+    populateCurrencySelect();
+    updateCurrenciesFromApi();
+    renderCurrencies();
+    renderSavings();
+    renderGoals();
+  }).fail(function(response) {
+    console.log('fail: ', response);
+    showToast("Veri alınamadı, daha sonra tekrar deneyin.", "error");
+    renderCurrencies();
+    renderSavings();
+    renderGoals();
+  });
+}
+
+// all-tabs
+function setAllDatas() {
+  console.log('[setAllDatas] All datas are SET.');
+  // tab-1
+  setYearData();
+  // tab-2
+  setCycleData();
+  // tab-3
+  setRatesData();
+  // all tabs
+  setActiveTab();
+}
+function setActiveTab() {
+  console.log('setActiveTab: ', financeData.activeTabIndex);
+  $('#myTab .nav-link').eq(financeData.activeTabIndex).tab('show');
+}
+// #endregion
 
 $(document).ready(function() {
   // #region Document Handlers
@@ -2308,48 +2445,8 @@ $(document).ready(function() {
     
     $('#memberModal').modal('hide');
   });
-  // #endregion
-
-  // financeData olmadan render edilebilecek kisimlar buraya:
-  renderDateInputs();
-  renderYearsDropdown();
-  renderMonthsRow();
-  renderCycleDropdown();
-  renderDaysRow();
-
-  if(window.location.href.includes('file://')) {
-    loadFromLocalStorage();
-  }
-  else {
-      var checkGoogle = setInterval(function() {
-        console.log('checkGoogle: checkGoogle');
-        if (typeof google !== 'undefined' && google.accounts?.oauth2) {
-          clearInterval(checkGoogle);
-          (async function () {
-            await initGoogleDrive();
-          })();
-        }
-      }, 250);
-  }
-
-  // #region Render Initial HTML
-  renderFamilySummary();
-  renderMembers();
-
-  // select all datas by financeData: 
-  setAllDatas();
-    
-  // #endregion
-});
-
-</script>
-
-<script>
-$(document).ready(function () {
-
-  let rates = {};
-  let totalSavings = 0;
-
+  
+  // tab-3
   $(document).on('click', '#addSelectedCurrency', function(e) {
       const value = $('#currency').val();
       const text = $('#currency option:selected').text();
@@ -2371,7 +2468,6 @@ $(document).ready(function () {
       console.log(text, value, rate.tarih);
       
   });
-
   $(document).on('click', '#addNewCurrency', function(e) {
       const value = $('#newCurrencyValue').val();
       const text = $('#newCurrency').val();
@@ -2403,7 +2499,6 @@ $(document).ready(function () {
       $('#newCurrencyValue').val('');
       $('#newCurrency').val('');
   });
-
   $(document).on('click', '#removeCustom', function(e) {
     showToast('Para birimi silinsin mi?', 'warning', 0, 'center', true).then((result) => {
       if (result.isConfirmed) {
@@ -2425,7 +2520,6 @@ $(document).ready(function () {
       }
     });
   });
-
   $(document).on('click', '#addSavings', function(e) {
       const code = $('#customCurrencies').val();
       const quantity = parseStringToNumber($('#quantity').val());
@@ -2461,7 +2555,6 @@ $(document).ready(function () {
       renderSavings();
       renderGoals();
   });
-
   $(document).on('click', '#addGoals', function(e) {
       const name = $('#goalName').val();
       let amount = parseStringToNumber($('#goalAmount').val());
@@ -2485,7 +2578,6 @@ $(document).ready(function () {
       saveData();
       renderGoals();
   });
-
   $(document).on('click', '.btn-edit-saving', function(e) {   
     const code = $(this).data('code'); 
  
@@ -2506,7 +2598,6 @@ $(document).ready(function () {
       $(this).html('<i class="fas fa-edit"></i>');
     }
   });  
-
   $(document).on('click', '.btn-edit-goal', function(e) {
     const key = $(this).data('key');     
     const checkGoal = financeData.savings.goals.find(x=> x.key == key);
@@ -2527,7 +2618,6 @@ $(document).ready(function () {
       $(this).html('<i class="fas fa-edit"></i>');
     }
   });
-
   $(document).on('click', '.btn-delete-saving', function(e) {
     showToast('Birikim silinsin mi?', 'warning', 0, 'center', true).then((result) => {
       if (result.isConfirmed) {    
@@ -2545,7 +2635,6 @@ $(document).ready(function () {
       }
     });
   });
-
   $(document).on('click', '.btn-delete-goal', function(e) {
     showToast('Hedef silinsin mi?', 'warning', 0, 'center', true).then((result) => {
       if (result.isConfirmed) {    
@@ -2562,175 +2651,39 @@ $(document).ready(function () {
       }
     });
   });
+  // #endregion
 
-  const formatTL = new Intl.NumberFormat("tr-TR", {
-    style: "currency",
-    currency: "TRY",
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  });
+  // financeData olmadan render edilebilecek kisimlar buraya:
+  renderDateInputs();
+  renderYearsDropdown();
+  renderMonthsRow();
+  renderCycleDropdown();
+  renderDaysRow();
 
-  function normalizeString(str) {
-    return str.toLowerCase()
-              .replace(/ç/g, 'c')
-              .replace(/ğ/g, 'g')
-              .replace(/ş/g, 's')
-              .replace(/ü/g, 'u')
-              .replace(/ö/g, 'o')
-              .replace(/ı/g, 'i')
-              .replace(/[^a-z0-9]+/g, '_') // Türkçe dışı karakterleri _ ile değiştir
-              .replace(/^_+|_+$/g, '')      // Baş ve sondaki _'leri temizle
-              .replace(/_{2,}/g, '_');      // Birden fazla _ yerine tek _
+  if(window.location.href.includes('file://')) {
+    loadFromLocalStorage();
   }
-
-  function parseStringToNumber(currencyString) {
-    currencyString = currencyString?.toString();
-    if(!(currencyString?.length > 0)) return 0;
-    return parseFloat(currencyString.replaceAll("TRY", "")
-                                    .replaceAll("₺", "")
-                                    .replaceAll("\u20BA", "")
-                                    .replaceAll(",", ".")
-                                    .trim());
-  }
-
-  function fetchRates() {
-    $.getJSON("https://canlipiyasalar.haremaltin.com/tmp/altin.json?dil_kodu=tr").done(function(response) {
-      // todo: buranin bos gelme ihtimalini de goz onunde bulundur.
-      rates = response.data;
-
-      console.log('rates: ', rates);
-
-      populateCurrencySelect();
-      updateCurrenciesFromApi();
-      renderCurrencies();
-      renderSavings();
-      renderGoals();
-    }).fail(function(response) {
-      console.log('fail: ', response);
-      showToast("Veri alınamadı, daha sonra tekrar deneyin.", "error");
-      renderCurrencies();
-      renderSavings();
-      renderGoals();
-    });
-  }
-
-  function populateCurrencySelect() {
-    $("#currency").html(`<option value='${rates.EURTRY.code}'>EURO</option>
-                          <option value='${rates.USDTRY.code}'>DOLAR</option>
-                          <option value='${rates.AYAR22.code}'>22 AYAR ALTIN</option>
-                          <option value='${rates.ALTIN.code}'>HAS ALTIN</option>
-                          <option value='${rates.CEYREK_YENI.code}'>ÇEYREK ALTIN</option>
-                          <option value='${rates.YARIM_YENI.code}'>YARIM ALTIN</option>
-                          <option value='${rates.TEK_YENI.code}'>TAM ALTIN</option>
-                          <option value='${rates.ATA_YENI.code}'>ATA ALTIN</option>
-                          <option value='${rates.GREMESE_YENI.code}'>GREMSE</option>`);
-  }
-
-  function renderCurrencies() {
-    $("#customCurrencies").empty();
-    $.each(financeData.savings.currencies, function (key, row) {
-      $("#customCurrencies").append($("<option>").val(row.code).text(row.text));
-    });
-  }
-
-  function renderSavings() {
-    const $tbody = $("#savingsTable tbody");
-    $tbody.html('');
-    totalSavings = 0;
-    $.each(financeData.savings.savings, function (key, row) {
-      let rowTotal = 0;
-
-      const currency = financeData.savings.currencies.find(x=> x.code == row.currencyCode);
-      if(currency) {
-        rowTotal = row.quantity * parseStringToNumber(currency.alis);
-        totalSavings += rowTotal;
-
-        const $row = $("<tr>").append(
-          `<td>${currency.text}</td>
-          <td>${formatTL.format(currency.alis)}</td>
-          <td>${row.quantity}</td>
-          <td>${formatTL.format(rowTotal)}</td>
-          <td>
-            <button class="icon-btn edit btn-edit-saving" data-code="${row.currencyCode}"><i class="fas fa-edit"></i></button>
-            <button class="icon-btn delete btn-delete-saving" data-code="${row.currencyCode}"><i class="fas fa-trash"></i></button>
-          </td>`);
-        $tbody.append($row);
-      }
-    });
-
-    $('#quantity').val('');
-    $('#addSavings').text('Birikim Ekle');
-    $('#totalSavings').html(formatTL.format(totalSavings));
-  }
-
-  function renderGoals() {
-    const $tbody = $("#goalsTable tbody");
-    $tbody.html('');
-    let total = 0;
-    $.each(financeData.savings.goals, function (key, row) {
-      total += row.amount;
-
-      const $row = $("<tr>").append(
-        `<td>${row.name}</td>
-        <td>${formatTL.format(row.amount)}</td>
-        <td>
-          <button class="icon-btn edit btn-edit-goal" data-key="${row.key}"><i class="fas fa-edit"></i></button>
-          <button class="icon-btn delete btn-delete-goal" data-key="${row.key}"><i class="fas fa-trash"></i></button>
-        </td>`);
-      $tbody.append($row);    
-    });
-
-    $('#goalName').val('');
-    $('#goalAmount').val('');
-    $('#addGoals').text('Hedef Ekle');
-    $('#totalGoals').html(formatTL.format(total));
-    $('#moneyLeft').html(formatTL.format(total-totalSavings));
-    $('#moneyLeft').removeClass('text-success').removeClass('text-danger');  
-    $('#moneyLeft').addClass(total-totalSavings < 0 ? 'text-success' : 'text-danger');  
-  }
-
-  function updateCurrenciesFromApi() {
-     $.each(financeData.savings.currencies, function (key, row) {
-        const rate = rates[row.code];
-        if(rate) {
-          row.alis = rate.alis ?? row.alis;
-          row.dusuk = rate.dusuk ?? row.dusuk;
-          row.kapanis = rate.kapanis ?? row.kapanis;
-          row.satis = rate.satis ?? row.satis;
-          row.tarih = formatDateString(rate.tarih, DEFAULT_DATE_TIME_FORMAT) ?? row.tarih;
-          row.yuksek = rate.yuksek ?? row.yuksek;
-          row.dir = rate.dir ?? row.dir;
+  else {
+      var checkGoogle = setInterval(function() {
+        console.log('checkGoogle: checkGoogle');
+        if (typeof google !== 'undefined' && google.accounts?.oauth2) {
+          clearInterval(checkGoogle);
+          (async function () {
+            await initGoogleDrive();
+          })();
         }
-    });
-    saveData();
+      }, 250);
   }
 
-  function addRowToGoalsTable(goal, amount) {
-    const $row = $("<tr>").append(
-      `<td>${goal}</td><td>${formatTL.format(amount)}</td><td><button class='btn btn-danger btn-sm delete-goal'>X</button></td>`
-    );
-    $row.find(".delete-goal").click(function () {
-      $row.remove();
-      saveGoals();
-    });
-    $("#goalsTable tbody").append($row);
-    saveGoals();
-  }
+  // #region Render Initial HTML
+  renderFamilySummary();
+  renderMembers();
 
-  function saveGoals() {
-    const data = [];
-    $("#goalsTable tbody tr").each(function () {
-      data.push({
-        goal: $(this).children().eq(0).text(),
-        amount: parseStringToNumber($(this).children().eq(1).text()),
-      });
-    });
-    localStorage.setItem("goals", JSON.stringify(data));
-  }
-
-  fetchRates();
+  // select all datas by financeData: 
+  setAllDatas();
+    
+  // #endregion
 });
-
 
 </script>
 
