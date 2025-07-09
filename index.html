@@ -465,7 +465,7 @@
   <div class="d-flex justify-content-between align-items-center mb-4">
     <div class="d-flex align-items-center">
       <h2 id="page-title"><i class="bi bi-people-fill me-2"></i>Finans Yöneticisi</h2>
-      <small class="text-muted ms-2">v1.2.7</small>   
+      <small class="text-muted ms-2">v1.2.8</small>   
     </div>
     <div>
       <button class="top-action-btn" id="btn-load-json"><i class="bi bi-folder2-open ms-2"></i>Verileri Geri Yükle</button>
@@ -1474,39 +1474,47 @@ function currency(val, shouldMask = false) {
 }
 
 moment.locale('tr');
+const FIX_DATE_FORMAT = 'YYYY-MM-DD';
 const DEFAULT_DATE_FORMAT = 'DD.MM.YYYY';
 const DEFAULT_DATE_TIME_FORMAT = 'DD.MM.YYYY HH:mm:ss';
 
+function getValidDate(input, format = DEFAULT_DATE_FORMAT) {
+  let m = moment(input, format);
+  if(!m.isValid() && format != DEFAULT_DATE_FORMAT) m = moment(input, DEFAULT_DATE_FORMAT);
+  if(!m.isValid()) m = moment(input, DEFAULT_DATE_TIME_FORMAT);
+  if(!m.isValid()) m = moment(input, FIX_DATE_FORMAT);
+  return m;
+}
 function isValidDate(input, format = DEFAULT_DATE_FORMAT) {
-  const m = moment(input, format, false)
+  const m = getValidDate(input, format);
   return m.isValid() ? m : false;
 }
 function formatDateString(input, format = DEFAULT_DATE_FORMAT) {
-  const m = moment(input, format);
+  const m = getValidDate(input, format);
   return m.isValid() ? m.format(format) : "";
 }
 function stringToDate(input, format = DEFAULT_DATE_FORMAT) {
-  const m = moment(input, format);
+  const m = getValidDate(input, format);
   return m.isValid() ? m : null;
 }
 
-function startOfDay(date, format = DEFAULT_DATE_FORMAT) {
-  const m = moment(date, format)?.startOf('day');
+function startOfDay(input, format = DEFAULT_DATE_FORMAT) {
+  const m = getValidDate(input, format)?.startOf('day');
   return m.isValid() ? m : null;
 }
 
-function endOfDay(date, format = DEFAULT_DATE_FORMAT) {
-  const m = moment(date, format)?.endOf('day');
+function endOfDay(input, format = DEFAULT_DATE_FORMAT) {
+  const m = getValidDate(input, format)?.endOf('day');
   return m.isValid() ? m : null;
 }
 
-function addDays(date, days, format = DEFAULT_DATE_FORMAT) {
-  const m = moment(date, format)?.add(days, 'days');
+function addDays(input, days, format = DEFAULT_DATE_FORMAT) {
+  const m = getValidDate(input, format)?.add(days, 'days');
   return m.isValid() ? m : null;
 }
 
-function addMonths(date, months, format = DEFAULT_DATE_FORMAT) {
-  const m = moment(date, format)?.add(months, 'months');
+function addMonths(input, months, format = DEFAULT_DATE_FORMAT) {
+  const m = getValidDate(input, format)?.add(months, 'months');
   return m.isValid() ? m : null;
 }
 // #endregion 
@@ -2412,7 +2420,7 @@ $(document).ready(function () {
 
   $(document).on('click', '#addSavings', function(e) {
       const code = $('#customCurrencies').val();
-      let quantity = parseStringToNumber($('#quantity').val());
+      const quantity = parseStringToNumber($('#quantity').val());
       if(!code || quantity == 0) {
         return showToast('Alanları doldurun.', 'error');
       }
@@ -2421,20 +2429,29 @@ $(document).ready(function () {
       if(!checkCurrency) {
         return showToast('Para birimi bulunamadı.', 'error');
       }
-      
+
+      const editMode = $(this).text() == 'Birikim Güncelle';
       const checkSaving = financeData.savings.savings.find(x=> x.currencyCode == checkCurrency.code);
-      if(checkSaving) {
-        checkSaving.quantity += quantity;
-      } else {
-        financeData.savings.savings.push({
-          currencyCode: code,
-          quantity: quantity
-        });
+      
+      if(editMode) {
+        if(checkSaving) {
+          checkSaving.quantity = quantity;
+        }
+      }
+      else {
+        if(checkSaving) {
+          checkSaving.quantity += quantity;
+        } else {
+          financeData.savings.savings.push({
+            currencyCode: code,
+            quantity: quantity
+          });
+        }
       }
 
       saveData();
       renderSavings();
-      $('#quantity').val('');
+      renderGoals();
   });
 
   $(document).on('click', '#addGoals', function(e) {
@@ -2459,20 +2476,27 @@ $(document).ready(function () {
 
       saveData();
       renderGoals();
-      $('#goalName').val('');
-      $('#goalAmount').val('');
   });
 
-  $(document).on('click', '.btn-edit-saving', function(e) {
-    const code = $(this).data('code');     
+  $(document).on('click', '.btn-edit-saving', function(e) {   
+    const code = $(this).data('code'); 
+ 
     const checkSaving = financeData.savings.savings.find(x=> x.currencyCode == code);
     if(!checkSaving) {
       return showToast('Birikim bulunamadı.', 'error');
     }
 
-    console.log(checkSaving);
-    $('#customCurrencies').val(checkSaving.currencyCode);
-    //$('#quantity').val(checkSaving.quantity);
+    const editMode = $(this).find('i').hasClass('fa-edit');
+    if(editMode) {
+      $('#customCurrencies').val(checkSaving.currencyCode);
+      $('#quantity').val(checkSaving.quantity);
+      $('#addSavings').text('Birikim Güncelle');
+      $(this).html('<i class="fas fa-cancel"></i>');
+    } else {
+      $('#quantity').val('');
+      $('#addSavings').text('Birikim Ekle');
+      $(this).html('<i class="fas fa-edit"></i>');
+    }
   });  
 
   $(document).on('click', '.btn-edit-goal', function(e) {
@@ -2482,8 +2506,18 @@ $(document).ready(function () {
       return showToast('Hedef bulunamadı.', 'error');
     }
 
-    $('#goalName').val(checkGoal.name);
-    $('#goalAmount').val(checkGoal.amount);
+    const editMode = $(this).find('i').hasClass('fa-edit');
+    if(editMode) {
+      $('#goalName').val(checkGoal.name);
+      $('#goalAmount').val(checkGoal.amount);
+      $('#addGoals').text('Hedef Güncelle');
+      $(this).html('<i class="fas fa-cancel"></i>');
+    } else {
+      $('#goalName').val('');
+      $('#goalAmount').val('');
+      $('#addGoals').text('Hedef Ekle');
+      $(this).html('<i class="fas fa-edit"></i>');
+    }
   });
 
   $(document).on('click', '.btn-delete-saving', function(e) {
@@ -2499,6 +2533,7 @@ $(document).ready(function () {
 
         saveData();
         renderSavings();
+        renderGoals();
       }
     });
   });
@@ -2618,6 +2653,8 @@ $(document).ready(function () {
       }
     });
 
+    $('#quantity').val('');
+    $('#addSavings').text('Birikim Ekle');
     $('#totalSavings').html(formatTL.format(totalSavings));
   }
 
@@ -2638,6 +2675,9 @@ $(document).ready(function () {
       $tbody.append($row);    
     });
 
+    $('#goalName').val('');
+    $('#goalAmount').val('');
+    $('#addGoals').text('Hedef Ekle');
     $('#totalGoals').html(formatTL.format(total));
     $('#moneyLeft').html(formatTL.format(total-totalSavings));
     $('#moneyLeft').removeClass('text-success').removeClass('text-danger');  
