@@ -554,46 +554,50 @@
     </div>
     <div class="tab-pane fade" id="contact" role="tabpanel" aria-labelledby="contact-tab">
       <div id="savings-section">
-        <div class="container py-4">
-          <div class="card shadow-sm mb-4">
-            <div class="card-body">
-              <h5 class="card-title mb-3">Para Birimi Yönetimi</h5>
-              <div class="row g-2">
+        <div class="card shadow-sm mb-4">
+          <div class="card-body">
+            <h5 class="card-title mb-3">Para Birimi Yönetimi</h5>
+            <div class="row g-2">
+              <div class="col-md-6">
+                <label class="form-label" for="currency">Para Birimi Seç</label>
+                <select id="currency" class="form-select"></select>
+                <button id="addSelectedCurrency" class="btn btn-primary mt-2 w-100">Seçili Para Birimini Ekle</button>
+              </div>
+              <div class="row col-md-6 ms-1">
+                <label class="form-label" for="newCurrency">Yeni Para Birimi</label>
                 <div class="col-md-6">
-                  <label class="form-label" for="currency">Para Birimi Seç</label>
-                  <select id="currency" class="form-select"></select>
-                  <button id="addSelectedCurrency" class="btn btn-primary mt-2 w-100">Seçili Para Birimini Ekle</button>
+                  <input type="text" id="newCurrency" class="form-control mb-2" placeholder="Örn: Gram Altın">      
                 </div>
-                <div class="row col-md-6">
-                  <label class="form-label" for="newCurrency">Yeni Para Birimi</label>
-                  <div class="col-md-6">
-                    <input type="text" id="newCurrency" class="form-control mb-2" placeholder="Örn: Gram Altın">      
-                  </div>
-                  <div class="col-md-6">
-                    <input type="number" id="newCurrencyValue" class="form-control mb-2" placeholder="Değer, Örn: 2500">
-                  </div>
-                  <button id="addNewCurrency" class="btn btn-success w-100">Yeni Para Birimi Ekle</button>    
+                <div class="col-md-6">
+                  <input type="number" id="newCurrencyValue" class="form-control mb-2" placeholder="Değer, Örn: 2500">
                 </div>
+                <button id="addNewCurrency" class="btn btn-success w-100">Yeni Para Birimi Ekle</button>    
               </div>
             </div>
           </div>
-          <div class="card shadow-sm mb-4">
-            <div class="card-body">
-              <h5 class="card-title">Birikimler</h5>
-              <div class="row g-2 mb-2">
-                <div class="col-md-1">
-                    <button id="removeCustom" class="col-md-3 btn btn-outline-danger w-100">Sil</button>
-                  </div>
-                <div class="col-md-5">
-                    <select id="customCurrencies" class="form-select"></select>
+        </div>
+        <div class="card shadow-sm mb-4">
+          <div class="card-body">
+            <h5 class="card-title">Birikimler</h5>
+            <div class="row g-2 mb-2">
+              <div class="col-md-1">
+                  <button id="removeCustom" class="col-md-3 btn btn-outline-danger w-100">Sil</button>
                 </div>
-                <div class="col-md-4">
-                  <input type="number" id="quantity" class="form-control" placeholder="Miktar">
-                </div>
-                <div class="col-md-2">
-                  <button id="addSavings" class="btn btn-primary w-100">Birikim Ekle</button>
-                </div>
+              <div class="col-md-3">
+                  <input type="hidden" id="savingId">
+                  <select id="customCurrencies" class="form-select"></select>
               </div>
+              <div class="col-md-2">
+                <input type="number" id="quantity" class="form-control" placeholder="Miktar">
+              </div>
+              <div class="col-md-4">
+                <input type="text" id="savingExplanation" class="form-control" placeholder="Açıklama">
+              </div>
+              <div class="col-md-2">
+                <button id="addSavings" class="btn btn-primary w-100">Birikim Ekle</button>
+              </div>
+            </div>
+            <div class="table-responsive">
               <table id="savingsTable" class="table table-bordered table-striped">
                 <thead class="table-light">
                   <tr>
@@ -601,29 +605,32 @@
                     <th>Birim Fiyatı</th>
                     <th>Miktar</th>
                     <th>Toplam (₺)</th>
+                    <th>Açıklama</th>
                     <th>Sil</th>
                   </tr>
                 </thead>
                 <tbody></tbody>
               </table>
-              <h5 class="text-end">Toplam Birikim: <span id="totalSavings" class="text-success">0</span></h5>
             </div>
+            <h5 class="text-end">Toplam Birikim: <span id="totalSavings" class="text-success">0</span></h5>
           </div>
-          <div class="card shadow-sm mb-4">
-            <div class="card-body">
-              <h5 class="card-title">Hedefler</h5>
-              <div class="row g-2 mb-2">
-                <div class="col-md-6">
-                  <input type="text" id="goalName" class="form-control" placeholder="Örn: Laptop Al">
-                </div>
-                <div class="col-md-4">
-                  <input type="number" id="goalAmount" class="form-control" placeholder="Tutar (₺)">
-                </div>
-                <div class="col-md-2">
-                  <button id="addGoals" class="btn btn-success w-100">Hedef Ekle</button>
-                </div>
+        </div>
+        <div class="card shadow-sm mb-4">
+          <div class="card-body">
+            <h5 class="card-title">Hedefler</h5>
+            <div class="row g-2 mb-2">
+              <div class="col-md-6">
+                <input type="hidden" id="goalId">
+                <input type="text" id="goalName" class="form-control" placeholder="Hedef Adı">
               </div>
-
+              <div class="col-md-4">
+                <input type="number" id="goalAmount" class="form-control" placeholder="Tutar (₺)">
+              </div>
+              <div class="col-md-2">
+                <button id="addGoals" class="btn btn-success w-100">Hedef Ekle</button>
+              </div>
+            </div>
+            <div class="table-responsive">
               <table id="goalsTable" class="table table-bordered table-striped">
                 <thead class="table-light">
                   <tr>
@@ -634,9 +641,9 @@
                 </thead>
                 <tbody></tbody>
               </table>
-              <h5 class="text-end">Hedef Tutarı: <span id="totalGoals" class="text-primary">0</span></h5>
-              <h5 class="text-end">Kalan Tutar: <span id="moneyLeft" class="text-primary">0</span></h5>
             </div>
+            <h5 class="text-end">Hedef Tutarı: <span id="totalGoals" class="text-primary">0</span></h5>
+            <h5 class="text-end">Kalan Tutar: <span id="moneyLeft" class="text-primary">0</span></h5>
           </div>
         </div>
       </div>
@@ -1924,15 +1931,18 @@ function renderSavings() {
         <td>${formatTL.format(currency.alis)}</td>
         <td>${row.quantity}</td>
         <td>${formatTL.format(rowTotal)}</td>
+        <td>${row.explanation ?? ""}</td>
         <td>
-          <button class="icon-btn edit btn-edit-saving" data-code="${row.currencyCode}"><i class="fas fa-edit"></i></button>
-          <button class="icon-btn delete btn-delete-saving" data-code="${row.currencyCode}"><i class="fas fa-trash"></i></button>
+          <button class="icon-btn edit btn-edit-saving" data-id="${row.id}"><i class="fas fa-edit"></i></button>
+          <button class="icon-btn delete btn-delete-saving" data-id="${row.id}"><i class="fas fa-trash"></i></button>
         </td>`);
       $tbody.append($row);
     }
   });
 
-  $('#quantity').val('');
+  $('#savingId').val('');
+  $('#quantity').val(''); 
+  $('#savingExplanation').val('');
   $('#addSavings').text('Birikim Ekle');
   $('#totalSavings').html(formatTL.format(totalSavings));
 }
@@ -1947,12 +1957,13 @@ function renderGoals() {
       `<td>${row.name}</td>
       <td>${formatTL.format(row.amount)}</td>
       <td>
-        <button class="icon-btn edit btn-edit-goal" data-key="${row.key}"><i class="fas fa-edit"></i></button>
-        <button class="icon-btn delete btn-delete-goal" data-key="${row.key}"><i class="fas fa-trash"></i></button>
+        <button class="icon-btn edit btn-edit-goal" data-id="${row.id}"><i class="fas fa-edit"></i></button>
+        <button class="icon-btn delete btn-delete-goal" data-id="${row.id}"><i class="fas fa-trash"></i></button>
       </td>`);
     $tbody.append($row);    
   });
 
+  $('#goalId').val('');
   $('#goalName').val('');
   $('#goalAmount').val('');
   $('#addGoals').text('Hedef Ekle');
@@ -2302,7 +2313,7 @@ $(document).ready(function() {
       }
     } else {
       // Add
-      member.incomes.push({ id: generateId(member.incomes), name, value, received });
+      member.incomes.push({ id: generateId(member.incomes), name: name, value: value, received: received });
     }
 
     saveData();		
@@ -2522,6 +2533,8 @@ $(document).ready(function() {
   });
   $(document).on('click', '#addSavings', function(e) {
       const code = $('#customCurrencies').val();
+      const explanation = $('#savingExplanation').val();
+      const id = $('#savingId').val();
       const quantity = parseStringToNumber($('#quantity').val());
       if(!code || quantity == 0) {
         return showToast('Alanları doldurun.', 'error');
@@ -2532,44 +2545,70 @@ $(document).ready(function() {
         return showToast('Para birimi bulunamadı.', 'error');
       }
 
-      const editMode = $(this).text() == 'Birikim Güncelle';
-      const checkSaving = financeData.savings.savings.find(x=> x.currencyCode == checkCurrency.code);
-      
+      const editMode = $(this).text() == 'Birikim Güncelle';  
       if(editMode) {
+        const checkSaving = financeData.savings.savings.find(x=> x.id == id);
         if(checkSaving) {
           checkSaving.quantity = quantity;
+          checkSaving.explanation = explanation;
         }
-      }
-      else {
-        if(checkSaving) {
-          checkSaving.quantity += quantity;
-        } else {
-          financeData.savings.savings.push({
-            currencyCode: code,
-            quantity: quantity
-          });
-        }
+        saveData();
+        renderSavings();
+        renderGoals();
+        return;
       }
 
-      saveData();
-      renderSavings();
-      renderGoals();
+      const checkSaving = financeData.savings.savings.find(x=> x.currencyCode == checkCurrency.code);
+        if(!checkSaving) {
+           financeData.savings.savings.push({
+              id: generateId(financeData.savings.savings),
+              currencyCode: code,
+              quantity: quantity,
+              explanation: explanation,
+            });
+            
+            saveData();
+            renderSavings();
+            renderGoals();
+            return;
+        }
+        showToast('Aynı para birimiyle bir birikim mevcut. Güncellensin mi?', 'warning', 0, 'center', true).then((result) => {
+          if (result.isConfirmed) {  
+            checkSaving.quantity += quantity;      
+          }
+          else {
+            financeData.savings.savings.push({
+              id: generateId(financeData.savings.savings),
+              currencyCode: code,
+              quantity: quantity,
+              explanation: explanation,
+            });
+          }
+
+          saveData();
+          renderSavings();
+          renderGoals();
+        });  
   });
   $(document).on('click', '#addGoals', function(e) {
       const name = $('#goalName').val();
+      const id = $('#goalId').val();
       let amount = parseStringToNumber($('#goalAmount').val());
       if(!name || amount == 0) {
         return showToast('Alanları doldurun.', 'error');
       }
 
-      const key = normalizeString(name);
-      
-      const checkGoal = financeData.savings.goals.find(x=> x.key == key);
-      if(checkGoal) {
-        checkGoal.amount = amount;
-      } else {
+      const editMode = $(this).text() == 'Hedef Güncelle';  
+      if(editMode) {
+        const checkGoal = financeData.savings.goals.find(x=> x.id == id);
+        if(checkGoal) {
+          checkGoal.name = name;
+          checkGoal.amount = amount;
+        } 
+      }
+      else {
         financeData.savings.goals.push({
-          key: key,
+          id: generateId(financeData.savings.goals),
           name: name,
           amount: amount
         });
@@ -2579,39 +2618,45 @@ $(document).ready(function() {
       renderGoals();
   });
   $(document).on('click', '.btn-edit-saving', function(e) {   
-    const code = $(this).data('code'); 
+    const id = $(this).data('id'); 
  
-    const checkSaving = financeData.savings.savings.find(x=> x.currencyCode == code);
+    const checkSaving = financeData.savings.savings.find(x=> x.id == id);
     if(!checkSaving) {
       return showToast('Birikim bulunamadı.', 'error');
     }
 
     const editMode = $(this).find('i').hasClass('fa-edit');
     if(editMode) {
+      $('#savingId').val(checkSaving.id);
       $('#customCurrencies').val(checkSaving.currencyCode);
       $('#quantity').val(checkSaving.quantity);
+      $('#savingExplanation').val(checkSaving.explanation);
       $('#addSavings').text('Birikim Güncelle');
       $(this).html('<i class="fas fa-cancel"></i>');
     } else {
+      $('#savingId').val('');
       $('#quantity').val('');
+      $('#savingExplanation').val('');
       $('#addSavings').text('Birikim Ekle');
       $(this).html('<i class="fas fa-edit"></i>');
     }
   });  
   $(document).on('click', '.btn-edit-goal', function(e) {
-    const key = $(this).data('key');     
-    const checkGoal = financeData.savings.goals.find(x=> x.key == key);
+    const id = $(this).data('id');     
+    const checkGoal = financeData.savings.goals.find(x=> x.id == id);
     if(!checkGoal) {
       return showToast('Hedef bulunamadı.', 'error');
     }
 
     const editMode = $(this).find('i').hasClass('fa-edit');
     if(editMode) {
+      $('#goalId').val(checkGoal.id);
       $('#goalName').val(checkGoal.name);
       $('#goalAmount').val(checkGoal.amount);
       $('#addGoals').text('Hedef Güncelle');
       $(this).html('<i class="fas fa-cancel"></i>');
     } else {
+      $('#goalId').val('');
       $('#goalName').val('');
       $('#goalAmount').val('');
       $('#addGoals').text('Hedef Ekle');
@@ -2621,13 +2666,13 @@ $(document).ready(function() {
   $(document).on('click', '.btn-delete-saving', function(e) {
     showToast('Birikim silinsin mi?', 'warning', 0, 'center', true).then((result) => {
       if (result.isConfirmed) {    
-        const code = $(this).data('code');     
-        const checkSaving = financeData.savings.savings.find(x=> x.currencyCode == code);
+        const id = $(this).data('id');     
+        const checkSaving = financeData.savings.savings.find(x=> x.id == id);
         if(!checkSaving) {
           return showToast('Birikim bulunamadı.', 'error');
         }
 
-        financeData.savings.savings = financeData.savings.savings.filter(x=> x.currencyCode != code);
+        financeData.savings.savings = financeData.savings.savings.filter(x=> x.id != id);
 
         saveData();
         renderSavings();
@@ -2638,13 +2683,13 @@ $(document).ready(function() {
   $(document).on('click', '.btn-delete-goal', function(e) {
     showToast('Hedef silinsin mi?', 'warning', 0, 'center', true).then((result) => {
       if (result.isConfirmed) {    
-        const key = $(this).data('key');     
-        const checkGoal = financeData.savings.goals.find(x=> x.key == key);
+        const id = $(this).data('id');     
+        const checkGoal = financeData.savings.goals.find(x=> x.id == id);
         if(!checkGoal) {
           return showToast('Hedef bulunamadı.', 'error');
         }
 
-        financeData.savings.goals = financeData.savings.goals.filter(x=> x.key != key);
+        financeData.savings.goals = financeData.savings.goals.filter(x=> x.id != id);
 
         saveData();
         renderGoals();
