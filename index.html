@@ -465,7 +465,7 @@
   <div class="d-flex justify-content-between align-items-center mb-4">
     <div class="d-flex align-items-center">
       <h2 id="page-title"><i class="bi bi-people-fill me-2"></i>Finans Yöneticisi</h2>
-      <small class="text-muted ms-2">v1.3.0</small>   
+      <small class="text-muted ms-2">v1.3.1</small>   
     </div>
     <div>
       <button class="top-action-btn" id="btn-load-json"><i class="bi bi-folder2-open ms-2"></i>Verileri Geri Yükle</button>
@@ -737,6 +737,10 @@
           <div class="form-floating mb-3">
             <select class="form-select" id="spending-card-id" aria-label="Kart seçimi"></select>
             <label for="spending-card-id">Kart</label>
+          </div>
+          <div class="form-floating mb-3">
+            <select class="form-select" id="spending-sendmember-id" aria-label="Kişiye para gönder"></select>
+            <label for="spending-sendmember-id">Kişiye para gönder</label>
           </div>
           <div class="row g-3">
             <div class="col-6 col-md-6">
@@ -1297,6 +1301,7 @@ function deleteIncome(memberId, incomeId) {
                                  ?.months[financeData.currentMonth]
                                  ?.members?.find(m => m.id === memberId);
       if (member?.incomes) {
+        // todo: income silerken, income.senderId alinacak ve senderId ile member alinip spending silinecek.
         member.incomes = member.incomes.filter(i => i.id !== incomeId);
         saveData();
 
@@ -1316,6 +1321,7 @@ function openAddSpending(memberId) {
   $('#spending-value').val('');
   $('#spending-payed').prop('checked', true);
   $('#spending-card-id').val('');
+  $('#spending-sendmember-id').val('');
   $('#spending-installment').val(1);
   $('#spending-current-installment').val(1);
   $('#spendingModal').modal('show');
@@ -1333,6 +1339,7 @@ function openEditSpending(memberId, spendingId) {
     $('#spending-value').val(spending.value);
     $('#spending-payed').prop('checked', !!spending.payed);
     $('#spending-card-id').val(spending.cardId || '');
+    $('#spending-sendmember-id').val(spending.sendMemberId || '');
     $('#spending-installment').val(spending.installment || 1);
     $('#spending-current-installment').val(spending.currentInstallment || 1);
     $('#spendingModal').modal('show');
@@ -1347,8 +1354,8 @@ function deleteSpending(memberId, spendingId) {
                                 ?.members?.find(m => m.id === memberId);
       if (member?.spendings) {
         member.spendings = member.spendings.filter(s => s.id !== spendingId);
+        
         saveData();
-
         renderFamilySummary();
 		    renderMembers();
     
@@ -1580,6 +1587,21 @@ function updateCurrenciesFromApi() {
   saveData();
 }
 
+// --- Populate Send Member Dropdown on Spending Modal ---
+function populateSpendingMemberDropdown(memberId, selectedMemberId) {
+  const select = document.getElementById('spending-sendmember-id');
+  const members = financeData?.years[financeData.currentYear]
+                            ?.months[financeData.currentMonth]
+                            ?.members?.filter(x=> x.status && x.id != memberId);
+  if (!(members?.length > 0)) {
+    select.innerHTML = '<option value="">Seçiniz...</option>';
+    select.value = '';
+    return;
+  }
+
+  select.innerHTML = '<option value="">Seçiniz...</option>' + members.map(member => `<option value="${member.id}">${member.name}</option>`).join('');
+  select.value = selectedMemberId || '';
+}
 // --- Populate Card Dropdown on Spending Modal ---
 function populateSpendingCardDropdown(memberId, selectedCardId) {
   const select = document.getElementById('spending-card-id');
@@ -1602,6 +1624,7 @@ const _openAddSpending = openAddSpending;
 openAddSpending = function(memberId) {
   _openAddSpending(memberId);
   populateSpendingCardDropdown(memberId, '');
+  populateSpendingMemberDropdown(memberId, '');
 };
 
 const _openEditSpending = openEditSpending;
@@ -1614,6 +1637,7 @@ openEditSpending = function(memberId, spendingId) {
     const spending = member.spendings.find(s => s.id === spendingId);
     if (spending) {
       populateSpendingCardDropdown(memberId, spending.cardId);
+      populateSpendingMemberDropdown(memberId, spending.sendMemberId);
     }
   }
 };
@@ -1717,6 +1741,9 @@ function renderMembers() {
                       <i class="sortable-handle bi bi-list me-2"></i>
                       <i class="bi bi-cash-coin"></i> ${income.name}
                     </div>
+                    <div>
+                      ${ members.find(x=> x.id == income.senderId) ? members.find(x=> x.id == income.senderId)?.name : '' }
+                    </div>
                     <div class="d-flex justify-content-end align-items-center">
                       <span class="fw-bold income-color pointer" onclick="toggleCurrencyMask(this, ${income.value})">${currency(income.value, isCurrencyMasked)}</span>                                                
                       <div class="form-check form-switch ms-3">
@@ -1785,12 +1812,14 @@ function renderMembers() {
                     <div class="col-md-12 fw-bold">
                       <i class="sortable-handle bi bi-list me-2"></i>
                       <i class="bi bi-cart-dash"></i> ${spending.name} 
-                    </div>${(card || spending.installment > 1) ? `<div class="col-md-12 fw-bold">
+                    </div>${(card || spending.installment > 1 || spending.sendMemberId) ? `<div class="col-md-12 fw-bold">
                      ${card ? `<span class='badge card-color'><i class='bi bi-credit-card-fill'></i> ${card.name}</span>` 
                             : ''} ${spending.installment > 1 ? `<span class='badge bg-secondary'>${spending.currentInstallment > 1 
                                 ? spending.currentInstallment 
-                                : currentInstallment}/${spending.installment}</span>` : ''}
-                    </div>` : ''}                  
+                                : currentInstallment}/${spending.installment}</span>` : ''}                
+                      ${ members.find(x=> x.id == spending.sendMemberId) ? `<span class='badge card-color'><i class='bi bi-person-circle'></i> 
+                      ${members.find(x=> x.id == spending.sendMemberId)?.name}</span>` : '' }
+                    </div>`  : ''}                  
                   </div>
                   <div class="d-flex justify-content-end align-items-center">
                     <div> 
@@ -1983,8 +2012,8 @@ function initializeSortable() {
         const type = $parent.data('type');
         const memberId = $parent.data('memberid') ?? $(event.item).data('memberid');
 
-        const currentMonthData = financeData.years[financeData.currentYear].months[financeData.currentMonth];
-        const member = currentMonthData.members.find(m => m.id === memberId);                               
+        const members = financeData.years[financeData.currentYear].months[financeData.currentMonth].members;
+        const member = members.find(m => m.id === memberId);                               
         if(type === 0) { 
           $parent.children('.sortable-item').each(function(index) {
             const incomeId = $(this).data('incomeid');
@@ -2021,16 +2050,13 @@ function initializeSortable() {
         else if(type === 3) { 
           $parent.children('.sortable-item').each(function(index) {
             const memberEditId = $(this).data('memberid');
-
-            const memberEdit = currentMonthData.members.find(m => m.id === memberEditId);                               
-            console.log('members: ', memberEditId, memberEdit);
-
+            const memberEdit = members.find(m => m.id === memberEditId);                               
             if(memberEdit) {
               memberEdit.order = index;
             }
           });
 
-          currentMonthData.members.sort(function(a, b) { return a.order - b.order; });
+          members.sort(function(a, b) { return a.order - b.order; });
         }
         
         saveData();
@@ -2334,6 +2360,7 @@ $(document).ready(function() {
     const value = Number($('#spending-value').val());
     const payed = $('#spending-payed').prop('checked');
     const cardId = $('#spending-card-id').val() ? Number($('#spending-card-id').val()) : null;
+    const sendMemberId = $('#spending-sendmember-id').val() ? Number($('#spending-sendmember-id').val()) : null;
     const installment = Number($('#spending-installment').val()) || 1;
     const currentInstallment = Number($('#spending-current-installment').val()) || 1;
 
@@ -2345,10 +2372,27 @@ $(document).ready(function() {
       return;
     }
 
+    if(sendMemberId > 0) {
+      const sendMember = financeData?.years[financeData.currentYear]
+                              ?.months[financeData.currentMonth]
+                              ?.members?.find(x => x.status && x.id === sendMemberId);
+      if(!sendMember) {
+        showToast('Para gönderilecek kişi bulunamadı.', 'error');  
+        return;
+      }  
+      sendMember.incomes.push({ 
+        id: generateId(sendMember.incomes), 
+        name: name, 
+        value: value, 
+        received: payed,
+        senderId: memberId,
+      });   
+      console.log(sendMember);
+    }
+
     member.spendings ??= [];
 
     if (spendingId) {
-      // Edit
       const spending = member.spendings.find(s => s.id == spendingId);
       if (spending) {
         spending.name = name;
@@ -2357,9 +2401,9 @@ $(document).ready(function() {
         spending.cardId = cardId;
         spending.installment = installment;
         spending.currentInstallment = currentInstallment;
+        spending.sendMemberId = sendMemberId;
       }
     } else {
-      // Add
       member.spendings.push({ 
         id: generateId(member.spendings), 
         name, 
@@ -2369,7 +2413,8 @@ $(document).ready(function() {
         installment, 
         currentInstallment: currentInstallment, 
         monthKey: financeData.currentMonth,
-        order: 999
+        order: 999,
+        sendMemberId: sendMemberId
       });
     }
 
