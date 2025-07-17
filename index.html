@@ -109,19 +109,26 @@
       font-size: 16px;
       transition: all 0.2s ease-in-out;
       cursor: pointer;
+    } 
+    .icon-btn:disabled {
+        opacity: 0.6;             /* biraz şeffaflık ver */
+        filter: grayscale(40%);   /* biraz gri ton uygula */
+        color: #888888;           /* ikon ve yazı rengi gri */
+        cursor: default;
     }
-
-    .icon-btn:hover {
+    .icon-btn:not(:disabled):hover {
       background-color: #f0f0f0;
       transform: scale(1.1);
     }
-
     .icon-btn.edit {
       color: #0d6efd; /* Bootstrap primary */
     }
-
     .icon-btn.delete {
       color: #dc3545; /* Bootstrap danger */
+    }
+    
+    .form-check-input:not(:disabled) { 
+      cursor: pointer;
     }
 
     .btn-circle {
@@ -465,7 +472,7 @@
   <div class="d-flex justify-content-between align-items-center mb-4">
     <div class="d-flex align-items-center">
       <h2 id="page-title"><i class="bi bi-people-fill me-2"></i>Finans Yöneticisi</h2>
-      <small class="text-muted ms-2">v1.3.1</small>   
+      <small class="text-muted ms-2">v1.3.2</small>   
     </div>
     <div>
       <button class="top-action-btn" id="btn-load-json"><i class="bi bi-folder2-open ms-2"></i>Verileri Geri Yükle</button>
@@ -514,7 +521,7 @@
           <div class="d-flex p-0 ms-2">
             <button id="btn-clear-month" class="btn btn-circle delete" title="Bu ayın verilerini temizle"><i class="fas fa-trash"></i></button>      
             <button onclick="toggleAllCurrencyMasks()" class="btn-circle ms-2">
-              <i id="show-hide-icon" class="fas fa-eye-slash"></i>
+              <i class="show-hide-icon fas fa-eye-slash"></i>
             </button>
             <button id="btn-copy-month" class="btn-circle edit ms-2" title="Bu ayın verilerini kopyala"><i class="bi bi-clipboard"></i></button>
             <button id="btn-paste-month" class="btn-circle success ms-2" title="Bu aya yapıştır" disabled><i class="bi bi-clipboard-check"></i></button>
@@ -557,6 +564,9 @@
         <div class="card shadow-sm mb-4">
           <div class="card-body">
             <h5 class="card-title mb-3">Para Birimi Yönetimi</h5>
+            <button onclick="toggleAllCurrencyMasks()" class="btn-circle ms-2">
+              <i class="show-hide-icon fas fa-eye-slash"></i>
+            </button>
             <div class="row g-2">
               <div class="col-md-6">
                 <label class="form-label" for="currency">Para Birimi Seç</label>
@@ -609,10 +619,10 @@
                     <th>Sil</th>
                   </tr>
                 </thead>
-                <tbody></tbody>
+                <tbody class="sortable-list" data-type="4"></tbody>
               </table>
             </div>
-            <h5 class="text-end">Toplam Birikim: <span id="totalSavings" class="text-success">0</span></h5>
+            <h5 class="text-end">Toplam Birikim: <span id="totalSavings" class="text-success pointer">0</span></h5>
           </div>
         </div>
         <div class="card shadow-sm mb-4">
@@ -639,11 +649,11 @@
                     <th>Sil</th>
                   </tr>
                 </thead>
-                <tbody></tbody>
+                <tbody class="sortable-list" data-type="5"></tbody>
               </table>
             </div>
             <h5 class="text-end">Hedef Tutarı: <span id="totalGoals" class="text-primary">0</span></h5>
-            <h5 class="text-end">Kalan Tutar: <span id="moneyLeft" class="text-primary">0</span></h5>
+            <h5 class="text-end">Kalan Tutar: <span id="moneyLeft" class="text-primary pointer">0</span></h5>
           </div>
         </div>
       </div>
@@ -1230,6 +1240,18 @@ function toggleSpendingPayed(memberId, spendingId) {
                               ?.spendings?.find(s => s.id === spendingId);
   if (spending) {
     spending.payed = !spending.payed;
+
+    const receivedMemberIncome = financeData?.years[financeData.currentYear]
+                                ?.months[financeData.currentMonth]
+                                ?.members?.find(m => m.id == spending.sendMemberId)
+                                ?.incomes.find(x => x.id == spending.sendIncomeId);
+    if(receivedMemberIncome) {
+      receivedMemberIncome.received = spending.payed;
+    }
+
+    console.log(spending, receivedMemberIncome);
+
+
     saveData();
 
     renderFamilySummary();
@@ -1301,7 +1323,6 @@ function deleteIncome(memberId, incomeId) {
                                  ?.months[financeData.currentMonth]
                                  ?.members?.find(m => m.id === memberId);
       if (member?.incomes) {
-        // todo: income silerken, income.senderId alinacak ve senderId ile member alinip spending silinecek.
         member.incomes = member.incomes.filter(i => i.id !== incomeId);
         saveData();
 
@@ -1352,9 +1373,18 @@ function deleteSpending(memberId, spendingId) {
       const member = financeData?.years[financeData.currentYear]
                                 ?.months[financeData.currentMonth]
                                 ?.members?.find(m => m.id === memberId);
-      if (member?.spendings) {
-        member.spendings = member.spendings.filter(s => s.id !== spendingId);
-        
+      const spending = member?.spendings?.find(x => x.id == spendingId)
+      if (spending) {
+        const receivedMember = financeData?.years[financeData.currentYear]
+                                ?.months[financeData.currentMonth]
+                                ?.members?.find(m => m.id == spending.sendMemberId);
+        if(receivedMember.incomes) {
+          receivedMember.incomes = receivedMember.incomes.filter(x => x.id !== spending.sendIncomeId);
+        }
+
+        console.log(spending, receivedMember.incomes.find(x => x.id == spending.sendIncomeId));
+        member.spendings = member.spendings.filter(x => x.id !== spendingId);  
+
         saveData();
         renderFamilySummary();
 		    renderMembers();
@@ -1495,9 +1525,14 @@ function isNullOrEmpty(value) {
 function generateId(list) {
   return list.length ? Math.max(...list.map(x => x.id)) + 1 : 1;
 }
-function currency(val, shouldMask = false) {
+function formatCurrency(val, shouldMask = false) {
   if (shouldMask) return '••••••••';
-  return '₺' + Number(val).toLocaleString('tr-TR', { minimumFractionDigits: 2 });
+  return formatTL.format(val);
+  //return '₺' + Number(val).toLocaleString('tr-TR', { minimumFractionDigits: 2 });
+}
+function formatText(val, shouldMask = false) {
+  if (shouldMask) return '••••••••';
+  return val;
 }
 
 function getValidDate(input, format = DEFAULT_DATE_FORMAT) {
@@ -1642,16 +1677,13 @@ openEditSpending = function(memberId, spendingId) {
   }
 };
 
-function toggleCurrencyMask(element, originalValue) {
+function toggleMask(element, originalValue, currency = true) {
   const currentText = element.textContent?.trim();
-  //console.log('[toggleCurrencyMask] ', currentText, originalValue);
   if (currentText === '••••••••') {
-    // Unmask
     if (originalValue != undefined) {
-      element.textContent = currency(Number(originalValue));
+      element.textContent = currency ? formatCurrency(Number(originalValue)) : originalValue;
     }
   } else {
-    // Mask
     element.textContent = '••••••••';
   }
 }
@@ -1659,15 +1691,16 @@ function toggleCurrencyMask(element, originalValue) {
 function toggleAllCurrencyMasks() {
   isCurrencyMasked = !isCurrencyMasked;
   if(isCurrencyMasked) {
-    $('#show-hide-icon').removeClass('fa-eye');
-    $('#show-hide-icon').addClass('fa-eye-slash');
+    $('.show-hide-icon').removeClass('fa-eye');
+    $('.show-hide-icon').addClass('fa-eye-slash');
   } else {
-    $('#show-hide-icon').addClass('fa-eye');
-    $('#show-hide-icon').removeClass('fa-eye-slash');
+    $('.show-hide-icon').addClass('fa-eye');
+    $('.show-hide-icon').removeClass('fa-eye-slash');
   }
   // todo: mehmet.sumer: burayi fixle jquery ile yapilir.
   renderFamilySummary();
   renderMembers();  
+  renderSavings();
 }
 
 // #region Render Functions
@@ -1713,13 +1746,13 @@ function renderMembers() {
             </h5>
             <div class="mb-2">
               <div class="badge bg-big bg-income me-1 income-color">
-                <i class="bi bi-plus-circle"></i> <span class="income-color pointer" onclick="toggleCurrencyMask(this, ${income})">${currency(income, isCurrencyMasked)}</span>
+                <i class="bi bi-plus-circle"></i> <span class="income-color pointer" onclick="toggleMask(this, ${income})">${formatCurrency(income, isCurrencyMasked)}</span>
               </div>
               <div class="badge bg-big bg-spending spending-color">
-                <i class="bi bi-dash-circle"></i> <span class="spending-color pointer" onclick="toggleCurrencyMask(this, ${spend})">${currency(spend, isCurrencyMasked)}</span>
+                <i class="bi bi-dash-circle"></i> <span class="spending-color pointer" onclick="toggleMask(this, ${spend})">${formatCurrency(spend, isCurrencyMasked)}</span>
               </div>
               <div class="badge bg-big bg-card ${netColor}">
-                <i class="bi bi-calculator"></i> <span class="${netColor} pointer" onclick="toggleCurrencyMask(this, ${net})">${currency(net, isCurrencyMasked)}</span>
+                <i class="bi bi-calculator"></i> <span class="${netColor} pointer" onclick="toggleMask(this, ${net})">${formatCurrency(net, isCurrencyMasked)}</span>
               </div>
             </div>
           </div>
@@ -1742,15 +1775,15 @@ function renderMembers() {
                       <i class="bi bi-cash-coin"></i> ${income.name}
                     </div>
                     <div>
-                      ${ members.find(x=> x.id == income.senderId) ? members.find(x=> x.id == income.senderId)?.name : '' }
+                      ${ members.find(x=> x.id == income.senderId)?.name ?? '' }
                     </div>
                     <div class="d-flex justify-content-end align-items-center">
-                      <span class="fw-bold income-color pointer" onclick="toggleCurrencyMask(this, ${income.value})">${currency(income.value, isCurrencyMasked)}</span>                                                
+                      <span class="fw-bold income-color pointer" onclick="toggleMask(this, ${income.value})">${formatCurrency(income.value, isCurrencyMasked)}</span>                                                
                       <div class="form-check form-switch ms-3">
-                        <input class="form-check-input" type="checkbox" name="income-received" title="Alındı" ${income.received ? 'checked' : ''} onchange="toggleIncomeReceived(${member.id},${income.id})">
+                        <input ${income.senderId ? 'disabled' : ''} class="form-check-input" type="checkbox" name="income-received" title="Alındı" ${income.received ? 'checked' : ''} onchange="toggleIncomeReceived(${member.id},${income.id})">
                       </div>
-                      <button class="icon-btn edit" onclick="openEditIncome(${member.id},${income.id})"><i class="fas fa-pen"></i></button>
-                      <button class="icon-btn delete" onclick="deleteIncome(${member.id},${income.id})"><i class="fas fa-trash"></i></button>
+                      <button ${income.senderId ? 'disabled' : ''} class="icon-btn edit" onclick="openEditIncome(${member.id},${income.id})"><i class="fas fa-pen"></i></button>
+                      <button ${income.senderId ? 'disabled' : ''} class="icon-btn delete" onclick="deleteIncome(${member.id},${income.id})"><i class="fas fa-trash"></i></button>
                     </div>
                   </div>`).join('')}
               </div>
@@ -1775,7 +1808,7 @@ function renderMembers() {
                       </div>` : ''}                  
                     </div>
                     <div class="d-flex justify-content-end align-items-center">
-                      <span class="fw-bold spending-color pointer" onclick="toggleCurrencyMask(this, ${cardSpend})">${currency(cardSpend, isCurrencyMasked)}</span>
+                      <span class="fw-bold spending-color pointer" onclick="toggleMask(this, ${cardSpend})">${formatCurrency(cardSpend, isCurrencyMasked)}</span>
                       <div class="form-check form-switch ms-3">
                         <input class="form-check-input" type="checkbox" name="card-received" title="Alındı" ${card.payed ? 'checked' : ''} onchange="toggleCardPayed(${member.id},${card.id})">
                       </div>
@@ -1785,10 +1818,10 @@ function renderMembers() {
                   </div>`
                 }).join('')}
               </div>
-              <div class="fw-bold ms-2">Toplam Kart Harcaması: <span class="spending-color pointer" onclick="toggleCurrencyMask(this, '${(member.spendings || []).filter(s => s.cardId && s.payed).reduce((a, b) => {
+              <div class="fw-bold ms-2">Toplam Kart Harcaması: <span class="spending-color pointer" onclick="toggleMask(this, '${(member.spendings || []).filter(s => s.cardId && s.payed).reduce((a, b) => {
                 if (!b.installment || b.installment < 1) b.installment = 1;
                 return a + Number(b.value) / b.installment;
-              }, 0)}')">${currency((member.spendings || []).filter(s => s.cardId && s.payed).reduce((a, b) => {
+              }, 0)}')">${formatCurrency((member.spendings || []).filter(s => s.cardId && s.payed).reduce((a, b) => {
                 if (!b.installment || b.installment < 1) b.installment = 1;
                 return a + Number(b.value) / b.installment;
               }, 0), isCurrencyMasked)}</span></div>
@@ -1825,9 +1858,9 @@ function renderMembers() {
                     <div> 
                       <div>
                         <span class="fw-bold spending-color pointer" 
-                              onclick="toggleCurrencyMask(this, ${Number(spending.value) / (spending.installment || 1)})">${currency(Number(spending.value) / (spending.installment || 1), isCurrencyMasked)}</span>
+                              onclick="toggleMask(this, ${Number(spending.value) / (spending.installment || 1)})">${formatCurrency(Number(spending.value) / (spending.installment || 1), isCurrencyMasked)}</span>
                       </div>${spending.installment > 1 ? `<div>
-                        <span class='fw-bold badge bg-danger pointer' onclick="toggleCurrencyMask(this, ${Number(spending.value)})">${currency(Number(spending.value), isCurrencyMasked)}</span></div>` : ''}              
+                        <span class='fw-bold badge bg-danger pointer' onclick="toggleMask(this, ${Number(spending.value)})">${formatCurrency(Number(spending.value), isCurrencyMasked)}</span></div>` : ''}              
                     </div>   
                     <div class="form-check form-switch ms-3">
                         <input class="form-check-input" type="checkbox" name="spending-payed" title="Ödendi" ${spending.payed ? 'checked' : ''} onchange="toggleSpendingPayed(${member.id},${spending.id})">
@@ -1838,7 +1871,7 @@ function renderMembers() {
                 </div>`;
               }).join('')}
             </div>
-            <div class="fw-bold ms-2">Toplam: <span class="spending-color pointer" onclick="toggleCurrencyMask(this, ${spend})">${currency(spend, isCurrencyMasked)}</span></div>
+            <div class="fw-bold ms-2">Toplam: <span class="spending-color pointer" onclick="toggleMask(this, ${spend})">${formatCurrency(spend, isCurrencyMasked)}</span></div>
           </div>
         </div>
       </div>
@@ -1871,13 +1904,13 @@ function renderFamilySummary() {
   const netColor = net < 0 ? 'spending-color' : 'card-color';
   $('#family-summary').html(`<div class="row g-2">
                                 <div class="col-md-4">
-                                  <div class="card bg-income material-shadow p-3"><span class="fw-bold income-color"><i class="bi bi-plus-circle"></i> Toplam Gelir:</span> <span class="fs-5 fw-bold income-color pointer" onclick="toggleCurrencyMask(this, ${totalIncome})">${currency(totalIncome, isCurrencyMasked)}</span></div>
+                                  <div class="card bg-income material-shadow p-3"><span class="fw-bold income-color"><i class="bi bi-plus-circle"></i> Toplam Gelir:</span> <span class="fs-5 fw-bold income-color pointer" onclick="toggleMask(this, ${totalIncome})">${formatCurrency(totalIncome, isCurrencyMasked)}</span></div>
                                 </div>
                                 <div class="col-md-4">
-                                  <div class="card bg-spending material-shadow p-3"><span class="fw-bold spending-color"><i class="bi bi-dash-circle"></i> Toplam Gider:</span> <span class="fs-5 fw-bold spending-color pointer" onclick="toggleCurrencyMask(this, ${totalSpend})">${currency(totalSpend, isCurrencyMasked)}</span></div>
+                                  <div class="card bg-spending material-shadow p-3"><span class="fw-bold spending-color"><i class="bi bi-dash-circle"></i> Toplam Gider:</span> <span class="fs-5 fw-bold spending-color pointer" onclick="toggleMask(this, ${totalSpend})">${formatCurrency(totalSpend, isCurrencyMasked)}</span></div>
                                 </div>
                                 <div class="col-md-4">
-                                  <div class="card bg-card material-shadow p-3"><span class="fw-bold ${netColor}"><i class="bi bi-calculator"></i> Net:</span> <span class="fs-5 fw-bold ${netColor} pointer" onclick="toggleCurrencyMask(this, ${net})">${currency(net, isCurrencyMasked)}</span></div>
+                                  <div class="card bg-card material-shadow p-3"><span class="fw-bold ${netColor}"><i class="bi bi-calculator"></i> Net:</span> <span class="fs-5 fw-bold ${netColor} pointer" onclick="toggleMask(this, ${net})">${formatCurrency(net, isCurrencyMasked)}</span></div>
                                 </div>
                               </div>`);
 }
@@ -1955,11 +1988,12 @@ function renderSavings() {
       rowTotal = row.quantity * parseStringToNumber(currency.alis);
       totalSavings += rowTotal;
 
-      const $row = $("<tr>").append(
-        `<td>${currency.text}</td>
-        <td>${formatTL.format(currency.alis)}</td>
-        <td>${row.quantity}</td>
-        <td>${formatTL.format(rowTotal)}</td>
+      const $row = $(`<tr data-savingid='${row.id}' class='sortable-item'>`).append(
+        `<td>
+          <i class="sortable-handle bi bi-list me-2"></i> ${currency.text}</td>
+        <td>${formatCurrency(currency.alis)}</td>
+        <td class="pointer" onclick="toggleMask(this, ${row.quantity}, false)">${formatText(row.quantity, isCurrencyMasked)}</td>
+        <td class="pointer" onclick="toggleMask(this, ${rowTotal})">${formatCurrency(rowTotal, isCurrencyMasked)}</td>
         <td>${row.explanation ?? ""}</td>
         <td>
           <button class="icon-btn edit btn-edit-saving" data-id="${row.id}"><i class="fas fa-edit"></i></button>
@@ -1973,7 +2007,10 @@ function renderSavings() {
   $('#quantity').val(''); 
   $('#savingExplanation').val('');
   $('#addSavings').text('Birikim Ekle');
-  $('#totalSavings').html(formatTL.format(totalSavings));
+  $('#totalSavings').html(formatCurrency(totalSavings, isCurrencyMasked));
+  $('#totalSavings').attr('onclick', `toggleMask(this, ${totalSavings})`);
+  
+  initializeSortable();
 }
 function renderGoals() {
   const $tbody = $("#goalsTable tbody");
@@ -1982,8 +2019,9 @@ function renderGoals() {
   $.each(financeData.savings.goals, function (key, row) {
     total += row.amount;
 
-    const $row = $("<tr>").append(
-      `<td>${row.name}</td>
+    const $row = $(`<tr data-goalid='${row.id}' class='sortable-item'>`).append(
+      `<td>
+          <i class="sortable-handle bi bi-list me-2"></i> ${row.name}</td>
       <td>${formatTL.format(row.amount)}</td>
       <td>
         <button class="icon-btn edit btn-edit-goal" data-id="${row.id}"><i class="fas fa-edit"></i></button>
@@ -1996,10 +2034,13 @@ function renderGoals() {
   $('#goalName').val('');
   $('#goalAmount').val('');
   $('#addGoals').text('Hedef Ekle');
-  $('#totalGoals').html(formatTL.format(total));
-  $('#moneyLeft').html(formatTL.format(total-totalSavings));
+  $('#totalGoals').html(formatCurrency(total));
+  $('#moneyLeft').html(formatCurrency(total-totalSavings, isCurrencyMasked));
+  $('#moneyLeft').attr('onclick', `toggleMask(this, ${total-totalSavings})`);
   $('#moneyLeft').removeClass('text-success').removeClass('text-danger');  
-  $('#moneyLeft').addClass(total-totalSavings < 0 ? 'text-success' : 'text-danger');  
+  $('#moneyLeft').addClass(total-totalSavings < 0 ? 'text-success' : 'text-danger'); 
+  
+  initializeSortable(); 
 }
 
 function initializeSortable() {
@@ -2017,7 +2058,7 @@ function initializeSortable() {
         if(type === 0) { 
           $parent.children('.sortable-item').each(function(index) {
             const incomeId = $(this).data('incomeid');
-            const income = member.incomes.find(s => s.id === incomeId);
+            const income = member.incomes.find(x => x.id === incomeId);
             if(income) {
               income.order = index;
             }
@@ -2028,7 +2069,7 @@ function initializeSortable() {
         else if(type === 1) { 
           $parent.children('.sortable-item').each(function(index) {
             const cardId = $(this).data('cardid');
-            const card = member.cards.find(s => s.id === cardId);
+            const card = member.cards.find(x => x.id === cardId);
             if(card) {
               card.order = index;
             }
@@ -2039,7 +2080,7 @@ function initializeSortable() {
         else if(type === 2) { 
           $parent.children('.sortable-item').each(function(index) {
             const spendingId = $(this).data('spendingid');
-            const spending = member.spendings.find(s => s.id === spendingId);
+            const spending = member.spendings.find(x => x.id === spendingId);
             if(spending) {
               spending.order = index;
             }
@@ -2050,13 +2091,33 @@ function initializeSortable() {
         else if(type === 3) { 
           $parent.children('.sortable-item').each(function(index) {
             const memberEditId = $(this).data('memberid');
-            const memberEdit = members.find(m => m.id === memberEditId);                               
+            const memberEdit = members.find(x => x.id === memberEditId);                               
             if(memberEdit) {
               memberEdit.order = index;
             }
           });
 
           members.sort(function(a, b) { return a.order - b.order; });
+        } else if(type === 4) { 
+          $parent.children('.sortable-item').each(function(index) {
+            const savingId = $(this).data('savingid');
+            const saving = financeData.savings.savings.find(x => x.id === savingId);
+            if(saving) {
+              saving.order = index;
+            }
+          });
+
+          financeData.savings.savings.sort(function(a, b) { return a.order - b.order; });
+        } else if(type === 5) { 
+          $parent.children('.sortable-item').each(function(index) {
+            const goalId = $(this).data('goalid');
+            const goal = financeData.savings.goals.find(x => x.id === goalId);
+            if(goal) {
+              goal.order = index;
+            }
+          });
+
+          financeData.savings.goals.sort(function(a, b) { return a.order - b.order; });
         }
         
         saveData();
@@ -2372,29 +2433,16 @@ $(document).ready(function() {
       return;
     }
 
-    if(sendMemberId > 0) {
-      const sendMember = financeData?.years[financeData.currentYear]
-                              ?.months[financeData.currentMonth]
-                              ?.members?.find(x => x.status && x.id === sendMemberId);
-      if(!sendMember) {
-        showToast('Para gönderilecek kişi bulunamadı.', 'error');  
-        return;
-      }  
-      sendMember.incomes.push({ 
-        id: generateId(sendMember.incomes), 
-        name: name, 
-        value: value, 
-        received: payed,
-        senderId: memberId,
-      });   
-      console.log(sendMember);
-    }
-
     member.spendings ??= [];
+
+    let saveSpendingId = null;
+    let saveSendMemberId = null;
 
     if (spendingId) {
       const spending = member.spendings.find(s => s.id == spendingId);
       if (spending) {
+        saveSpendingId = spendingId;
+        saveSendMemberId = spending.sendMemberId;
         spending.name = name;
         spending.value = value;
         spending.payed = payed;
@@ -2404,8 +2452,9 @@ $(document).ready(function() {
         spending.sendMemberId = sendMemberId;
       }
     } else {
+      saveSpendingId = generateId(member.spendings);
       member.spendings.push({ 
-        id: generateId(member.spendings), 
+        id: saveSpendingId, 
         name, 
         value, 
         payed, 
@@ -2416,6 +2465,52 @@ $(document).ready(function() {
         order: 999,
         sendMemberId: sendMemberId
       });
+    }
+
+    const sendMember = financeData?.years[financeData.currentYear]
+                              ?.months[financeData.currentMonth]
+                              ?.members?.find(x => x.status && (x.id === sendMemberId || x.id === saveSendMemberId));
+    if((sendMemberId > 0 || saveSendMemberId > 0) && !sendMember) {
+      showToast('Para gönderilecek kişi bulunamadı.', 'error');  
+      return;
+    }
+
+    let sendIncomeId = null;
+    const sendIncome = sendMember.incomes.find(x=> x.senderId == memberId && x.senderSpendingId == saveSpendingId);
+    console.log('sendIncome: ', sendIncome, 
+                'member.spending: ', member.spendings.find(x=> x.id == saveSpendingId), 
+                'saveSpendingId: ', saveSpendingId, 
+                'sendMemberId: ', sendMemberId,
+                'saveSendMemberId: ',  saveSendMemberId);
+    if(sendMemberId > 0) {   
+      if(sendIncome) {
+          sendIncomeId = sendIncome.id;
+          sendIncome.name = name;
+          sendIncome.value = value;
+          sendIncome.received = payed;
+      }
+      else {   
+        sendIncomeId = generateId(sendMember.incomes);
+        sendMember.incomes.push({ 
+          id: sendIncomeId, 
+          name: name, 
+          value: value, 
+          received: payed,
+          senderId: memberId,
+          senderSpendingId: saveSpendingId,
+        });  
+      } 
+
+      const spendingIncomeIdUpdate = member.spendings.find(s => s.id == saveSpendingId);
+      if(spendingIncomeIdUpdate) {
+        spendingIncomeIdUpdate.sendIncomeId = sendIncomeId;
+      }
+
+      console.log(sendMember.incomes, spendingIncomeIdUpdate);
+    }
+    else if(saveSendMemberId > 0) {
+        console.log('saveSendMemberId > 0: ', sendMember.incomes);
+        sendMember.incomes = sendMember.incomes.filter(i => i.id != sendIncome.id);
     }
 
     saveData();		
@@ -2521,6 +2616,7 @@ $(document).ready(function() {
       financeData.savings.currencies.push(rate);
       saveData();
       renderCurrencies();
+      showToast('Para birimi eklendi.'); 
       console.log(text, value, rate.tarih);
       
   });
@@ -2551,6 +2647,7 @@ $(document).ready(function() {
 
       saveData();
       renderCurrencies();
+      showToast('Para birimi eklendi.'); 
       console.log(text, value);
       $('#newCurrencyValue').val('');
       $('#newCurrency').val('');
@@ -2600,22 +2697,22 @@ $(document).ready(function() {
         saveData();
         renderSavings();
         renderGoals();
-        return;
+        return showToast('Birikim güncellendi.');
       }
 
       const checkSaving = financeData.savings.savings.find(x=> x.currencyCode == checkCurrency.code);
         if(!checkSaving) {
-           financeData.savings.savings.push({
-              id: generateId(financeData.savings.savings),
-              currencyCode: code,
-              quantity: quantity,
-              explanation: explanation,
-            });
+          financeData.savings.savings.push({
+            id: generateId(financeData.savings.savings),
+            currencyCode: code,
+            quantity: quantity,
+            explanation: explanation,
+          });
             
-            saveData();
-            renderSavings();
-            renderGoals();
-            return;
+          saveData();
+          renderSavings();
+          renderGoals();
+          return showToast('Birikim eklendi.');
         }
         showToast('Aynı para birimiyle bir birikim mevcut. Güncellensin mi?', 'warning', 0, 'center', true).then((result) => {
           if (result.isConfirmed) {  
@@ -2633,6 +2730,7 @@ $(document).ready(function() {
           saveData();
           renderSavings();
           renderGoals();
+          return showToast('Birikim eklendi.');
         });  
   });
   $(document).on('click', '#addGoals', function(e) {
@@ -2649,6 +2747,7 @@ $(document).ready(function() {
         if(checkGoal) {
           checkGoal.name = name;
           checkGoal.amount = amount;
+          showToast('Hedef güncellendi.');
         } 
       }
       else {
@@ -2656,7 +2755,8 @@ $(document).ready(function() {
           id: generateId(financeData.savings.goals),
           name: name,
           amount: amount
-        });
+        }); 
+        showToast('Hedef eklendi.');
       }
 
       saveData();
@@ -2722,6 +2822,7 @@ $(document).ready(function() {
         saveData();
         renderSavings();
         renderGoals();
+        showToast('Birikim silindi.');
       }
     });
   });
@@ -2738,6 +2839,7 @@ $(document).ready(function() {
 
         saveData();
         renderGoals();
+        showToast('Hedef silindi.');
       }
     });
   });
