@@ -472,7 +472,7 @@
   <div class="d-flex justify-content-between align-items-center mb-4">
     <div class="d-flex align-items-center">
       <h2 id="page-title"><i class="bi bi-people-fill me-2"></i>Finans Yöneticisi</h2>
-      <small class="text-muted ms-2">v1.3.2</small>   
+      <small class="text-muted ms-2">v1.3.3</small>   
     </div>
     <div>
       <button class="top-action-btn" id="btn-load-json"><i class="bi bi-folder2-open ms-2"></i>Verileri Geri Yükle</button>
@@ -2476,7 +2476,7 @@ $(document).ready(function() {
     }
 
     let sendIncomeId = null;
-    const sendIncome = sendMember.incomes.find(x=> x.senderId == memberId && x.senderSpendingId == saveSpendingId);
+    const sendIncome = sendMember?.incomes?.find(x=> x.senderId == memberId && x.senderSpendingId == saveSpendingId);
     console.log('sendIncome: ', sendIncome, 
                 'member.spending: ', member.spendings.find(x=> x.id == saveSpendingId), 
                 'saveSpendingId: ', saveSpendingId, 
