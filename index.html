@@ -472,7 +472,7 @@
   <div class="d-flex justify-content-between align-items-center mb-4">
     <div class="d-flex align-items-center">
       <h2 id="page-title"><i class="bi bi-people-fill me-2"></i>Finans Yöneticisi</h2>
-      <small class="text-muted ms-2">v1.3.4</small>   
+      <small class="text-muted ms-2">v1.3.5</small>   
     </div>
     <div>
       <button class="top-action-btn" id="btn-load-json"><i class="bi bi-folder2-open ms-2"></i>Verileri Geri Yükle</button>
@@ -1917,12 +1917,17 @@ function renderMembers() {
               <h6 class="income-color">Gelirler<button class="icon-btn income-color" onclick="openAddIncome(${member.id})"><i class="bi bi-plus-circle"></i></button></h6>
               <div data-type="0" data-memberid="${member.id}" class="col-md-12 list-group sortable-list mb-2">
                 ${member.incomes?.map(income => `<div data-incomeid="${income.id}" class="mb-1 col-md-12 list-group-item sortable-item d-flex justify-content-between bg-income">
-                    <div class="fw-bold">
-                      <i class="sortable-handle bi bi-list me-2"></i>
-                      <i class="bi bi-cash-coin"></i> ${income.name}
-                    </div>
-                    <div>
-                      ${ members.find(x=> x.id == income.senderId)?.name ?? '' }
+                    <div class="col-md-6 col-sm-7">
+                      <div class="col-md-12 fw-bold">
+                        <i class="sortable-handle bi bi-list me-2"></i>
+                        <i class="bi bi-cash-coin"></i> ${income.name}
+                      </div>
+                      ${members.find(x=> x.id == income.senderId)?.name ? 
+                      `<div class="col-md-12 fw-bold">
+                        <div class="col-md-12 fw-bold">
+                          <span class="badge card-color"><i class="bi bi-person-circle"></i> ${members.find(x=> x.id == income.senderId)?.name}</span>
+                        </div>
+                      </div>` : ''}                  
                     </div>
                     <div class="d-flex justify-content-end align-items-center">
                       <span class="fw-bold income-color pointer" onclick="toggleMask(this, ${income.value})">${formatCurrency(income.value, isCurrencyMasked)}</span>                                                
@@ -1944,7 +1949,7 @@ function renderMembers() {
                     return a + Number(b.value) / b.installment;
                   }, 0);
                   return `<div data-cardid="${card.id}" class="mb-1 list-group-item sortable-item bg-card d-flex justify-content-between align-items-center">
-                    <div class="col-md-7">
+                    <div class="col-md-6 col-sm-7">
                       <div class="col-md-12 fw-bold">
                         <i class="sortable-handle bi bi-list me-2"></i>
                         <i class="bi bi-credit-card"></i> ${card.name}
@@ -1988,7 +1993,7 @@ function renderMembers() {
                   }
                 }
                 return `<div data-spendingid="${spending.id}" class="mb-1 col-md-12 list-group-item sortable-item d-flex justify-content-between bg-spending">
-                  <div class="col-md-7">
+                  <div class="col-md-6 col-sm-7">
                     <div class="col-md-12 fw-bold">
                       <i class="sortable-handle bi bi-list me-2"></i>
                       <i class="bi bi-cart-dash"></i> ${spending.name} 
@@ -1997,8 +2002,7 @@ function renderMembers() {
                             : ''} ${spending.installment > 1 ? `<span class='badge bg-secondary'>${spending.currentInstallment > 1 
                                 ? spending.currentInstallment 
                                 : currentInstallment}/${spending.installment}</span>` : ''}                
-                      ${ members.find(x=> x.id == spending.sendMemberId) ? `<span class='badge card-color'><i class='bi bi-person-circle'></i> 
-                      ${members.find(x=> x.id == spending.sendMemberId)?.name}</span>` : '' }
+                      ${members.find(x=> x.id == spending.sendMemberId) ? `<span class='badge card-color'><i class='bi bi-person-circle'></i> ${members.find(x=> x.id == spending.sendMemberId)?.name}</span>` : '' }
                     </div>`  : ''}                  
                   </div>
                   <div class="d-flex justify-content-end align-items-center">
