@@ -579,7 +579,7 @@
                   <input type="text" id="newCurrency" class="form-control mb-2" placeholder="Örn: Gram Altın">      
                 </div>
                 <div class="col-md-6">
-                  <input type="number" id="newCurrencyValue" class="form-control mb-2" placeholder="Değer, Örn: 2500">
+                  <input type="text" data-type="currency" id="newCurrencyValue" class="form-control mb-2" placeholder="Değer, Örn: 2500">
                 </div>
                 <button id="addNewCurrency" class="btn btn-success w-100">Yeni Para Birimi Ekle</button>    
               </div>
@@ -616,7 +616,7 @@
                     <th>Miktar</th>
                     <th>Toplam (₺)</th>
                     <th>Açıklama</th>
-                    <th>Sil</th>
+                    <th>İşlemler</th>
                   </tr>
                 </thead>
                 <tbody class="sortable-list" data-type="4"></tbody>
@@ -634,7 +634,7 @@
                 <input type="text" id="goalName" class="form-control" placeholder="Hedef Adı">
               </div>
               <div class="col-md-4">
-                <input type="number" id="goalAmount" class="form-control" placeholder="Tutar (₺)">
+                <input type="text" data-type="currency" id="goalAmount" class="form-control" placeholder="Tutar (₺)">
               </div>
               <div class="col-md-2">
                 <button id="addGoals" class="btn btn-success w-100">Hedef Ekle</button>
@@ -646,7 +646,7 @@
                   <tr>
                     <th>Hedef</th>
                     <th>Tutar (₺)</th>
-                    <th>Sil</th>
+                    <th>İşlemler</th>
                   </tr>
                 </thead>
                 <tbody class="sortable-list" data-type="5"></tbody>
@@ -703,7 +703,7 @@
             <label for="income-name">Adı</label>
           </div>
           <div class="form-floating mb-3">
-            <input type="number" class="form-control" id="income-value" required min="0" step="0.01">
+            <input type="text" data-type="currency" class="form-control" id="income-value" required>
             <label for="income-value">Tutar</label>
           </div>
           <div class="form-check form-switch">
@@ -737,7 +737,7 @@
             <label for="spending-name">Gider Adı</label>
           </div>
           <div class="form-floating mb-3">
-            <input type="number" class="form-control" id="spending-value" placeholder="Tutar" required min="0" step="0.01">
+            <input type="text" data-type="currency" class="form-control" id="spending-value" placeholder="Tutar" required>
             <label for="spending-value">Tutar</label>
           </div>
           <div class="form-check form-switch mb-3">
@@ -1261,6 +1261,29 @@ function toggleSpendingPayed(memberId, spendingId) {
   }
 }
 
+function toggleSavingStatus(savingId) {  
+  const saving = financeData.savings?.savings?.find(x => x.id === savingId);
+  if(saving) {
+    saving.status = !saving.status;
+
+    saveData();
+    renderSavings();
+    renderGoals();
+    
+    showToast('Birikim durumu güncellendi.'); 
+  }
+}
+function toggleGoalStatus(goalId) {  
+  const goal = financeData.savings?.goals?.find(x => x.id === goalId);
+  if(goal) {
+    goal.status = !goal.status;
+
+    saveData();
+    renderGoals();
+    
+    showToast('Hedef durumu güncellendi.'); 
+  }
+}
 function toggleMemberStatus(memberId) {  
   const member = financeData.years[financeData.currentYear]
                            ?.months[financeData.currentMonth]
@@ -1310,7 +1333,7 @@ function openEditIncome(memberId, incomeId) {
     $('#income-member-id').val(memberId);
     $('#income-id').val(incomeId);
     $('#income-name').val(income.name);
-    $('#income-value').val(income.value);
+    $('#income-value').val(formatCurrency(income.value));
     $('#income-received').prop('checked', !!income.received);
     $('#incomeModal').modal('show');   
   }
@@ -1357,7 +1380,7 @@ function openEditSpending(memberId, spendingId) {
     $('#spending-member-id').val(memberId);
     $('#spending-id').val(spendingId);
     $('#spending-name').val(spending.name);
-    $('#spending-value').val(spending.value);
+    $('#spending-value').val(formatCurrency(spending.value));
     $('#spending-payed').prop('checked', !!spending.payed);
     $('#spending-card-id').val(spending.cardId || '');
     $('#spending-sendmember-id').val(spending.sendMemberId || '');
@@ -1378,11 +1401,11 @@ function deleteSpending(memberId, spendingId) {
         const receivedMember = financeData?.years[financeData.currentYear]
                                 ?.months[financeData.currentMonth]
                                 ?.members?.find(m => m.id == spending.sendMemberId);
-        if(receivedMember.incomes) {
+        if(receivedMember?.incomes) {
           receivedMember.incomes = receivedMember.incomes.filter(x => x.id !== spending.sendIncomeId);
         }
 
-        console.log(spending, receivedMember.incomes.find(x => x.id == spending.sendIncomeId));
+        console.log(spending, receivedMember?.incomes?.find(x => x.id == spending.sendIncomeId));
         member.spendings = member.spendings.filter(x => x.id !== spendingId);  
 
         saveData();
@@ -1528,11 +1551,71 @@ function generateId(list) {
 function formatCurrency(val, shouldMask = false) {
   if (shouldMask) return '••••••••';
   return formatTL.format(val);
-  //return '₺' + Number(val).toLocaleString('tr-TR', { minimumFractionDigits: 2 });
 }
 function formatText(val, shouldMask = false) {
   if (shouldMask) return '••••••••';
   return val;
+}
+function inputFormatNumber(n) {
+    return n.replace(/\D/g, "").replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+}
+function inputFormatCurrency(input, event, blur=false) {
+    var input_val = input.val();
+    if (isNullOrEmpty(input_val)) { 
+      return; 
+    }
+
+    var original_len = input_val.length;
+
+    var caret_pos = input.prop("selectionStart");
+    console.log(caret_pos);
+    const dotParts = input_val.split(".");
+    if (dotParts[0]?.replaceAll('₺', '')?.length > 3) {
+        input_val = input_val.replaceAll('.', ',');
+    }
+
+    if (input_val.indexOf(",") >= 0) {
+        var decimal_pos = input_val.indexOf(",");
+
+        var left_side = input_val.substring(0, decimal_pos);
+        var right_side = input_val.substring(decimal_pos);
+
+        left_side = inputFormatNumber(left_side);
+
+        right_side = inputFormatNumber(right_side);
+
+        if (blur) {
+            right_side += "00";
+        }
+
+        right_side = right_side.substring(0, 2);
+
+        input_val = "₺" + left_side + "," + right_side;
+
+    }
+    else {
+        input_val = inputFormatNumber(input_val);
+
+        input_val = "₺" + input_val;
+
+        if (blur) {
+            if (input_val.length <= 1) input_val += "0";
+            input_val += ",00";
+        }
+    }
+
+    input.val(input_val);
+
+    var updated_len = input_val.length;
+    caret_pos = updated_len - original_len + caret_pos;
+    caret_pos = caret_pos > 0 ? caret_pos : updated_len;
+
+    console.log(updated_len, original_len, caret_pos);
+    console.log(event.ctrlKey, event.key);
+
+    if(event.key !== 'Control' && !(event.ctrlKey && event.key === 'a')) {
+      input[0].setSelectionRange(caret_pos, caret_pos);
+    }
 }
 
 function getValidDate(input, format = DEFAULT_DATE_FORMAT) {
@@ -1583,14 +1666,26 @@ function normalizeString(str) {
             .replace(/^_+|_+$/g, '')      // Baş ve sondaki _'leri temizle
             .replace(/_{2,}/g, '_');      // Birden fazla _ yerine tek _
 }
-function parseStringToNumber(currencyString) {
-  currencyString = currencyString?.toString();
-  if(!(currencyString?.length > 0)) return 0;
-  return parseFloat(currencyString.replaceAll("TRY", "")
-                                  .replaceAll("₺", "")
-                                  .replaceAll("\u20BA", "")
-                                  .replaceAll(",", ".")
-                                  .trim());
+function parseStringToNumber(input, toFixed = 2) {
+  if (isNullOrEmpty(input)) return null;
+  if (typeof input !== 'string') return input;
+  
+  let output = input.trim().replaceAll(/\s/g, '').replaceAll("₺", '').replaceAll("TRY", '').replaceAll("TL", '');
+  
+  const dotParts = output.split(".");
+  if (dotParts?.length == 1) {
+      output = output.replaceAll(',', '.');
+  }
+  else if (dotParts[0]?.length <= 3 && dotParts[1]?.length != 3) {
+      output = output.replaceAll(',', '.');
+  }
+  else if (dotParts[0]?.length <= 3) {
+      output = output.replaceAll('.', '').replaceAll(',', '.');
+  }
+
+  const parsed = parseFloat(output);
+  //console.log(input, parsed, dotParts);
+  return toFixed >= 0 ? parseFloat(parsed.toFixed(toFixed)) : parsed;
 }
 // #endregion 
 
@@ -1701,6 +1796,7 @@ function toggleAllCurrencyMasks() {
   renderFamilySummary();
   renderMembers();  
   renderSavings();
+  renderGoals();
 }
 
 // #region Render Functions
@@ -1986,7 +2082,9 @@ function renderSavings() {
     const currency = financeData.savings.currencies.find(x=> x.code == row.currencyCode);
     if(currency) {
       rowTotal = row.quantity * parseStringToNumber(currency.alis);
-      totalSavings += rowTotal;
+      if(row.status) {
+        totalSavings += rowTotal;
+      }
 
       const $row = $(`<tr data-savingid='${row.id}' class='sortable-item'>`).append(
         `<td>
@@ -1995,9 +2093,14 @@ function renderSavings() {
         <td class="pointer" onclick="toggleMask(this, ${row.quantity}, false)">${formatText(row.quantity, isCurrencyMasked)}</td>
         <td class="pointer" onclick="toggleMask(this, ${rowTotal})">${formatCurrency(rowTotal, isCurrencyMasked)}</td>
         <td>${row.explanation ?? ""}</td>
-        <td>
-          <button class="icon-btn edit btn-edit-saving" data-id="${row.id}"><i class="fas fa-edit"></i></button>
-          <button class="icon-btn delete btn-delete-saving" data-id="${row.id}"><i class="fas fa-trash"></i></button>
+        <td> 
+          <div class="d-flex align-items-center">
+            <div class="btn-status form-check form-switch">
+              <input class="form-check-input" type="checkbox" name="saving-status" title="Aktif" ${row.status ? 'checked' : ''} onchange="toggleSavingStatus(${row.id})">
+            </div>
+            <button class="icon-btn edit btn-edit-saving" data-id="${row.id}"><i class="fas fa-edit"></i></button>
+            <button class="icon-btn delete btn-delete-saving" data-id="${row.id}"><i class="fas fa-trash"></i></button>
+          </div>
         </td>`);
       $tbody.append($row);
     }
@@ -2017,15 +2120,22 @@ function renderGoals() {
   $tbody.html('');
   let total = 0;
   $.each(financeData.savings.goals, function (key, row) {
-    total += row.amount;
+    if(row.status) {
+      total += row.amount;
+    }
 
     const $row = $(`<tr data-goalid='${row.id}' class='sortable-item'>`).append(
       `<td>
           <i class="sortable-handle bi bi-list me-2"></i> ${row.name}</td>
       <td>${formatTL.format(row.amount)}</td>
       <td>
-        <button class="icon-btn edit btn-edit-goal" data-id="${row.id}"><i class="fas fa-edit"></i></button>
-        <button class="icon-btn delete btn-delete-goal" data-id="${row.id}"><i class="fas fa-trash"></i></button>
+        <div class="d-flex align-items-center">
+          <div class="btn-status form-check form-switch">
+            <input class="form-check-input" type="checkbox" name="goal-status" title="Aktif" ${row.status ? 'checked' : ''} onchange="toggleGoalStatus(${row.id})">
+          </div>
+          <button class="icon-btn edit btn-edit-goal" data-id="${row.id}"><i class="fas fa-edit"></i></button>
+          <button class="icon-btn delete btn-delete-goal" data-id="${row.id}"><i class="fas fa-trash"></i></button>
+        </div>
       </td>`);
     $tbody.append($row);    
   });
@@ -2037,8 +2147,8 @@ function renderGoals() {
   $('#totalGoals').html(formatCurrency(total));
   $('#moneyLeft').html(formatCurrency(total-totalSavings, isCurrencyMasked));
   $('#moneyLeft').attr('onclick', `toggleMask(this, ${total-totalSavings})`);
-  $('#moneyLeft').removeClass('text-success').removeClass('text-danger');  
-  $('#moneyLeft').addClass(total-totalSavings < 0 ? 'text-success' : 'text-danger'); 
+  $('#moneyLeft').removeClass('text-success').removeClass('text-danger')
+                 .addClass(total-totalSavings < 0 ? 'text-success' : 'text-danger'); 
   
   initializeSortable(); 
 }
@@ -2213,6 +2323,16 @@ function setActiveTab() {
 // #endregion
 
 $(document).ready(function() {
+  $(document).off("keyup", 'input[data-type="currency"]');
+  $(document).on('keyup', 'input[data-type="currency"]', function (e) {
+    inputFormatCurrency($(this), e);
+  });
+
+  $(document).off("blur", 'input[data-type="currency"]');
+  $(document).on('blur', 'input[data-type="currency"]', function (e) {
+    inputFormatCurrency($(this), e, true);
+  });
+
   // #region Document Handlers
   $(document).on('shown.bs.tab', '#myTab .nav-item', function() {
     financeData.activeTabIndex = $(this).index();
@@ -2379,7 +2499,7 @@ $(document).ready(function() {
     const memberId = Number($('#income-member-id').val());
     const incomeId = $('#income-id').val();
     const name = $('#income-name').val();
-    const value = Number($('#income-value').val());
+    const value = parseStringToNumber($('#income-value').val());
     const received = $('#income-received').prop('checked');
 
     const member = financeData?.years[financeData.currentYear]
@@ -2418,7 +2538,7 @@ $(document).ready(function() {
     const memberId = Number($('#spending-member-id').val());
     const spendingId = $('#spending-id').val();
     const name = $('#spending-name').val();
-    const value = Number($('#spending-value').val());
+    const value = parseStringToNumber($('#spending-value').val());
     const payed = $('#spending-payed').prop('checked');
     const cardId = $('#spending-card-id').val() ? Number($('#spending-card-id').val()) : null;
     const sendMemberId = $('#spending-sendmember-id').val() ? Number($('#spending-sendmember-id').val()) : null;
@@ -2621,8 +2741,8 @@ $(document).ready(function() {
       
   });
   $(document).on('click', '#addNewCurrency', function(e) {
-      const value = $('#newCurrencyValue').val();
       const text = $('#newCurrency').val();
+      const value = parseStringToNumber($('#newCurrencyValue').val());
       if(!value || !text) {
         return showToast('Alanları doldurun.', 'error');
       }
@@ -2678,7 +2798,7 @@ $(document).ready(function() {
       const explanation = $('#savingExplanation').val();
       const id = $('#savingId').val();
       const quantity = parseStringToNumber($('#quantity').val());
-      if(!code || quantity == 0) {
+      if(!code || !(quantity > 0)) {
         return showToast('Alanları doldurun.', 'error');
       }
 
@@ -2694,6 +2814,7 @@ $(document).ready(function() {
           checkSaving.quantity = quantity;
           checkSaving.explanation = explanation;
         }
+
         saveData();
         renderSavings();
         renderGoals();
@@ -2707,6 +2828,7 @@ $(document).ready(function() {
             currencyCode: code,
             quantity: quantity,
             explanation: explanation,
+            status: true
           });
             
           saveData();
@@ -2724,6 +2846,7 @@ $(document).ready(function() {
               currencyCode: code,
               quantity: quantity,
               explanation: explanation,
+              status: true
             });
           }
 
@@ -2754,7 +2877,8 @@ $(document).ready(function() {
         financeData.savings.goals.push({
           id: generateId(financeData.savings.goals),
           name: name,
-          amount: amount
+          amount: amount,
+          status: true
         }); 
         showToast('Hedef eklendi.');
       }
@@ -2797,7 +2921,7 @@ $(document).ready(function() {
     if(editMode) {
       $('#goalId').val(checkGoal.id);
       $('#goalName').val(checkGoal.name);
-      $('#goalAmount').val(checkGoal.amount);
+      $('#goalAmount').val(formatCurrency(checkGoal.amount));
       $('#addGoals').text('Hedef Güncelle');
       $(this).html('<i class="fas fa-cancel"></i>');
     } else {
