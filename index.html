@@ -472,7 +472,7 @@
   <div class="d-flex justify-content-between align-items-center mb-4">
     <div class="d-flex align-items-center">
       <h2 id="page-title"><i class="bi bi-people-fill me-2"></i>Finans Yöneticisi</h2>
-      <small class="text-muted ms-2">v1.3.3</small>   
+      <small class="text-muted ms-2">v1.3.4</small>   
     </div>
     <div>
       <button class="top-action-btn" id="btn-load-json"><i class="bi bi-folder2-open ms-2"></i>Verileri Geri Yükle</button>
@@ -1118,7 +1118,6 @@ async function saveToGoogleDrive() {
     if (error.status === 401) {
       logOut();
       await requestNewToken();
-      // Retry upload after getting new token
       await saveToGoogleDrive();
     }
   }
@@ -1250,7 +1249,6 @@ function toggleSpendingPayed(memberId, spendingId) {
     }
 
     console.log(spending, receivedMemberIncome);
-
 
     saveData();
 
@@ -1453,8 +1451,8 @@ function deleteCard(memberId, cardId) {
                                  ?.members?.find(m => m.id === memberId);
       if (member?.cards) {
         member.cards = member.cards.filter(c => c.id !== cardId);
+        
         saveData();
-
         renderFamilySummary();
 		    renderMembers();
     
@@ -1482,8 +1480,8 @@ function deleteMember(memberId) {
       financeData.years[financeData.currentYear]
                  .months[financeData.currentMonth]
                  .members = members.filter(m => m.id !== memberId);
+      
       saveData();
-
       renderFamilySummary();
       renderMembers();
     
@@ -1673,20 +1671,73 @@ function parseStringToNumber(input, toFixed = 2) {
   let output = input.trim().replaceAll(/\s/g, '').replaceAll("₺", '').replaceAll("TRY", '').replaceAll("TL", '');
   
   const dotParts = output.split(".");
+  const dotParts2 = dotParts[1]?.split(",") ?? [];
   if (dotParts?.length == 1) {
       output = output.replaceAll(',', '.');
   }
-  else if (dotParts[0]?.length <= 3 && dotParts[1]?.length != 3) {
-      output = output.replaceAll(',', '.');
-  }
-  else if (dotParts[0]?.length <= 3) {
-      output = output.replaceAll('.', '').replaceAll(',', '.');
+  else if (dotParts[0]?.length <= 3 && dotParts2[0]?.length != 3) {
+    output = output.replaceAll(',', '.');
+  } else if (dotParts[0]?.length <= 3) {
+    output = output.replaceAll('.', '').replaceAll(',', '.');
   }
 
   const parsed = parseFloat(output);
-  //console.log(input, parsed, dotParts);
+  //console.log(input, parsed, dotParts, dotParts2);
   return toFixed >= 0 ? parseFloat(parsed.toFixed(toFixed)) : parsed;
 }
+// TEST
+// parseStringToNumber('0');
+// parseStringToNumber('1');
+// parseStringToNumber('1.00');
+// parseStringToNumber('1,00');
+// parseStringToNumber('2.00');
+// parseStringToNumber('2,00');
+// parseStringToNumber('32.00');
+// parseStringToNumber('32,00');
+// parseStringToNumber('355.00');
+// parseStringToNumber('355,00');
+// parseStringToNumber('0,00');
+// parseStringToNumber('0.00');
+// parseStringToNumber('1');
+// parseStringToNumber('1,5');
+// parseStringToNumber('1.5');
+// parseStringToNumber('10');
+// parseStringToNumber('10,00');
+// parseStringToNumber('10.00');
+// parseStringToNumber('1.000');
+// parseStringToNumber('1,000');
+// parseStringToNumber('1.000,5');
+// parseStringToNumber('1.000,56');
+// parseStringToNumber('1.000,567');
+// parseStringToNumber('1.000,5678');
+// parseStringToNumber('1.000,56789');
+// parseStringToNumber('1,000.5');
+// parseStringToNumber('10.000');
+// parseStringToNumber('10,000');
+// parseStringToNumber('10.000,55');
+// parseStringToNumber('10,000.55');
+// parseStringToNumber('100.000');
+// parseStringToNumber('100,000');
+// parseStringToNumber('100.000,99');
+// parseStringToNumber('100,000.99');
+// parseStringToNumber('355.355.324,44');
+// parseStringToNumber('355,355,324.44');
+// parseStringToNumber('1.234.567,89');
+// parseStringToNumber('1,234,567.89');
+// parseStringToNumber('-100,50');
+// parseStringToNumber('-100.50');
+// parseStringToNumber('0,1234');
+// parseStringToNumber('0.1234');
+// parseStringToNumber('1,234.5678');
+// parseStringToNumber('₺254.054');
+// parseStringToNumber('₺254.054,1');
+// parseStringToNumber('₺254.054,12');
+// parseStringToNumber('₺254.054,123');
+// parseStringToNumber('₺254.054,1234');
+// parseStringToNumber('₺254.054,12345');
+// parseStringToNumber('₺254054,12345');
+// parseStringToNumber('254054,12345');
+// parseStringToNumber('254054');
 // #endregion 
 
 function populateCurrencySelect() {
@@ -2482,6 +2533,7 @@ $(document).ready(function() {
 
           renderFamilySummary();
 		      renderMembers();
+          setAllDatas();
     
           showToast('Veriler yedekten yüklendi.');
         } catch (err) {
