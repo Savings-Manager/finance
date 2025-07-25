@@ -472,7 +472,7 @@
   <div class="d-flex justify-content-between align-items-center mb-4">
     <div class="d-flex align-items-center">
       <h2 id="page-title"><i class="bi bi-people-fill me-2"></i>Finans Yöneticisi</h2>
-      <small class="text-muted ms-2">v1.3.5</small>   
+      <small class="text-muted ms-2">v1.3.6</small>   
     </div>
     <div>
       <button class="top-action-btn" id="btn-load-json"><i class="bi bi-folder2-open ms-2"></i>Verileri Geri Yükle</button>
@@ -1566,7 +1566,6 @@ function inputFormatCurrency(input, event, blur=false) {
     var original_len = input_val.length;
 
     var caret_pos = input.prop("selectionStart");
-    console.log(caret_pos);
     const dotParts = input_val.split(".");
     if (dotParts[0]?.replaceAll('₺', '')?.length > 3) {
         input_val = input_val.replaceAll('.', ',');
@@ -1607,9 +1606,6 @@ function inputFormatCurrency(input, event, blur=false) {
     var updated_len = input_val.length;
     caret_pos = updated_len - original_len + caret_pos;
     caret_pos = caret_pos > 0 ? caret_pos : updated_len;
-
-    console.log(updated_len, original_len, caret_pos);
-    console.log(event.ctrlKey, event.key);
 
     if(event.key !== 'Control' && !(event.ctrlKey && event.key === 'a')) {
       input[0].setSelectionRange(caret_pos, caret_pos);
@@ -1664,7 +1660,7 @@ function normalizeString(str) {
             .replace(/^_+|_+$/g, '')      // Baş ve sondaki _'leri temizle
             .replace(/_{2,}/g, '_');      // Birden fazla _ yerine tek _
 }
-function parseStringToNumber(input, toFixed = 2) {
+function parseStringToNumberYEDEK(input, toFixed = 2) {
   if (isNullOrEmpty(input)) return null;
   if (typeof input !== 'string') return input;
   
@@ -1682,62 +1678,104 @@ function parseStringToNumber(input, toFixed = 2) {
   }
 
   const parsed = parseFloat(output);
-  //console.log(input, parsed, dotParts, dotParts2);
+  console.log(input, parsed, Number(output), dotParts, dotParts2);
+  return toFixed >= 0 ? parseFloat(parsed.toFixed(toFixed)) : parsed;
+}
+function parseStringToNumber(input, toFixed = 2) {
+  if (isNullOrEmpty(input)) return null;
+  if (typeof input !== 'string') return input;
+  
+  let output = input.trim().replace(/\s+/g, '')
+                           .replace(/₺|TRY|TL|€|EUR|\$|USD/gi, '');
+
+  const dotIndex = output.indexOf('.');
+  const commaIndex = output.indexOf(',');
+  const commaCount = (output.match(/,/g) || []).length;
+
+  if(dotIndex > 0 && commaIndex > 0 && commaIndex < dotIndex) {
+    // 1,000.5 gibi bi sayi demektir. bunlari yer degistiricez.
+    output = output.replaceAll('.', '|').replaceAll(',', '.').replaceAll('|', ',');
+  }
+  else if(dotIndex < 0 && commaCount > 1) {
+    // 1,453,986,582 gibi bi sayi demektir. bunlari yer degistiricez.
+    output = output.replaceAll(',', '.');
+  }
+  
+  const dotParts = output.split(".");
+  if (dotParts.length == 1) {
+      output = output.replaceAll(',', '.');
+  }
+  else if (dotParts[0].length <= 3) {  
+    const subParts = (dotParts[1] || '').split(',')
+    if(subParts[0]?.length != 3) {
+      output = output.replaceAll(',', '.');
+    } else {
+      output = output.replaceAll('.', '').replaceAll(',', '.');
+    }
+  }
+
+  const parsed = parseFloat(output);
+  console.log(input, (toFixed >= 0 ? parseFloat(parsed.toFixed(toFixed)) : parsed), dotParts, (dotParts[1] || '').split(','));
   return toFixed >= 0 ? parseFloat(parsed.toFixed(toFixed)) : parsed;
 }
 // TEST
-// parseStringToNumber('0');
-// parseStringToNumber('1');
-// parseStringToNumber('1.00');
-// parseStringToNumber('1,00');
-// parseStringToNumber('2.00');
-// parseStringToNumber('2,00');
-// parseStringToNumber('32.00');
-// parseStringToNumber('32,00');
-// parseStringToNumber('355.00');
-// parseStringToNumber('355,00');
-// parseStringToNumber('0,00');
-// parseStringToNumber('0.00');
-// parseStringToNumber('1');
-// parseStringToNumber('1,5');
-// parseStringToNumber('1.5');
-// parseStringToNumber('10');
-// parseStringToNumber('10,00');
-// parseStringToNumber('10.00');
-// parseStringToNumber('1.000');
-// parseStringToNumber('1,000');
-// parseStringToNumber('1.000,5');
-// parseStringToNumber('1.000,56');
-// parseStringToNumber('1.000,567');
-// parseStringToNumber('1.000,5678');
-// parseStringToNumber('1.000,56789');
-// parseStringToNumber('1,000.5');
-// parseStringToNumber('10.000');
-// parseStringToNumber('10,000');
-// parseStringToNumber('10.000,55');
-// parseStringToNumber('10,000.55');
-// parseStringToNumber('100.000');
-// parseStringToNumber('100,000');
-// parseStringToNumber('100.000,99');
-// parseStringToNumber('100,000.99');
-// parseStringToNumber('355.355.324,44');
-// parseStringToNumber('355,355,324.44');
-// parseStringToNumber('1.234.567,89');
-// parseStringToNumber('1,234,567.89');
-// parseStringToNumber('-100,50');
-// parseStringToNumber('-100.50');
-// parseStringToNumber('0,1234');
-// parseStringToNumber('0.1234');
-// parseStringToNumber('1,234.5678');
-// parseStringToNumber('₺254.054');
-// parseStringToNumber('₺254.054,1');
-// parseStringToNumber('₺254.054,12');
-// parseStringToNumber('₺254.054,123');
-// parseStringToNumber('₺254.054,1234');
-// parseStringToNumber('₺254.054,12345');
-// parseStringToNumber('₺254054,12345');
-// parseStringToNumber('254054,12345');
-// parseStringToNumber('254054');
+parseStringToNumber('0');
+parseStringToNumber('1');
+parseStringToNumber('1.00');
+parseStringToNumber('1,00');
+parseStringToNumber('2.00');
+parseStringToNumber('2,00');
+parseStringToNumber('32.00');
+parseStringToNumber('32,00');
+parseStringToNumber('355.00');
+parseStringToNumber('355,00');
+parseStringToNumber('0,00');
+parseStringToNumber('0.00');
+parseStringToNumber('1');
+parseStringToNumber('1,5');
+parseStringToNumber('1.5');
+parseStringToNumber('10');
+parseStringToNumber('10,00');
+parseStringToNumber('10.00');
+parseStringToNumber('1.000');
+parseStringToNumber('1,000');
+parseStringToNumber('1,4553435');
+parseStringToNumber('1.000,5');
+parseStringToNumber('1.000,56');
+parseStringToNumber('1.000,567');
+parseStringToNumber('1.000,5678');
+parseStringToNumber('1.000,56789');
+parseStringToNumber('1,000.5');
+parseStringToNumber('10.000');
+parseStringToNumber('10,000');
+parseStringToNumber('10.000,55');
+parseStringToNumber('10,000.55');
+parseStringToNumber('100.000');
+parseStringToNumber('100,000');
+parseStringToNumber('100.000,99');
+parseStringToNumber('100,000.99');
+parseStringToNumber('355.355.324,44');
+parseStringToNumber('355,355,324.44');
+parseStringToNumber('1.234.567,89');
+parseStringToNumber('1,234,567.89');
+parseStringToNumber('-100,50');
+parseStringToNumber('-100.50');
+parseStringToNumber('0,1234');
+parseStringToNumber('0.1234');
+parseStringToNumber('1,234.5678');
+parseStringToNumber('₺254.054');
+parseStringToNumber('₺254.054,1');
+parseStringToNumber('₺254.054,12');
+parseStringToNumber('₺254.054,123');
+parseStringToNumber('₺254.054,1234');
+parseStringToNumber('₺254.054,12345');
+parseStringToNumber('₺254054,12345');
+parseStringToNumber('254054,12345');
+parseStringToNumber('254054');
+parseStringToNumber('$254054.12345');
+parseStringToNumber('$254,054.12345');
+parseStringToNumber('$254,054,123,450');
+parseStringToNumber('$254,054,123.450');
 // #endregion 
 
 function populateCurrencySelect() {
