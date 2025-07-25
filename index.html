@@ -278,7 +278,7 @@
       pointer-events: none;
       z-index: 2;
     }
-    #years-dropdown {
+    .years-dropdown-wrapper select {
       font-size: 1rem;
       border-radius: 1.25rem;
       padding: 0.4rem 0rem 0.4rem 2.6rem;
@@ -289,15 +289,15 @@
       font-weight: 500;
       transition: border-color 0.2s, box-shadow 0.2s;
     }
-    #years-dropdown:focus {
+    .years-dropdown-wrapper select:focus {
       border-color: #579aff;
       box-shadow: 0 0 0 2px #e3eafc;
       outline: none;
     }   
-    #years-dropdown::-ms-expand {
+    .years-dropdown-wrapper select::-ms-expand {
       display: none;
     }
-    #years-dropdown option {
+    .years-dropdown-wrapper select option {
       color: #222;
     }
 
@@ -472,11 +472,18 @@
   <div class="d-flex justify-content-between align-items-center mb-4">
     <div class="d-flex align-items-center">
       <h2 id="page-title"><i class="bi bi-people-fill me-2"></i>Finans Yöneticisi</h2>
-      <small class="text-muted ms-2">v1.3.6</small>   
+      <small class="text-muted ms-2">v1.4.0</small>   
     </div>
-    <div>
-      <button class="top-action-btn" id="btn-load-json"><i class="bi bi-folder2-open ms-2"></i>Verileri Geri Yükle</button>
-      <button class="top-action-btn" id="btn-save-json"><i class="bi bi-save ms-2"></i>Verileri Yedekle</button>
+    <div class="d-flex justify-content-between align-items-center">
+      <div class="years-dropdown-wrapper me-1">
+          <select id="currency-dropdown" class="form-select form-select-sm">
+            <option value="TRY">₺</option>
+            <option value="EUR">€</option>
+            <option value="USD">$</option>
+          </select>
+      </div>
+      <button class="top-action-btn me-1" id="btn-load-json"><i class="bi bi-folder2-open"></i>Verileri Geri Yükle</button>
+      <button class="top-action-btn" id="btn-save-json"><i class="bi bi-save"></i>Verileri Yedekle</button>
     </div>
   </div>
   <div id="drive-warning" class="alert alert-warning d-none mb-4">
@@ -614,7 +621,7 @@
                     <th>Para Birimi</th>
                     <th>Birim Fiyatı</th>
                     <th>Miktar</th>
-                    <th>Toplam (₺)</th>
+                    <th>Toplam</th>
                     <th>Açıklama</th>
                     <th>İşlemler</th>
                   </tr>
@@ -634,7 +641,7 @@
                 <input type="text" id="goalName" class="form-control" placeholder="Hedef Adı">
               </div>
               <div class="col-md-4">
-                <input type="text" data-type="currency" id="goalAmount" class="form-control" placeholder="Tutar (₺)">
+                <input type="text" data-type="currency" id="goalAmount" class="form-control" placeholder="Tutar">
               </div>
               <div class="col-md-2">
                 <button id="addGoals" class="btn btn-success w-100">Hedef Ekle</button>
@@ -645,7 +652,7 @@
                 <thead class="table-light">
                   <tr>
                     <th>Hedef</th>
-                    <th>Tutar (₺)</th>
+                    <th>Tutar</th>
                     <th>İşlemler</th>
                   </tr>
                 </thead>
@@ -811,7 +818,7 @@
 </div>
 
 <script>
-// --- Data Model ---
+
 let financeData = { 
   years: {}, 
   currentYear: getCurrentYearMonth().year, 
@@ -821,13 +828,14 @@ let financeData = {
   cycles: {},
   currentCycle: 1,
   savings: {},
+  currentCurrency: "TRY"
 };
 
 moment.locale('tr');
 
-const formatTL = new Intl.NumberFormat("tr-TR", {
+let numberFormat = new Intl.NumberFormat("tr-TR", {
   style: "currency",
-  currency: "TRY",
+  currency: financeData.currentCurrency,
   minimumFractionDigits: 2,
   maximumFractionDigits: 2,
 });
@@ -859,6 +867,12 @@ let copiedMonthData = null;
 let copiedMonth = null;
 let rates = {};
 let totalSavings = 0;
+let currencyMultiplier = 1;
+let currencySymbols = {
+  'TRY': '₺',
+  'EUR': '€',
+  'USD': '$',
+};
 
 const months = Array.from({ length: 12 }, (_, i) => String(i + 1));
 const days = Array.from({ length: 13 }, (_, i) => String(i + 1));
@@ -1178,6 +1192,7 @@ function validateFinanceData() {
   financeData.cycles ??= {};
   financeData.currentCycle ??= 1;
   financeData.activeTabIndex ??= 1; 
+  financeData.currentCurrency ??= 'TRY';
 }
 
 function ensureMonthData(year, month) {
@@ -1546,9 +1561,17 @@ function isNullOrEmpty(value) {
 function generateId(list) {
   return list.length ? Math.max(...list.map(x => x.id)) + 1 : 1;
 }
+function convertToCurrency(val, currency= 'TRY') {
+  if(currency == 'TRY') {
+    return val * currencyMultiplier;
+  }
+  else {
+    return val / currencyMultiplier;
+  }
+}
 function formatCurrency(val, shouldMask = false) {
   if (shouldMask) return '••••••••';
-  return formatTL.format(val);
+  return numberFormat.format(convertToCurrency(val, financeData.currentCurrency));
 }
 function formatText(val, shouldMask = false) {
   if (shouldMask) return '••••••••';
@@ -1567,7 +1590,7 @@ function inputFormatCurrency(input, event, blur=false) {
 
     var caret_pos = input.prop("selectionStart");
     const dotParts = input_val.split(".");
-    if (dotParts[0]?.replaceAll('₺', '')?.length > 3) {
+    if (dotParts[0]?.replaceAll(currencySymbols[financeData.currentCurrency], '')?.length > 3) {
         input_val = input_val.replaceAll('.', ',');
     }
 
@@ -1587,13 +1610,12 @@ function inputFormatCurrency(input, event, blur=false) {
 
         right_side = right_side.substring(0, 2);
 
-        input_val = "₺" + left_side + "," + right_side;
-
+        input_val = currencySymbols[financeData.currentCurrency] + left_side + "," + right_side;
     }
     else {
         input_val = inputFormatNumber(input_val);
 
-        input_val = "₺" + input_val;
+        input_val = currencySymbols[financeData.currentCurrency] + input_val;
 
         if (blur) {
             if (input_val.length <= 1) input_val += "0";
@@ -1660,27 +1682,6 @@ function normalizeString(str) {
             .replace(/^_+|_+$/g, '')      // Baş ve sondaki _'leri temizle
             .replace(/_{2,}/g, '_');      // Birden fazla _ yerine tek _
 }
-function parseStringToNumberYEDEK(input, toFixed = 2) {
-  if (isNullOrEmpty(input)) return null;
-  if (typeof input !== 'string') return input;
-  
-  let output = input.trim().replaceAll(/\s/g, '').replaceAll("₺", '').replaceAll("TRY", '').replaceAll("TL", '');
-  
-  const dotParts = output.split(".");
-  const dotParts2 = dotParts[1]?.split(",") ?? [];
-  if (dotParts?.length == 1) {
-      output = output.replaceAll(',', '.');
-  }
-  else if (dotParts[0]?.length <= 3 && dotParts2[0]?.length != 3) {
-    output = output.replaceAll(',', '.');
-  } else if (dotParts[0]?.length <= 3) {
-    output = output.replaceAll('.', '').replaceAll(',', '.');
-  }
-
-  const parsed = parseFloat(output);
-  console.log(input, parsed, Number(output), dotParts, dotParts2);
-  return toFixed >= 0 ? parseFloat(parsed.toFixed(toFixed)) : parsed;
-}
 function parseStringToNumber(input, toFixed = 2) {
   if (isNullOrEmpty(input)) return null;
   if (typeof input !== 'string') return input;
@@ -1715,7 +1716,7 @@ function parseStringToNumber(input, toFixed = 2) {
   }
 
   const parsed = parseFloat(output);
-  console.log(input, (toFixed >= 0 ? parseFloat(parsed.toFixed(toFixed)) : parsed), dotParts, (dotParts[1] || '').split(','));
+  //console.log(input, (toFixed >= 0 ? parseFloat(parsed.toFixed(toFixed)) : parsed), dotParts, (dotParts[1] || '').split(','));
   return toFixed >= 0 ? parseFloat(parsed.toFixed(toFixed)) : parsed;
 }
 // TEST
@@ -1789,6 +1790,17 @@ function populateCurrencySelect() {
                         <option value='${rates.ATA_YENI.code}'>ATA ALTIN</option>
                         <option value='${rates.GREMESE_YENI.code}'>GREMSE</option>`);
 }
+// function populateCurrentCurrencySelect() {
+//   $("#currency").html(`<option value='${rates.EURTRY.code}'>EURO</option>
+//                         <option value='${rates.USDTRY.code}'>DOLAR</option>
+//                         <option value='${rates.AYAR22.code}'>22 AYAR ALTIN</option>
+//                         <option value='${rates.ALTIN.code}'>HAS ALTIN</option>
+//                         <option value='${rates.CEYREK_YENI.code}'>ÇEYREK ALTIN</option>
+//                         <option value='${rates.YARIM_YENI.code}'>YARIM ALTIN</option>
+//                         <option value='${rates.TEK_YENI.code}'>TAM ALTIN</option>
+//                         <option value='${rates.ATA_YENI.code}'>ATA ALTIN</option>
+//                         <option value='${rates.GREMESE_YENI.code}'>GREMSE</option>`);
+// }
 
 function updateCurrenciesFromApi() {
     $.each(financeData.savings.currencies, function (key, row) {
@@ -2220,7 +2232,7 @@ function renderGoals() {
     const $row = $(`<tr data-goalid='${row.id}' class='sortable-item'>`).append(
       `<td>
           <i class="sortable-handle bi bi-list me-2"></i> ${row.name}</td>
-      <td>${formatTL.format(row.amount)}</td>
+      <td>${formatCurrency(row.amount)}</td>
       <td>
         <div class="d-flex align-items-center">
           <div class="btn-status form-check form-switch">
@@ -2381,7 +2393,10 @@ function setRatesData() {
     // todo: buranin bos gelme ihtimalini de goz onunde bulundur.
     rates = response.data;
 
+    setCurrencyMultiplier();
+
     console.log('rates: ', rates);
+    console.log(financeData.currentCurrency, currencyMultiplier);
 
     populateCurrencySelect();
     updateCurrenciesFromApi();
@@ -2397,6 +2412,21 @@ function setRatesData() {
   });
 }
 
+function setCurrencyMultiplier() {
+  numberFormat = new Intl.NumberFormat("tr-TR", {
+    style: "currency",
+    currency: financeData.currentCurrency,
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  });
+
+  currencyMultiplier = 1;
+  const currentRate = rates[`${financeData.currentCurrency}TRY`];
+  if(currentRate) {
+    currencyMultiplier = parseStringToNumber(currentRate.alis);
+  }
+}
+
 // all-tabs
 function setAllDatas() {
   console.log('[setAllDatas] All datas are SET.');
@@ -2408,6 +2438,10 @@ function setAllDatas() {
   setRatesData();
   // all tabs
   setActiveTab();
+  setCurrentCurrencyData();
+}
+function setCurrentCurrencyData() {
+  $('#currency-dropdown').val(financeData.currentCurrency);
 }
 function setActiveTab() {
   console.log('setActiveTab: ', financeData.activeTabIndex);
@@ -2438,6 +2472,17 @@ $(document).ready(function() {
     }
   });
   
+  $(document).on('change', '#currency-dropdown', function() {
+    financeData.currentCurrency = $(this).val();
+      
+    saveData();
+
+    setCurrencyMultiplier();
+    renderFamilySummary();
+    renderMembers();  
+    renderSavings();
+    renderGoals();
+  });
   $(document).on('change', '#years-dropdown', function() {
     financeData.currentYear = $(this).val();
 
@@ -2593,7 +2638,7 @@ $(document).ready(function() {
     const memberId = Number($('#income-member-id').val());
     const incomeId = $('#income-id').val();
     const name = $('#income-name').val();
-    const value = parseStringToNumber($('#income-value').val());
+    const value = convertToCurrency(parseStringToNumber($('#income-value').val()));
     const received = $('#income-received').prop('checked');
 
     const member = financeData?.years[financeData.currentYear]
@@ -2632,7 +2677,7 @@ $(document).ready(function() {
     const memberId = Number($('#spending-member-id').val());
     const spendingId = $('#spending-id').val();
     const name = $('#spending-name').val();
-    const value = parseStringToNumber($('#spending-value').val());
+    const value = convertToCurrency(parseStringToNumber($('#spending-value').val()));
     const payed = $('#spending-payed').prop('checked');
     const cardId = $('#spending-card-id').val() ? Number($('#spending-card-id').val()) : null;
     const sendMemberId = $('#spending-sendmember-id').val() ? Number($('#spending-sendmember-id').val()) : null;
@@ -2836,7 +2881,7 @@ $(document).ready(function() {
   });
   $(document).on('click', '#addNewCurrency', function(e) {
       const text = $('#newCurrency').val();
-      const value = parseStringToNumber($('#newCurrencyValue').val());
+      const value = convertToCurrency(parseStringToNumber($('#newCurrencyValue').val()));
       if(!value || !text) {
         return showToast('Alanları doldurun.', 'error');
       }
@@ -2953,8 +2998,8 @@ $(document).ready(function() {
   $(document).on('click', '#addGoals', function(e) {
       const name = $('#goalName').val();
       const id = $('#goalId').val();
-      let amount = parseStringToNumber($('#goalAmount').val());
-      if(!name || amount == 0) {
+      let amount = convertToCurrency(parseStringToNumber($('#goalAmount').val()));
+      if(!name || !(amount > 0)) {
         return showToast('Alanları doldurun.', 'error');
       }
 
