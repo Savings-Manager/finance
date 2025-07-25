@@ -472,7 +472,7 @@
   <div class="d-flex justify-content-between align-items-center mb-4">
     <div class="d-flex align-items-center">
       <h2 id="page-title"><i class="bi bi-people-fill me-2"></i>Finans Yöneticisi</h2>
-      <small class="text-muted ms-2">v1.4.0</small>   
+      <small class="text-muted ms-2">v1.4.1</small>   
     </div>
     <div class="d-flex justify-content-between align-items-center">
       <div class="years-dropdown-wrapper me-1">
@@ -1303,6 +1303,17 @@ function toggleMemberStatus(memberId) {
                            ?.members?.find(m => m.id === memberId);
   if (member) {
     member.status = !member.status;
+    
+    // financeData.years[financeData.currentYear].months[financeData.currentMonth].members.forEach(mm => {
+    //   console.log(mm.incomes.filter(m => m.senderId == memberId));
+    //   mm.incomes.filter(m => m.senderId == memberId).forEach(x => {     
+    //     x.status = member.status;
+    //   });
+    //   mm.spendings.filter(m => m.sendMemberId == memberId).forEach(x => {     
+    //     x.status = member.status;
+    //   });
+    // });
+
     saveData();
 
     renderFamilySummary();
@@ -1492,9 +1503,12 @@ function deleteMember(memberId) {
   showToast('Kişi bilgisi silinsin mi?', 'warning', 0, 'center', true).then((result) => {
     if (result.isConfirmed) {
       let members = financeData.years[financeData.currentYear].months[financeData.currentMonth].members;
-      financeData.years[financeData.currentYear]
-                 .months[financeData.currentMonth]
-                 .members = members.filter(m => m.id !== memberId);
+      financeData.years[financeData.currentYear].months[financeData.currentMonth].members = members.filter(m => m.id !== memberId);
+
+      financeData.years[financeData.currentYear].months[financeData.currentMonth].members.forEach(member => {
+        member.incomes = member.incomes.filter(m => m.senderId !== memberId);
+        member.spendings = member.spendings.filter(m => m.sendMemberId !== memberId);
+      });
       
       saveData();
       renderFamilySummary();
