@@ -465,7 +465,7 @@
   <div class="d-flex justify-content-between align-items-center mb-4">
     <div class="d-flex align-items-center">
       <h2 id="page-title"><i class="bi bi-people-fill me-2"></i>Finans Yöneticisi</h2>
-      <small class="text-muted ms-2">v1.3.1</small>   
+      <small class="text-muted ms-2">v1.3.2</small>   
     </div>
     <div>
       <button class="top-action-btn" id="btn-load-json"><i class="bi bi-folder2-open ms-2"></i>Verileri Geri Yükle</button>
@@ -717,6 +717,7 @@
       <form id="spendingForm">          
         <input type="hidden" id="spending-member-id">
         <input type="hidden" id="spending-id">
+        <input type="hidden" id="spending-order">
         <div class="modal-header modal-header-spending">
           <h5 class="modal-title" id="spendingModalLabel">Gider Ekle/Düzenle</h5>
           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Kapat"></button>
@@ -849,6 +850,7 @@ let copiedMonthData = null;
 let copiedMonth = null;
 let rates = {};
 let totalSavings = 0;
+let scrollPositions = {};
 
 const months = Array.from({ length: 12 }, (_, i) => String(i + 1));
 const days = Array.from({ length: 13 }, (_, i) => String(i + 1));
@@ -1209,6 +1211,7 @@ function sumSpendingsForMonth(member, year, month) {
 }
 
 function toggleCardPayed(memberId, cardId) {
+  scrollPositions[`spending-div-${memberId}`] = $(`#spending-div-${memberId}`).scrollTop();
   const card = financeData?.years[financeData.currentYear]
                               ?.months[financeData.currentMonth]
                               ?.members?.find(m => m.id === memberId)
@@ -1224,6 +1227,7 @@ function toggleCardPayed(memberId, cardId) {
   }
 }
 function toggleSpendingPayed(memberId, spendingId) {
+  scrollPositions[`spending-div-${memberId}`] = $(`#spending-div-${memberId}`).scrollTop();
   const spending = financeData?.years[financeData.currentYear]
                               ?.months[financeData.currentMonth]
                               ?.members?.find(m => m.id === memberId)
@@ -1255,6 +1259,7 @@ function toggleMemberStatus(memberId) {
 }
 
 function toggleIncomeReceived(memberId, incomeId) {
+  scrollPositions[`spending-div-${memberId}`] = $(`#spending-div-${memberId}`).scrollTop();
   const income = financeData.years[financeData.currentYear]
                            ?.months[financeData.currentMonth]
                            ?.members?.find(m => m.id === memberId)
@@ -1314,27 +1319,52 @@ function deleteIncome(memberId, incomeId) {
   });
 }
 
-function openAddSpending(memberId) {
+function openAddSpending(memberId, spendingId = null) {
+  scrollPositions[`spending-div-${memberId}`] = $(`#spending-div-${memberId}`).scrollTop();
+  populateSpendingCardDropdown(memberId, '');
+  populateSpendingMemberDropdown(memberId, '');
+
   $('#spending-member-id').val(memberId);
   $('#spending-id').val('');
   $('#spending-name').val('');
   $('#spending-value').val('');
   $('#spending-payed').prop('checked', true);
   $('#spending-card-id').val('');
+  $('#spending-order').val(999);
   $('#spending-sendmember-id').val('');
   $('#spending-installment').val(1);
   $('#spending-current-installment').val(1);
+
+  if(!isNullOrEmpty(spendingId)) { 
+    const member = financeData?.years[financeData.currentYear]
+                            ?.months[financeData.currentMonth]
+                            ?.members?.find(m => m.id === memberId);
+    const spending = member?.spendings?.find(s => s.id === spendingId);
+    if (spending) {
+      $('#spending-card-id').val(spending.cardId);
+      $('#spending-order').val(spending.order);
+    }
+  }
+
+  console.log($('#spending-order').val());
+
   $('#spendingModal').modal('show');
 }
 
 function openEditSpending(memberId, spendingId) {
-  const spending = financeData?.years[financeData.currentYear]
-                              ?.months[financeData.currentMonth]
-                              ?.members?.find(m => m.id === memberId)
-                              ?.spendings?.find(s => s.id === spendingId);
+  scrollPositions[`spending-div-${memberId}`] = $(`#spending-div-${memberId}`).scrollTop();
+  const member = financeData?.years[financeData.currentYear]
+                            ?.months[financeData.currentMonth]
+                            ?.members?.find(m => m.id === memberId);
+
+  const spending = member?.spendings?.find(s => s.id === spendingId);
   if (spending) {
+    populateSpendingCardDropdown(memberId, spending.cardId);
+    populateSpendingMemberDropdown(memberId, spending.sendMemberId);
+
     $('#spending-member-id').val(memberId);
     $('#spending-id').val(spendingId);
+    $('#spending-order').val(spending.order);
     $('#spending-name').val(spending.name);
     $('#spending-value').val(spending.value);
     $('#spending-payed').prop('checked', !!spending.payed);
@@ -1346,7 +1376,8 @@ function openEditSpending(memberId, spendingId) {
   }
 }
 
-function deleteSpending(memberId, spendingId) {
+function deleteSpending(memberId, spendingId) {  
+  scrollPositions[`spending-div-${memberId}`] = $(`#spending-div-${memberId}`).scrollTop();
   showToast('Gider bilgisi silinsin mi?', 'warning', 0, 'center', true).then((result) => {
     if (result.isConfirmed) {
       const member = financeData?.years[financeData.currentYear]
@@ -1619,29 +1650,6 @@ function populateSpendingCardDropdown(memberId, selectedCardId) {
   select.value = selectedCardId || '';
 }
 
-// Patch openAddSpending and openEditSpending to call this
-const _openAddSpending = openAddSpending;
-openAddSpending = function(memberId) {
-  _openAddSpending(memberId);
-  populateSpendingCardDropdown(memberId, '');
-  populateSpendingMemberDropdown(memberId, '');
-};
-
-const _openEditSpending = openEditSpending;
-openEditSpending = function(memberId, spendingId) {
-  _openEditSpending(memberId, spendingId);
-  const member = financeData?.years[financeData.currentYear]
-                            ?.months[financeData.currentMonth]
-                            ?.members?.find(m => m.id === memberId);
-  if (member?.spendings) {
-    const spending = member.spendings.find(s => s.id === spendingId);
-    if (spending) {
-      populateSpendingCardDropdown(memberId, spending.cardId);
-      populateSpendingMemberDropdown(memberId, spending.sendMemberId);
-    }
-  }
-};
-
 function toggleCurrencyMask(element, originalValue) {
   const currentText = element.textContent?.trim();
   //console.log('[toggleCurrencyMask] ', currentText, originalValue);
@@ -1697,11 +1705,11 @@ function renderMembers() {
     const spendings = [...(member.spendings || [])].sort((a, b) => {
       const orderA = cardOrderMap.get(a.cardId) ?? 0;
       const orderB = cardOrderMap.get(b.cardId) ?? 0;
-
+      
       if (orderA !== orderB) return orderA - orderB;
 
-      // order aynıysa, cardId'ye göre sırala (opsiyonel)
-      return (a.cardId || 0) - (b.cardId || 0);
+      // cardId siralamasindan sonra ordera gore sirala.
+      return (a.order || 0) - (b.order || 0);
     });
     return `<div data-memberid="${member.id}" class="card mb-3 material-shadow sortable-item">
       <div class="card-body">
@@ -1796,7 +1804,7 @@ function renderMembers() {
           </div>
           <div class="col-12 col-md-7">
             <h6 class="spending-color">Giderler<button class="icon-btn spending-color" onclick="openAddSpending(${member.id})"><i class="bi bi-plus-circle"></i></button></h6>
-            <div style="max-height: 546px; overflow-x: hidden; overflow-y: overlay;" data-type="2" data-memberid="${member.id}" class="col-md-12 list-group sortable-list mb-2">
+            <div id="spending-div-${member.id}" style="max-height: 546px; overflow-x: hidden; overflow-y: auto;" data-type="2" data-memberid="${member.id}" class="scroll-div col-md-12 list-group sortable-list mb-2">
               ${spendings.map(spending => {
                 const card = (member.cards || []).find(c => c.id === spending.cardId);
                 let currentInstallment = 1;
@@ -1807,35 +1815,40 @@ function renderMembers() {
                     currentInstallment = thisIdx - idx + 1;
                   }
                 }
-                return `<div data-spendingid="${spending.id}" class="mb-1 col-md-12 list-group-item sortable-item d-flex justify-content-between bg-spending">
-                  <div class="col-md-7">
-                    <div class="col-md-12 fw-bold">
-                      <i class="sortable-handle bi bi-list me-2"></i>
-                      <i class="bi bi-cart-dash"></i> ${spending.name} 
-                    </div>${(card || spending.installment > 1 || spending.sendMemberId) ? `<div class="col-md-12 fw-bold">
-                     ${card ? `<span class='badge card-color'><i class='bi bi-credit-card-fill'></i> ${card.name}</span>` 
-                            : ''} ${spending.installment > 1 ? `<span class='badge bg-secondary'>${spending.currentInstallment > 1 
-                                ? spending.currentInstallment 
-                                : currentInstallment}/${spending.installment}</span>` : ''}                
-                      ${ members.find(x=> x.id == spending.sendMemberId) ? `<span class='badge card-color'><i class='bi bi-person-circle'></i> 
-                      ${members.find(x=> x.id == spending.sendMemberId)?.name}</span>` : '' }
-                    </div>`  : ''}                  
-                  </div>
-                  <div class="d-flex justify-content-end align-items-center">
-                    <div> 
-                      <div>
-                        <span class="fw-bold spending-color pointer" 
-                              onclick="toggleCurrencyMask(this, ${Number(spending.value) / (spending.installment || 1)})">${currency(Number(spending.value) / (spending.installment || 1), isCurrencyMasked)}</span>
-                      </div>${spending.installment > 1 ? `<div>
-                        <span class='fw-bold badge bg-danger pointer' onclick="toggleCurrencyMask(this, ${Number(spending.value)})">${currency(Number(spending.value), isCurrencyMasked)}</span></div>` : ''}              
-                    </div>   
-                    <div class="form-check form-switch ms-3">
-                        <input class="form-check-input" type="checkbox" name="spending-payed" title="Ödendi" ${spending.payed ? 'checked' : ''} onchange="toggleSpendingPayed(${member.id},${spending.id})">
-                    </div>            
-                    <button class="icon-btn edit" onclick="openEditSpending(${member.id},${spending.id})"><i class="fas fa-pen"></i></button>
-                    <button class="icon-btn delete" onclick="deleteSpending(${member.id},${spending.id})"><i class="fas fa-trash"></i></button>
-                  </div>
-                </div>`;
+                return `<div data-spendingid="${spending.id}" class="col-md-12 sortable-item">
+                          <div class='col-md-12 d-flex justify-content-between list-group-item bg-spending'>
+                            <div class="col-md-7">
+                              <div class="col-md-12 fw-bold">
+                                <i class="sortable-handle bi bi-list me-2"></i>
+                                <i class="bi bi-cart-dash"></i> ${spending.name} 
+                              </div>${(card || spending.installment > 1 || spending.sendMemberId) ? `<div class="col-md-12 fw-bold">
+                              ${card ? `<span class='badge card-color'><i class='bi bi-credit-card-fill'></i> ${card.name}</span>` 
+                                  : ''} ${spending.installment > 1 ? `<span class='badge bg-secondary'>${spending.currentInstallment > 1 
+                                    ? spending.currentInstallment 
+                                    : currentInstallment}/${spending.installment}</span>` : ''}                
+                                ${ members.find(x=> x.id == spending.sendMemberId) ? `<span class='badge card-color'><i class='bi bi-person-circle'></i> 
+                                ${members.find(x=> x.id == spending.sendMemberId)?.name}</span>` : '' }
+                              </div>`  : ''}                  
+                            </div>
+                            <div class="d-flex justify-content-end align-items-center">
+                              <div> 
+                                <div>
+                                <span class="fw-bold spending-color pointer" 
+                                    onclick="toggleCurrencyMask(this, ${Number(spending.value) / (spending.installment || 1)})">${currency(Number(spending.value) / (spending.installment || 1), isCurrencyMasked)}</span>
+                                </div>${spending.installment > 1 ? `<div>
+                                <span class='fw-bold badge bg-danger pointer' onclick="toggleCurrencyMask(this, ${Number(spending.value)})">${currency(Number(spending.value), isCurrencyMasked)}</span></div>` : ''}              
+                              </div>   
+                              <div class="form-check form-switch ms-3">
+                                <input class="form-check-input" type="checkbox" name="spending-payed" title="Ödendi" ${spending.payed ? 'checked' : ''} onchange="toggleSpendingPayed(${member.id},${spending.id})">
+                              </div>            
+                              <button class="icon-btn edit" onclick="openEditSpending(${member.id},${spending.id})"><i class="fas fa-pen"></i></button>
+                              <button class="icon-btn delete" onclick="deleteSpending(${member.id},${spending.id})"><i class="fas fa-trash"></i></button>
+                            </div>  
+                          </div> 
+                          <div style='height:18px;' class="col-md-12 d-flex justify-content-center align-items-center"> 
+                            <button class="icon-btn" onclick="openAddSpending(${member.id}, ${spending.id})"><i style="font-size:13px;" class="bi bi-plus-circle"></i></button>
+                          </div>
+                        </div>`;
               }).join('')}
             </div>
             <div class="fw-bold ms-2">Toplam: <span class="spending-color pointer" onclick="toggleCurrencyMask(this, ${spend})">${currency(spend, isCurrencyMasked)}</span></div>
@@ -1847,6 +1860,7 @@ function renderMembers() {
   $('#members-list').html(html);
 
   initializeSortable();
+  restoreScrollPositions();
 }
 function renderFamilySummary() {
   let year = financeData.currentYear;
@@ -2001,7 +2015,11 @@ function renderGoals() {
   $('#moneyLeft').removeClass('text-success').removeClass('text-danger');  
   $('#moneyLeft').addClass(total-totalSavings < 0 ? 'text-success' : 'text-danger');  
 }
-
+function restoreScrollPositions() {
+  $.each(scrollPositions, function (key, val) {
+    $(`#${key}`).scrollTop(val);
+  });
+}
 function initializeSortable() {
   document.querySelectorAll('.sortable-list').forEach(list => {
     new Sortable(list, {
@@ -2060,6 +2078,9 @@ function initializeSortable() {
         }
         
         saveData();
+        if(type === 1) {
+          renderMembers();
+        }
       }
     });
   });
@@ -2153,6 +2174,14 @@ function setActiveTab() {
 
 $(document).ready(function() {
   // #region Document Handlers
+  // $(".scroll-div").on("scroll", function () {
+  //   console.log("Scroll oldu! scrollTop:", $(this).scrollTop());
+  // });
+  // $(document).on('scroll', '.scroll-div', function() {
+  //   const id = $(this).attr("id");
+  //   scrollPositions[id] = $(this).scrollTop();
+  //   console.log(id, scrollPositions[id]);
+  // });
   $(document).on('shown.bs.tab', '#myTab .nav-item', function() {
     financeData.activeTabIndex = $(this).index();
     saveData();
@@ -2357,6 +2386,7 @@ $(document).ready(function() {
     const memberId = Number($('#spending-member-id').val());
     const spendingId = $('#spending-id').val();
     const name = $('#spending-name').val();
+    const order = Number($('#spending-order').val());
     const value = Number($('#spending-value').val());
     const payed = $('#spending-payed').prop('checked');
     const cardId = $('#spending-card-id').val() ? Number($('#spending-card-id').val()) : null;
@@ -2413,7 +2443,7 @@ $(document).ready(function() {
         installment, 
         currentInstallment: currentInstallment, 
         monthKey: financeData.currentMonth,
-        order: 999,
+        order: order,
         sendMemberId: sendMemberId
       });
     }
