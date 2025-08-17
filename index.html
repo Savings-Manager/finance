@@ -472,7 +472,7 @@
   <div class="d-flex justify-content-between align-items-center mb-4">
     <div class="d-flex align-items-center">
       <h2 id="page-title"><i class="bi bi-people-fill me-2"></i>Finans Yöneticisi</h2>
-      <small class="text-muted ms-2">v1.4.2</small>   
+      <small class="text-muted ms-2">v1.4.3</small>   
     </div>
     <div class="d-flex justify-content-between align-items-center">
       <div class="years-dropdown-wrapper me-1">
@@ -2065,34 +2065,39 @@ function renderMembers() {
                     currentInstallment = thisIdx - idx + 1;
                   }
                 }
-                return `<div data-spendingid="${spending.id}" class="mb-1 col-md-12 list-group-item sortable-item d-flex justify-content-between bg-spending">
-                  <div class="col-md-6 col-sm-7">
-                    <div class="col-md-12 fw-bold">
-                      <i class="sortable-handle bi bi-list me-2"></i>
-                      <i class="bi bi-cart-dash"></i> ${spending.name} 
-                    </div>${(card || spending.installment > 1 || spending.sendMemberId) ? `<div class="col-md-12 fw-bold">
-                     ${card ? `<span class='badge card-color'><i class='bi bi-credit-card-fill'></i> ${card.name}</span>` 
-                            : ''} ${spending.installment > 1 ? `<span class='badge bg-secondary'>${spending.currentInstallment > 1 
-                                ? spending.currentInstallment 
-                                : currentInstallment}/${spending.installment}</span>` : ''}                
-                      ${members.find(x=> x.id == spending.sendMemberId) ? `<span class='badge card-color'><i class='bi bi-person-circle'></i> ${members.find(x=> x.id == spending.sendMemberId)?.name}</span>` : '' }
-                    </div>`  : ''}                  
-                  </div>
-                  <div class="d-flex justify-content-end align-items-center">
-                    <div> 
-                      <div>
-                        <span class="fw-bold spending-color pointer" 
-                              onclick="toggleMask(this, ${Number(spending.value) / (spending.installment || 1)})">${formatCurrency(Number(spending.value) / (spending.installment || 1), isCurrencyMasked)}</span>
-                      </div>${spending.installment > 1 ? `<div>
-                        <span class='fw-bold badge bg-danger pointer' onclick="toggleMask(this, ${Number(spending.value)})">${formatCurrency(Number(spending.value), isCurrencyMasked)}</span></div>` : ''}              
-                    </div>   
-                    <div class="form-check form-switch ms-3">
-                        <input class="form-check-input" type="checkbox" name="spending-payed" title="Ödendi" ${spending.payed ? 'checked' : ''} onchange="toggleSpendingPayed(${member.id},${spending.id})">
-                    </div>            
-                    <button class="icon-btn edit" onclick="openEditSpending(${member.id},${spending.id})"><i class="fas fa-pen"></i></button>
-                    <button class="icon-btn delete" onclick="deleteSpending(${member.id},${spending.id})"><i class="fas fa-trash"></i></button>
-                  </div>
-                </div>`;
+                return `<div data-spendingid="${spending.id}" class="col-md-12 sortable-item">
+                          <div class='col-md-12 d-flex justify-content-between list-group-item bg-spending'>
+                            <div class="col-md-6 col-sm-7">
+                              <div class="col-md-12 fw-bold">
+                                <i class="sortable-handle bi bi-list me-2"></i>
+                                <i class="bi bi-cart-dash"></i> ${spending.name} 
+                              </div>${(card || spending.installment > 1 || spending.sendMemberId) ? `<div class="col-md-12 fw-bold">
+                                  ${card ? `<span class='badge card-color'><i class='bi bi-credit-card-fill'></i> ${card.name}</span>` 
+                                          : ''} ${spending.installment > 1 ? `<span class='badge bg-secondary'>${spending.currentInstallment > 1 
+                                              ? spending.currentInstallment 
+                                              : currentInstallment}/${spending.installment}</span>` : ''}                
+                                    ${members.find(x=> x.id == spending.sendMemberId) ? `<span class='badge card-color'><i class='bi bi-person-circle'></i> ${members.find(x=> x.id == spending.sendMemberId)?.name}</span>` : '' }
+                              </div>`  : ''}                  
+                            </div>
+                            <div class="d-flex justify-content-end align-items-center">
+                              <div> 
+                                <div>
+                                  <span class="fw-bold spending-color pointer" 
+                                        onclick="toggleMask(this, ${Number(spending.value) / (spending.installment || 1)})">${formatCurrency(Number(spending.value) / (spending.installment || 1), isCurrencyMasked)}</span>
+                                </div>${spending.installment > 1 ? `<div>
+                                  <span class='fw-bold badge bg-danger pointer' onclick="toggleMask(this, ${Number(spending.value)})">${formatCurrency(Number(spending.value), isCurrencyMasked)}</span></div>` : ''}              
+                              </div>   
+                              <div class="form-check form-switch ms-3">
+                                  <input class="form-check-input" type="checkbox" name="spending-payed" title="Ödendi" ${spending.payed ? 'checked' : ''} onchange="toggleSpendingPayed(${member.id},${spending.id})">
+                              </div>            
+                              <button class="icon-btn edit" onclick="openEditSpending(${member.id},${spending.id})"><i class="fas fa-pen"></i></button>
+                              <button class="icon-btn delete" onclick="deleteSpending(${member.id},${spending.id})"><i class="fas fa-trash"></i></button>
+                            </div>
+                          </div>
+                          <div style='height:18px;' class="col-md-12 d-flex justify-content-center align-items-center"> 
+                            <button class="icon-btn" onclick="openAddSpending(${member.id}, ${spending.id})"><i style="font-size:13px;" class="bi bi-plus-circle"></i></button>
+                          </div>              
+                        </div>`;
               }).join('')}
             </div>
             <div class="fw-bold ms-2">Toplam: <span class="spending-color pointer" onclick="toggleMask(this, ${spend})">${formatCurrency(spend, isCurrencyMasked)}</span></div>
@@ -2512,8 +2517,7 @@ $(document).ready(function() {
   });
   
   $(document).on('change', '#currency-dropdown', function() {
-    financeData.currentCurrency = $(this).val();
-      
+    financeData.currentCurrency = $(this).val();  
     saveData();
 
     setCurrencyMultiplier();
@@ -2776,11 +2780,11 @@ $(document).ready(function() {
 
     let sendIncomeId = null;
     const sendIncome = sendMember?.incomes?.find(x=> x.senderId == memberId && x.senderSpendingId == saveSpendingId);
-    console.log('sendIncome: ', sendIncome, 
-                'member.spending: ', member.spendings.find(x=> x.id == saveSpendingId), 
-                'saveSpendingId: ', saveSpendingId, 
-                'sendMemberId: ', sendMemberId,
-                'saveSendMemberId: ',  saveSendMemberId);
+    // console.log('sendIncome: ', sendIncome, 
+    //             'member.spending: ', member.spendings.find(x=> x.id == saveSpendingId), 
+    //             'saveSpendingId: ', saveSpendingId, 
+    //             'sendMemberId: ', sendMemberId,
+    //             'saveSendMemberId: ',  saveSendMemberId);
     if(sendMemberId > 0) {   
       if(sendIncome) {
           sendIncomeId = sendIncome.id;
