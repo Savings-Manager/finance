@@ -395,7 +395,7 @@
 
     .sortable-handle {
       cursor: grab;
-      font-size:18pt;
+      font-size: 18pt;
     }
 
     .tab-content {
@@ -422,9 +422,13 @@
       cursor: pointer;
     }
 
+    .card-header {
+      border-bottom: none!important;
+    }
+
     /* Mobile responsive styles for top buttons */
     @media (max-width: 768px) {
-      .col-md-12, .col-12, .row {
+      .col-md-12, .col-12 {
         padding: 0;
       }
       .tab-content {
@@ -472,7 +476,7 @@
   <div class="d-flex justify-content-between align-items-center mb-4">
     <div class="d-flex align-items-center">
       <h2 id="page-title"><i class="bi bi-people-fill me-2"></i>Finans Yöneticisi</h2>
-      <small class="text-muted ms-2">v1.4.3</small>   
+      <small class="text-muted ms-2">v1.4.4</small>   
     </div>
     <div class="d-flex justify-content-between align-items-center">
       <div class="years-dropdown-wrapper me-1">
@@ -1195,6 +1199,9 @@ function validateFinanceData() {
   financeData.currentCycle ??= 1;
   financeData.activeTabIndex ??= 1; 
   financeData.currentCurrency ??= 'TRY';
+  financeData.years[financeData.currentYear]?.months[financeData.currentMonth]?.members?.forEach(member => {
+      member.collapsed = true;
+  });
 }
 
 function ensureMonthData(year, month) {
@@ -1205,7 +1212,10 @@ function ensureMonthData(year, month) {
   if (!financeData.years[year].months[month]) {
     const idx = months.indexOf(month);
     let prev = null;
-    for (let i = idx - 1; i >= 0; --i) if (financeData.years[year].months[months[i]]) { prev = months[i]; break; }
+    for (let i = idx - 1; i >= 0; --i) 
+    if (financeData.years[year].months[months[i]]) { 
+      prev = months[i]; break; 
+    }
     if (prev) {
       financeData.years[year].months[month] = JSON.parse(JSON.stringify(financeData.years[year].months[prev]));
     } else {
@@ -1766,63 +1776,63 @@ function parseStringToNumber(input, toFixed = 2) {
   return toFixed >= 0 ? parseFloat(parsed.toFixed(toFixed)) : parsed;
 }
 // TEST
-parseStringToNumber('0');
-parseStringToNumber('1');
-parseStringToNumber('1.00');
-parseStringToNumber('1,00');
-parseStringToNumber('2.00');
-parseStringToNumber('2,00');
-parseStringToNumber('32.00');
-parseStringToNumber('32,00');
-parseStringToNumber('355.00');
-parseStringToNumber('355,00');
-parseStringToNumber('0,00');
-parseStringToNumber('0.00');
-parseStringToNumber('1');
-parseStringToNumber('1,5');
-parseStringToNumber('1.5');
-parseStringToNumber('10');
-parseStringToNumber('10,00');
-parseStringToNumber('10.00');
-parseStringToNumber('1.000');
-parseStringToNumber('1,000');
-parseStringToNumber('1,4553435');
-parseStringToNumber('1.000,5');
-parseStringToNumber('1.000,56');
-parseStringToNumber('1.000,567');
-parseStringToNumber('1.000,5678');
-parseStringToNumber('1.000,56789');
-parseStringToNumber('1,000.5');
-parseStringToNumber('10.000');
-parseStringToNumber('10,000');
-parseStringToNumber('10.000,55');
-parseStringToNumber('10,000.55');
-parseStringToNumber('100.000');
-parseStringToNumber('100,000');
-parseStringToNumber('100.000,99');
-parseStringToNumber('100,000.99');
-parseStringToNumber('355.355.324,44');
-parseStringToNumber('355,355,324.44');
-parseStringToNumber('1.234.567,89');
-parseStringToNumber('1,234,567.89');
-parseStringToNumber('-100,50');
-parseStringToNumber('-100.50');
-parseStringToNumber('0,1234');
-parseStringToNumber('0.1234');
-parseStringToNumber('1,234.5678');
-parseStringToNumber('₺254.054');
-parseStringToNumber('₺254.054,1');
-parseStringToNumber('₺254.054,12');
-parseStringToNumber('₺254.054,123');
-parseStringToNumber('₺254.054,1234');
-parseStringToNumber('₺254.054,12345');
-parseStringToNumber('₺254054,12345');
-parseStringToNumber('254054,12345');
-parseStringToNumber('254054');
-parseStringToNumber('$254054.12345');
-parseStringToNumber('$254,054.12345');
-parseStringToNumber('$254,054,123,450');
-parseStringToNumber('$254,054,123.450');
+// parseStringToNumber('0');
+// parseStringToNumber('1');
+// parseStringToNumber('1.00');
+// parseStringToNumber('1,00');
+// parseStringToNumber('2.00');
+// parseStringToNumber('2,00');
+// parseStringToNumber('32.00');
+// parseStringToNumber('32,00');
+// parseStringToNumber('355.00');
+// parseStringToNumber('355,00');
+// parseStringToNumber('0,00');
+// parseStringToNumber('0.00');
+// parseStringToNumber('1');
+// parseStringToNumber('1,5');
+// parseStringToNumber('1.5');
+// parseStringToNumber('10');
+// parseStringToNumber('10,00');
+// parseStringToNumber('10.00');
+// parseStringToNumber('1.000');
+// parseStringToNumber('1,000');
+// parseStringToNumber('1,4553435');
+// parseStringToNumber('1.000,5');
+// parseStringToNumber('1.000,56');
+// parseStringToNumber('1.000,567');
+// parseStringToNumber('1.000,5678');
+// parseStringToNumber('1.000,56789');
+// parseStringToNumber('1,000.5');
+// parseStringToNumber('10.000');
+// parseStringToNumber('10,000');
+// parseStringToNumber('10.000,55');
+// parseStringToNumber('10,000.55');
+// parseStringToNumber('100.000');
+// parseStringToNumber('100,000');
+// parseStringToNumber('100.000,99');
+// parseStringToNumber('100,000.99');
+// parseStringToNumber('355.355.324,44');
+// parseStringToNumber('355,355,324.44');
+// parseStringToNumber('1.234.567,89');
+// parseStringToNumber('1,234,567.89');
+// parseStringToNumber('-100,50');
+// parseStringToNumber('-100.50');
+// parseStringToNumber('0,1234');
+// parseStringToNumber('0.1234');
+// parseStringToNumber('1,234.5678');
+// parseStringToNumber('₺254.054');
+// parseStringToNumber('₺254.054,1');
+// parseStringToNumber('₺254.054,12');
+// parseStringToNumber('₺254.054,123');
+// parseStringToNumber('₺254.054,1234');
+// parseStringToNumber('₺254.054,12345');
+// parseStringToNumber('₺254054,12345');
+// parseStringToNumber('254054,12345');
+// parseStringToNumber('254054');
+// parseStringToNumber('$254054.12345');
+// parseStringToNumber('$254,054.12345');
+// parseStringToNumber('$254,054,123,450');
+// parseStringToNumber('$254,054,123.450');
 // #endregion 
 
 function populateCurrencySelect() {
@@ -1957,8 +1967,7 @@ function renderMembers() {
       return (a.order || 0) - (b.order || 0);
     });
     return `<div data-memberid="${member.id}" class="card mb-3 material-shadow sortable-item">
-      <div class="card-body">
-        <div class="d-flex justify-content-between align-items-center">
+        <div class="card-header d-flex justify-content-between align-items-center">
           <div>
             <h5 class="card-title mb-1">
               <i class="sortable-handle bi bi-list me-2"></i>
@@ -1982,9 +1991,10 @@ function renderMembers() {
             </div>
             <button class="btn-member btn btn-sm btn-primary ms-1" onclick="openEditMember(${member.id})"><i class="fas fa-pen"></i></button>
             <button class="btn-member btn btn-sm btn-danger ms-2" onclick="deleteMember(${member.id})"><i class="fas fa-trash"></i></button>
+            <i data-memberid="${member.id}" data-bs-toggle="collapse" data-bs-target="#collapse_${member.id}" class="fa-solid fa-chevron-${member.collapsed == true ? "down" : "up"} ms-3 pointer"></i>
           </div>
         </div>
-        <div class="row mt-3">
+        <div class="collapse card-body row ${member.collapsed == true ? "" : "show"}" id="collapse_${member.id}">
           <div class="col-12 col-md-5">
             <div class="col-md-12">
               <h6 class="income-color">Gelirler<button class="icon-btn income-color" onclick="openAddIncome(${member.id})"><i class="bi bi-plus-circle"></i></button></h6>
@@ -2103,7 +2113,6 @@ function renderMembers() {
             <div class="fw-bold ms-2">Toplam: <span class="spending-color pointer" onclick="toggleMask(this, ${spend})">${formatCurrency(spend, isCurrencyMasked)}</span></div>
           </div>
         </div>
-      </div>
     </div>`;
   }).join('');
   $('#members-list').html(html);
@@ -2292,8 +2301,8 @@ function restoreScrollPositions() {
   });
 }
 function initializeSortable() {
-  document.querySelectorAll('.sortable-list').forEach(list => {
-    new Sortable(list, {
+  $('.sortable-list').each(function () {
+    new Sortable(this, {
       animation: 150, // sürüklerken animasyon efekti
       handle: '.sortable-handle',
       onEnd: function (event) {
@@ -2303,6 +2312,7 @@ function initializeSortable() {
 
         const members = financeData.years[financeData.currentYear].months[financeData.currentMonth].members;
         const member = members.find(m => m.id === memberId);                               
+        
         if(type === 0) { 
           $parent.children('.sortable-item').each(function(index) {
             const incomeId = $(this).data('incomeid');
@@ -2346,7 +2356,8 @@ function initializeSortable() {
           });
 
           members.sort(function(a, b) { return a.order - b.order; });
-        } else if(type === 4) { 
+        } 
+        else if(type === 4) { 
           $parent.children('.sortable-item').each(function(index) {
             const savingId = $(this).data('savingid');
             const saving = financeData.savings.savings.find(x => x.id === savingId);
@@ -2356,7 +2367,8 @@ function initializeSortable() {
           });
 
           financeData.savings.savings.sort(function(a, b) { return a.order - b.order; });
-        } else if(type === 5) { 
+        } 
+        else if(type === 5) { 
           $parent.children('.sortable-item').each(function(index) {
             const goalId = $(this).data('goalid');
             const goal = financeData.savings.goals.find(x => x.id === goalId);
@@ -2376,8 +2388,9 @@ function initializeSortable() {
     });
   });
 
-  $('.sortable-list').disableSelection();
-  $('.sortable-item').disableSelection();
+  $(".sortable-list").disableSelection();
+  $(".sortable-item").disableSelection();
+  $(".sortable-handle").disableSelection();
 }
 // #endregion
 
@@ -2542,6 +2555,24 @@ $(document).ready(function() {
     setGymDayData();
   });
   
+  $(document).on('click', '[data-bs-toggle="collapse"]', function() {
+    const memberId = $(this).data('memberid');
+    const member = financeData?.years[financeData.currentYear]
+                              ?.months[financeData.currentMonth]
+                              ?.members?.find(m => m.id === memberId);
+    if(!member) {
+      return;
+    }
+
+    if($(this).hasClass('fa-chevron-down')) {
+      $(this).removeClass('fa-chevron-down').addClass('fa-chevron-up');
+      member.collapsed = false;
+    }
+    else {
+      $(this).removeClass('fa-chevron-up').addClass('fa-chevron-down');
+      member.collapsed = true;
+    }
+  });
   $(document).on('click', '#btn-add-member', function() {
     $('#member-id').val('');
     $('#member-name').val('');
@@ -3085,6 +3116,10 @@ $(document).ready(function() {
       $('#savingExplanation').val(checkSaving.explanation);
       $('#addSavings').text('Birikim Güncelle');
       $(this).html('<i class="fas fa-cancel"></i>');
+      
+      $('html, body').animate({
+        scrollTop: ($("#quantity").offset().top - 200)
+      }, 10);
     } else {
       $('#savingId').val('');
       $('#quantity').val('');
@@ -3107,6 +3142,10 @@ $(document).ready(function() {
       $('#goalAmount').val(formatCurrency(checkGoal.amount));
       $('#addGoals').text('Hedef Güncelle');
       $(this).html('<i class="fas fa-cancel"></i>');
+      
+      $('html, body').animate({
+        scrollTop: ($("#goalName").offset().top - 200)
+      }, 10);
     } else {
       $('#goalId').val('');
       $('#goalName').val('');
