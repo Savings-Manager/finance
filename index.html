@@ -863,6 +863,7 @@ let access_token = null;
 let fileId = null;
 let isCurrencyMasked = true;
 let tokenClient = null;
+
 let gapiInited = false;
 let gisInited = false;
 let fileRead = false;
@@ -870,10 +871,11 @@ let googleDriveSwal = null;
 let timeOut = null;
 let copiedMonthData = null;
 let copiedMonth = null;
-let rates = {};
 let totalSavings = 0;
-let scrollPositions = {};
 let currencyMultiplier = 1;
+let sortableInstances = [];
+let rates = {};
+let scrollPositions = {};
 let currencySymbols = {
   'TRY': '₺',
   'EUR': '€',
@@ -2295,14 +2297,19 @@ function renderGoals() {
   
   initializeSortable(); 
 }
+
 function restoreScrollPositions() {
   $.each(scrollPositions, function (key, val) {
     $(`#${key}`).scrollTop(val);
   });
 }
-function initializeSortable() {
+function initializeSortable() {  
+  $.each(sortableInstances, function (key, val) {
+    val.destroy();
+  });
+  sortableInstances = [];
   $('.sortable-list').each(function () {
-    new Sortable(this, {
+    sortableInstances.push(new Sortable(this, {
       animation: 150, // sürüklerken animasyon efekti
       handle: '.sortable-handle',
       onEnd: function (event) {
@@ -2385,7 +2392,7 @@ function initializeSortable() {
           renderMembers();
         }
       }
-    });
+    }));
   });
 
   $(".sortable-list").disableSelection();
