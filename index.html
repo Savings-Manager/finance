@@ -301,6 +301,36 @@
       color: #222;
     }
 
+    /* --- Currency Dropdown Beautification --- */
+    .currency-dropdown-wrapper {
+      padding: 0;
+      position: relative;
+      max-width: 105px;
+      min-width: 55px;
+    }
+    .currency-dropdown-wrapper select {
+      font-size: 1rem;
+      font-weight: 500;
+      border-radius: 1.25rem;
+      padding: 0.4rem 0rem 0.4rem 1.3rem;
+      background: #fff;
+      color: #3949ab;
+      border: 2px solid #3949ab;
+      box-shadow: 0 2px 8px rgba(60,60,60,0.08);
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    .currency-dropdown-wrapper select:focus {
+      border-color: #579aff;
+      box-shadow: 0 0 0 2px #e3eafc;
+      outline: none;
+    }   
+    .currency-dropdown-wrapper select::-ms-expand {
+      display: none;
+    }
+    .currency-dropdown-wrapper select option {
+      color: #222;
+    }
+
     .nav-tabs .nav-link.active {
       border-bottom: 2px solid #6200ea !important;
       color: #6200ea !important;
@@ -322,12 +352,14 @@
       justify-content: center;
       display: flex;      /* yazıyı ortala */
     }
-    
 
     .nav-tabs .nav-link:hover {
       background-color: rgba(98,0,234,0.1);
     }
 
+    .fa-chevron-down, .fa-chevron-up {
+      font-size: 18pt;
+    }
 
     /* GYM PAGE */
     #days-row .btn-day {
@@ -439,7 +471,11 @@
 
     /* Mobile responsive styles for top buttons */
     @media (max-width: 768px) {
-      .col-md-12, .col-12 {
+      .nav-tabs .nav-link {
+        font-size: 10pt;
+      }
+
+      .col-md-12, .col-12, .col-md-8, .col-8, .col-md-2, .col-2 {
         padding: 0;
       }
       .tab-content {
@@ -506,7 +542,7 @@
     <div class="container-fluid">
       <div class="row align-items-center">
         <div class="col-2 col-md-2 d-flex justify-content-center align-items-center">
-          <div class="years-dropdown-wrapper col-md-1">
+          <div class="currency-dropdown-wrapper">
             <select id="currency-dropdown" class="form-select form-select-sm">
               <option value="TRY">₺</option>
               <option value="EUR">€</option>
@@ -536,8 +572,8 @@
             </li>
           </ul>
         </div>
-        <div class="col-2 col-md-2">
-          <button onclick="toggleAllCurrencyMasks()" class="btn-circle ms-2">
+        <div class="col-2 col-md-2 d-flex justify-content-center align-items-center">
+          <button onclick="toggleAllCurrencyMasks()" class="btn-circle">
             <i class="show-hide-icon fas fa-eye-slash"></i>
           </button>
         </div>
@@ -2544,10 +2580,16 @@ $(document).ready(function() {
     if($(this).hasClass('fa-chevron-down')) {
       $(this).removeClass('fa-chevron-down').addClass('fa-chevron-up');
       member.collapsed = false;
+      $('html, body').animate({
+        scrollTop: ($(this).offset().top - 20)
+      }, 10);
     }
     else {
       $(this).removeClass('fa-chevron-up').addClass('fa-chevron-down');
       member.collapsed = true;
+      $('html, body').animate({
+        scrollTop: ($(this).offset().top - 100)
+      }, 10);
     }
   });
   $(document).on('click', '#btn-add-member', function() {
