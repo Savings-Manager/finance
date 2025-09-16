@@ -311,7 +311,18 @@
       border: none !important;
       color: #6200ea;
       font-weight: 500;
+      font-size: 14pt;
     }
+
+    .nav-tabs .nav-item {
+      text-align: center;      /* li içindekini ortala */
+    }
+    .nav-item .nav-link {  
+      width: 100%;        /* buton li'nin tamamını kaplasın */
+      justify-content: center;
+      display: flex;      /* yazıyı ortala */
+    }
+    
 
     .nav-tabs .nav-link:hover {
       background-color: rgba(98,0,234,0.1);
@@ -423,7 +434,7 @@
     }
 
     .card-header {
-      border-bottom: none!important;
+      border-bottom: none !important;
     }
 
     /* Mobile responsive styles for top buttons */
@@ -476,16 +487,9 @@
   <div class="d-flex justify-content-between align-items-center mb-4">
     <div class="d-flex align-items-center">
       <h2 id="page-title"><i class="bi bi-people-fill me-2"></i>Finans Yöneticisi</h2>
-      <small class="text-muted ms-2">v1.4.4</small>   
+      <small class="text-muted ms-2">v1.4.5</small>   
     </div>
     <div class="d-flex justify-content-between align-items-center">
-      <div class="years-dropdown-wrapper me-1">
-          <select id="currency-dropdown" class="form-select form-select-sm">
-            <option value="TRY">₺</option>
-            <option value="EUR">€</option>
-            <option value="USD">$</option>
-          </select>
-      </div>
       <button class="top-action-btn me-1" id="btn-load-json"><i class="bi bi-folder2-open"></i>Verileri Geri Yükle</button>
       <button class="top-action-btn" id="btn-save-json"><i class="bi bi-save"></i>Verileri Yedekle</button>
     </div>
@@ -498,29 +502,48 @@
     </button>
   </div>
 
-  <ul class="nav nav-tabs" id="myTab" role="tablist" style="border-bottom: 2px solid #e0e0e0;">
-    <li class="nav-item" role="presentation">
-      <button class="nav-link active" id="home-tab" data-bs-toggle="tab" data-bs-target="#home"
-        type="button" role="tab" aria-controls="home" aria-selected="true"
-        style="color: #6200ea; border: none; border-bottom: 2px solid #6200ea; font-weight: 500;">
-        Finans Yöneticisi
-      </button>
-    </li>
-    <li class="nav-item" role="presentation">
-      <button class="nav-link" id="profile-tab" data-bs-toggle="tab" data-bs-target="#profile"
-        type="button" role="tab" aria-controls="profile" aria-selected="false"
-        style="color: #6200ea; border: none;">
-        GYM Yöneticisi
-      </button>
-    </li>
-    <li class="nav-item" role="presentation">
-      <button class="nav-link" id="contact-tab" data-bs-toggle="tab" data-bs-target="#contact"
-        type="button" role="tab" aria-controls="contact" aria-selected="false"
-        style="color: #6200ea; border: none;">
-        Birikim Yöneticisi
-      </button>
-    </li>
-  </ul>
+  <footer id="footer" class="fixed-bottom bg-light border-top">
+    <div class="container-fluid">
+      <div class="row align-items-center">
+        <div class="col-2 col-md-2 d-flex justify-content-center align-items-center">
+          <div class="years-dropdown-wrapper col-md-1">
+            <select id="currency-dropdown" class="form-select form-select-sm">
+              <option value="TRY">₺</option>
+              <option value="EUR">€</option>
+              <option value="USD">$</option>
+            </select>
+          </div>
+        </div>
+        <div class="col-8 col-md-8">
+          <ul class="nav nav-tabs col-12 col-md-12 justify-content-center" id="myTab" role="tablist">
+            <li class="nav-item col-4 col-md-4" role="presentation">
+              <button class="nav-link active" id="home-tab" data-bs-toggle="tab" data-bs-target="#home"
+                type="button" role="tab" aria-controls="home" aria-selected="true">
+                Finans Yöneticisi
+              </button>
+            </li>
+            <li class="nav-item col-4 col-md-4" role="presentation">
+              <button class="nav-link" id="profile-tab" data-bs-toggle="tab" data-bs-target="#profile"
+                type="button" role="tab" aria-controls="profile" aria-selected="false">
+                GYM Yöneticisi
+              </button>
+            </li>
+            <li class="nav-item col-4 col-md-4" role="presentation">
+              <button class="nav-link" id="contact-tab" data-bs-toggle="tab" data-bs-target="#contact"
+                type="button" role="tab" aria-controls="contact" aria-selected="false">
+                Birikim Yöneticisi
+              </button>
+            </li>
+          </ul>
+        </div>
+        <div class="col-2 col-md-2">
+          <button onclick="toggleAllCurrencyMasks()" class="btn-circle ms-2">
+            <i class="show-hide-icon fas fa-eye-slash"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+  </footer>
   <div class="tab-content" id="myTabContent">
     <div class="tab-pane fade show active" id="home" role="tabpanel" aria-labelledby="home-tab">
       <div id="finance-section">
@@ -531,9 +554,6 @@
           </div>
           <div class="d-flex p-0 ms-2">
             <button id="btn-clear-month" class="btn btn-circle delete" title="Bu ayın verilerini temizle"><i class="fas fa-trash"></i></button>      
-            <button onclick="toggleAllCurrencyMasks()" class="btn-circle ms-2">
-              <i class="show-hide-icon fas fa-eye-slash"></i>
-            </button>
             <button id="btn-copy-month" class="btn-circle edit ms-2" title="Bu ayın verilerini kopyala"><i class="bi bi-clipboard"></i></button>
             <button id="btn-paste-month" class="btn-circle success ms-2" title="Bu aya yapıştır" disabled><i class="bi bi-clipboard-check"></i></button>
           </div>
@@ -575,9 +595,6 @@
         <div class="card shadow-sm mb-4">
           <div class="card-body">
             <h5 class="card-title mb-3">Para Birimi Yönetimi</h5>
-            <button onclick="toggleAllCurrencyMasks()" class="btn-circle ms-2">
-              <i class="show-hide-icon fas fa-eye-slash"></i>
-            </button>
             <div class="row g-2">
               <div class="col-md-6">
                 <label class="form-label" for="currency">Para Birimi Seç</label>
@@ -1262,6 +1279,7 @@ function toggleCardPayed(memberId, cardId) {
     showToast('Kart durumu güncellendi.'); 
   }
 }
+
 function toggleSpendingPayed(memberId, spendingId) {
   scrollPositions[`spending-div-${memberId}`] = $(`#spending-div-${memberId}`).scrollTop();
   const spending = financeData?.years[financeData.currentYear]
@@ -1302,6 +1320,7 @@ function toggleSavingStatus(savingId) {
     showToast('Birikim durumu güncellendi.'); 
   }
 }
+
 function toggleGoalStatus(goalId) {  
   const goal = financeData.savings?.goals?.find(x => x.id === goalId);
   if(goal) {
@@ -1313,6 +1332,7 @@ function toggleGoalStatus(goalId) {
     showToast('Hedef durumu güncellendi.'); 
   }
 }
+
 function toggleMemberStatus(memberId) {  
   const member = financeData.years[financeData.currentYear]
                            ?.months[financeData.currentMonth]
@@ -1608,6 +1628,7 @@ function showToast(title, icon = "success", timer = 2000, position = "top-end", 
     title: title
   });
 }
+
 function isNullOrEmpty(value) {
   if (value === null || value === undefined) return true;
   if (typeof value === 'string' && value.trim() === '') return true;
@@ -1616,9 +1637,11 @@ function isNullOrEmpty(value) {
   if (typeof value === 'number' && isNaN(value)) return true;
   return false;
 }
+
 function generateId(list) {
   return list.length ? Math.max(...list.map(x => x.id)) + 1 : 1;
 }
+
 function convertToCurrency(val, currency= 'TRY') {
   if(currency == 'TRY') {
     return val * currencyMultiplier;
@@ -1627,17 +1650,21 @@ function convertToCurrency(val, currency= 'TRY') {
     return val / currencyMultiplier;
   }
 }
+
 function formatCurrency(val, shouldMask = false) {
   if (shouldMask) return '••••••••';
   return numberFormat.format(convertToCurrency(val, financeData.currentCurrency));
 }
+
 function formatText(val, shouldMask = false) {
   if (shouldMask) return '••••••••';
   return val;
 }
+
 function inputFormatNumber(n) {
     return n.replace(/\D/g, "").replace(/\B(?=(\d{3})+(?!\d))/g, ".");
 }
+
 function inputFormatCurrency(input, event, blur=false) {
     var input_val = input.val();
     if (isNullOrEmpty(input_val)) { 
@@ -1699,14 +1726,17 @@ function getValidDate(input, format = DEFAULT_DATE_FORMAT) {
   if(!m.isValid()) m = moment(input, FIX_DATE_FORMAT);
   return m;
 }
+
 function isValidDate(input, format = DEFAULT_DATE_FORMAT) {
   const m = getValidDate(input, format);
   return m.isValid() ? m : false;
 }
+
 function formatDateString(input, format = DEFAULT_DATE_FORMAT) {
   const m = getValidDate(input, format);
   return m.isValid() ? m.format(format) : "";
 }
+
 function stringToDate(input, format = DEFAULT_DATE_FORMAT) {
   const m = getValidDate(input, format);
   return m.isValid() ? m : null;
@@ -1777,65 +1807,6 @@ function parseStringToNumber(input, toFixed = 2) {
   //console.log(input, (toFixed >= 0 ? parseFloat(parsed.toFixed(toFixed)) : parsed), dotParts, (dotParts[1] || '').split(','));
   return toFixed >= 0 ? parseFloat(parsed.toFixed(toFixed)) : parsed;
 }
-// TEST
-// parseStringToNumber('0');
-// parseStringToNumber('1');
-// parseStringToNumber('1.00');
-// parseStringToNumber('1,00');
-// parseStringToNumber('2.00');
-// parseStringToNumber('2,00');
-// parseStringToNumber('32.00');
-// parseStringToNumber('32,00');
-// parseStringToNumber('355.00');
-// parseStringToNumber('355,00');
-// parseStringToNumber('0,00');
-// parseStringToNumber('0.00');
-// parseStringToNumber('1');
-// parseStringToNumber('1,5');
-// parseStringToNumber('1.5');
-// parseStringToNumber('10');
-// parseStringToNumber('10,00');
-// parseStringToNumber('10.00');
-// parseStringToNumber('1.000');
-// parseStringToNumber('1,000');
-// parseStringToNumber('1,4553435');
-// parseStringToNumber('1.000,5');
-// parseStringToNumber('1.000,56');
-// parseStringToNumber('1.000,567');
-// parseStringToNumber('1.000,5678');
-// parseStringToNumber('1.000,56789');
-// parseStringToNumber('1,000.5');
-// parseStringToNumber('10.000');
-// parseStringToNumber('10,000');
-// parseStringToNumber('10.000,55');
-// parseStringToNumber('10,000.55');
-// parseStringToNumber('100.000');
-// parseStringToNumber('100,000');
-// parseStringToNumber('100.000,99');
-// parseStringToNumber('100,000.99');
-// parseStringToNumber('355.355.324,44');
-// parseStringToNumber('355,355,324.44');
-// parseStringToNumber('1.234.567,89');
-// parseStringToNumber('1,234,567.89');
-// parseStringToNumber('-100,50');
-// parseStringToNumber('-100.50');
-// parseStringToNumber('0,1234');
-// parseStringToNumber('0.1234');
-// parseStringToNumber('1,234.5678');
-// parseStringToNumber('₺254.054');
-// parseStringToNumber('₺254.054,1');
-// parseStringToNumber('₺254.054,12');
-// parseStringToNumber('₺254.054,123');
-// parseStringToNumber('₺254.054,1234');
-// parseStringToNumber('₺254.054,12345');
-// parseStringToNumber('₺254054,12345');
-// parseStringToNumber('254054,12345');
-// parseStringToNumber('254054');
-// parseStringToNumber('$254054.12345');
-// parseStringToNumber('$254,054.12345');
-// parseStringToNumber('$254,054,123,450');
-// parseStringToNumber('$254,054,123.450');
-// #endregion 
 
 function populateCurrencySelect() {
   $("#currency").html(`<option value='${rates.EURTRY.code}'>EURO</option>
@@ -1848,17 +1819,6 @@ function populateCurrencySelect() {
                         <option value='${rates.ATA_YENI.code}'>ATA ALTIN</option>
                         <option value='${rates.GREMESE_YENI.code}'>GREMSE</option>`);
 }
-// function populateCurrentCurrencySelect() {
-//   $("#currency").html(`<option value='${rates.EURTRY.code}'>EURO</option>
-//                         <option value='${rates.USDTRY.code}'>DOLAR</option>
-//                         <option value='${rates.AYAR22.code}'>22 AYAR ALTIN</option>
-//                         <option value='${rates.ALTIN.code}'>HAS ALTIN</option>
-//                         <option value='${rates.CEYREK_YENI.code}'>ÇEYREK ALTIN</option>
-//                         <option value='${rates.YARIM_YENI.code}'>YARIM ALTIN</option>
-//                         <option value='${rates.TEK_YENI.code}'>TAM ALTIN</option>
-//                         <option value='${rates.ATA_YENI.code}'>ATA ALTIN</option>
-//                         <option value='${rates.GREMESE_YENI.code}'>GREMSE</option>`);
-// }
 
 function updateCurrenciesFromApi() {
     $.each(financeData.savings.currencies, function (key, row) {
@@ -1876,7 +1836,6 @@ function updateCurrenciesFromApi() {
   saveData();
 }
 
-// --- Populate Send Member Dropdown on Spending Modal ---
 function populateSpendingMemberDropdown(memberId, selectedMemberId) {
   const select = document.getElementById('spending-sendmember-id');
   const members = financeData?.years[financeData.currentYear]
@@ -1891,7 +1850,7 @@ function populateSpendingMemberDropdown(memberId, selectedMemberId) {
   select.innerHTML = '<option value="">Seçiniz...</option>' + members.map(member => `<option value="${member.id}">${member.name}</option>`).join('');
   select.value = selectedMemberId || '';
 }
-// --- Populate Card Dropdown on Spending Modal ---
+
 function populateSpendingCardDropdown(memberId, selectedCardId) {
   const select = document.getElementById('spending-card-id');
 
@@ -1941,9 +1900,11 @@ function renderYearsDropdown() {
   const years = getYearList();
   $('#years-dropdown').html(years.map(y => `<option value="${y}">${y}</option>`).join(''));
 }
+
 function renderMonthsRow() {
   $('#months-row').html(months.map(m => `<button data-month="${m}" class="btn-outline-primary btn-month btn btn-sm me-2" onclick="switchMonth('${m}')">${getMonthName(m)}</button>`).join(''));
 }
+
 function renderMembers() {
   ensureMonthData(financeData.currentYear, financeData.currentMonth);
   const members = financeData?.years[financeData.currentYear]?.months[financeData.currentMonth]?.members;
@@ -2122,6 +2083,7 @@ function renderMembers() {
   initializeSortable();
   restoreScrollPositions();
 }
+
 function renderFamilySummary() {
   let year = financeData.currentYear;
   let month = financeData.currentMonth;
@@ -2191,6 +2153,7 @@ function renderDateInputs() {
     }
   });      
 }
+
 function renderCycleDropdown() {
   const cycles = [];
   for (let index = 0; index < 100; index++) {
@@ -2199,6 +2162,7 @@ function renderCycleDropdown() {
 
   $('#cycles-dropdown').html(cycles.map(y => `<option value="${y}">${y + '. Döngü'}</option>`).join(''));
 }
+
 function renderDaysRow() {  
   $('#days-row').html(days.map(x=> `<div class="col-6 col-md-3 mt-2">
               <label for="day_${x}" class="day-label form-label fw-bold">${getDayName(x)}</label>
@@ -2217,6 +2181,7 @@ function renderCurrencies() {
     $("#customCurrencies").append($("<option>").val(row.code).text(row.text));
   });
 }
+
 function renderSavings() {
   const $tbody = $("#savingsTable tbody");
   $tbody.html('');
@@ -2232,8 +2197,7 @@ function renderSavings() {
       }
 
       const $row = $(`<tr data-savingid='${row.id}' class='sortable-item'>`).append(
-        `<td>
-          <i class="sortable-handle bi bi-list me-2"></i> ${currency.text}</td>
+       `<td><i class="sortable-handle bi bi-list me-2"></i> ${currency.text}</td>
         <td>${formatCurrency(currency.alis)}</td>
         <td class="pointer" onclick="toggleMask(this, ${row.quantity}, false)">${formatText(row.quantity, isCurrencyMasked)}</td>
         <td class="pointer" onclick="toggleMask(this, ${rowTotal})">${formatCurrency(rowTotal, isCurrencyMasked)}</td>
@@ -2260,6 +2224,7 @@ function renderSavings() {
   
   initializeSortable();
 }
+
 function renderGoals() {
   const $tbody = $("#goalsTable tbody");
   $tbody.html('');
@@ -2303,6 +2268,7 @@ function restoreScrollPositions() {
     $(`#${key}`).scrollTop(val);
   });
 }
+
 function initializeSortable() {  
   $.each(sortableInstances, function (key, val) {
     val.destroy();
@@ -2407,6 +2373,7 @@ function setYearData() {
   const currentYear = financeData?.currentYear ?? getCurrentYearMonth().year;
   $('#years-dropdown').val(currentYear).change();
 }
+
 function setMonthData() {
   const year = financeData?.currentYear ?? getCurrentYearMonth().year;
   const month = financeData?.currentMonth;
@@ -2420,6 +2387,7 @@ function setCycleData() {
   const currentCycle = financeData.currentCycle ?? 1;
   $('#cycles-dropdown').val(currentCycle).change();
 }
+
 function setGymDayData() {
   $('.btn-day').removeClass('btn-outline-success');
   $('.btn-day').val('');
@@ -2496,9 +2464,11 @@ function setAllDatas() {
   setActiveTab();
   setCurrentCurrencyData();
 }
+
 function setCurrentCurrencyData() {
   $('#currency-dropdown').val(financeData.currentCurrency);
 }
+
 function setActiveTab() {
   console.log('setActiveTab: ', financeData.activeTabIndex);
   $('#myTab .nav-link').eq(financeData.activeTabIndex).tab('show');
