@@ -1184,11 +1184,12 @@ async function saveToGoogleDrive() {
     });
 
     const uploadResult = await uploadRes.json();
-
+    uploading = false;
     console.log('File uploaded successfully:', uploadResult.name);
     saveToLocalStorage();
     
   } catch (error) {
+    uploading = false;
     console.error('Error uploading to Drive:', error);
     if (error.status === 401) {
       logOut();
@@ -1204,7 +1205,11 @@ function logOut() {
   access_token = null;
 }
 
+let uploading = false;
+
 function saveData() {
+  if(uploading) return;
+  uploading = true;
   console.log('[saveData]');
   saveToLocalStorage();
   saveToGoogleDrive();
