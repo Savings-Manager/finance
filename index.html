@@ -1080,7 +1080,7 @@ async function loadFromGoogleDrive() {
       return;
     }
   
-    console.log('[loadFromGoogleDrive]', FILE_NAME, ' File search started.');
+    console.log('[loadFromGoogleDrive]', FILE_NAME, 'File search started.');
     const response = await gapi.client.drive.files.list({
       q: `name='${FILE_NAME}' and trashed=false`,
       fields: 'files(id, name)',
@@ -1094,7 +1094,7 @@ async function loadFromGoogleDrive() {
       return;
     }
 
-    console.log('[loadFromGoogleDrive] File found in Drive: ', response.result.files[0].name);
+    console.log('[loadFromGoogleDrive] File found in Drive:', response.result.files[0].name);
     fileId = response.result.files[0].id;
     
     const contentResponse = await fetch(`https://www.googleapis.com/drive/v3/files/${fileId}?alt=media`, {
@@ -3242,7 +3242,6 @@ $(document).ready(function() {
   }
   else {
       var checkGoogle = setInterval(function() {
-        console.log('checkGoogle: checkGoogle');
         if (typeof google !== 'undefined' && google.accounts?.oauth2) {
           clearInterval(checkGoogle);
           (async function () {
