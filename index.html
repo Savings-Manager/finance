@@ -523,7 +523,7 @@
   <div class="d-flex justify-content-between align-items-center mb-4">
     <div class="d-flex align-items-center">
       <h2 id="page-title"><i class="bi bi-people-fill me-2"></i>Finans Yöneticisi</h2>
-      <small class="text-muted ms-2">v1.4.5</small>   
+      <small class="text-muted ms-2">v1.4.6</small>   
     </div>
     <div class="d-flex justify-content-between align-items-center">
       <button class="top-action-btn me-1" id="btn-load-json"><i class="bi bi-folder2-open"></i>Verileri Geri Yükle</button>
@@ -1691,6 +1691,13 @@ function formatCurrency(val, shouldMask = false) {
   if (shouldMask) return '••••••••';
   return numberFormat.format(convertToCurrency(val, financeData.currentCurrency));
 }
+function formatNumber(val, shouldMask = false) {
+  if (shouldMask) return '••••••••';
+  const number = numberFormat.format(val).replaceAll(currencySymbols[financeData.currentCurrency], '');
+  const splt = number.split(',');
+  if(splt[1] == '00') return splt[0];
+  return number;
+}
 
 function formatText(val, shouldMask = false) {
   if (shouldMask) return '••••••••';
@@ -1903,11 +1910,13 @@ function populateSpendingCardDropdown(memberId, selectedCardId) {
   select.value = selectedCardId || '';
 }
 
-function toggleMask(element, originalValue, currency = true) {
+function toggleMask(element, originalValue, type = 0) {
   const currentText = element.textContent?.trim();
   if (currentText === '••••••••') {
     if (originalValue != undefined) {
-      element.textContent = currency ? formatCurrency(Number(originalValue)) : originalValue;
+      element.textContent = type == 0 ? formatCurrency(Number(originalValue)) 
+                                      : type == 1 ? formatNumber(Number(originalValue)) 
+                                                  : originalValue;
     }
   } else {
     element.textContent = '••••••••';
@@ -2235,7 +2244,7 @@ function renderSavings() {
       const $row = $(`<tr data-savingid='${row.id}' class='sortable-item'>`).append(
        `<td><i class="sortable-handle bi bi-list me-2"></i> ${currency.text}</td>
         <td>${formatCurrency(currency.alis)}</td>
-        <td class="pointer" onclick="toggleMask(this, ${row.quantity}, false)">${formatText(row.quantity, isCurrencyMasked)}</td>
+        <td class="pointer" onclick="toggleMask(this, ${row.quantity}, 1)">${formatNumber(row.quantity, isCurrencyMasked)}</td>
         <td class="pointer" onclick="toggleMask(this, ${rowTotal})">${formatCurrency(rowTotal, isCurrencyMasked)}</td>
         <td>${row.explanation ?? ""}</td>
         <td> 
@@ -2512,11 +2521,19 @@ function setActiveTab() {
 // #endregion
 
 $(document).ready(function() {
+  // $(document).off("keyup", 'input[data-type="number"]');
+  // $(document).on('keyup', 'input[data-type="number"]', function (e) {
+  //   inputFormatCurrency($(this), e);
+  // });
+  // $(document).off("blur", 'input[data-type="number"]');
+  // $(document).on('blur', 'input[data-type="number"]', function (e) {
+  //   inputFormatCurrency($(this), e, true);
+  // });
+
   $(document).off("keyup", 'input[data-type="currency"]');
   $(document).on('keyup', 'input[data-type="currency"]', function (e) {
     inputFormatCurrency($(this), e);
   });
-
   $(document).off("blur", 'input[data-type="currency"]');
   $(document).on('blur', 'input[data-type="currency"]', function (e) {
     inputFormatCurrency($(this), e, true);
