@@ -1185,7 +1185,7 @@ async function saveToGoogleDrive() {
 
     const uploadResult = await uploadRes.json();
 
-    console.log('File uploaded successfully:', uploadResult);
+    console.log('File uploaded successfully:', uploadResult.name);
     saveToLocalStorage();
     
   } catch (error) {
@@ -2397,7 +2397,8 @@ function initializeSortable() {
 
           financeData.savings.goals.sort(function(a, b) { return a.order - b.order; });
         }
-        
+
+        console.log('[initializeSortable]');
         saveData();
         if(type === 1) {
           renderMembers();
@@ -2550,6 +2551,7 @@ $(document).ready(function() {
   // });
   $(document).on('shown.bs.tab', '#myTab .nav-item', function() {
     financeData.activeTabIndex = $(this).index();
+    console.log('[shown.bs.tab]');
     saveData();
   });
   $('#memberModal, #incomeModal, #spendingModal, #cardModal').on('shown.bs.modal', function (e) {
@@ -2560,7 +2562,8 @@ $(document).ready(function() {
   });
   
   $(document).on('change', '#currency-dropdown', function() {
-    financeData.currentCurrency = $(this).val();  
+    financeData.currentCurrency = $(this).val();
+    console.log('[currency-dropdown . change]');  
     saveData();
 
     setCurrencyMultiplier();
