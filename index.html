@@ -441,11 +441,11 @@
       font-size: 18pt;
     }
 
-    .tab-content {
+    /* .tab-content {
       padding: 1rem 0.7rem 1rem 0.7rem; 
       border: 1px solid #e0e0e0; 
       border-top: none;
-    }
+    } */
 
     /* .flatpickr-clear-div {
       position: absolute;
@@ -474,7 +474,6 @@
       .nav-tabs .nav-link {
         font-size: 10pt;
       }
-
       .col-md-12, .col-12, .col-md-8, .col-8, .col-md-2, .col-2 {
         padding: 0;
       }
@@ -582,47 +581,50 @@
   </footer>
   <div class="tab-content" id="myTabContent">
     <div class="tab-pane fade show active" id="home" role="tabpanel" aria-labelledby="home-tab">
-      <div id="finance-section">
-        <div class="mb-3 d-flex">
-          <div class="years-dropdown-wrapper">
-              <i class="bi bi-calendar3 dropdown-icon"></i>
-              <select id="years-dropdown" class="form-select form-select-sm"></select>
-          </div>
-          <div class="d-flex p-0 ms-2">
-            <button id="btn-clear-month" class="btn btn-circle delete" title="Bu ayın verilerini temizle"><i class="fas fa-trash"></i></button>      
-            <button id="btn-copy-month" class="btn-circle edit ms-2" title="Bu ayın verilerini kopyala"><i class="bi bi-clipboard"></i></button>
-            <button id="btn-paste-month" class="btn-circle success ms-2" title="Bu aya yapıştır" disabled><i class="bi bi-clipboard-check"></i></button>
-          </div>
+      <div id="finance-section" class="card shadow-sm mb-4">
+        <div class="card-body">
+          <div class="mb-3 d-flex">
+        <div class="years-dropdown-wrapper">
+            <i class="bi bi-calendar3 dropdown-icon"></i>
+            <select id="years-dropdown" class="form-select form-select-sm"></select>
         </div>
-        <div class="d-flex justify-content-between align-items-center mb-2">   
-          <div id="months-row"></div>
+        <div class="d-flex p-0 ms-2">
+          <button id="btn-clear-month" class="btn btn-circle delete" title="Bu ayın verilerini temizle"><i class="fas fa-trash"></i></button>      
+          <button id="btn-copy-month" class="btn-circle edit ms-2" title="Bu ayın verilerini kopyala"><i class="bi bi-clipboard"></i></button>
+          <button id="btn-paste-month" class="btn-circle success ms-2" title="Bu aya yapıştır" disabled><i class="bi bi-clipboard-check"></i></button>
         </div>
-        <div id="family-summary" class="mb-4"></div>
-        <div class="row col-12">
-          <div class="col-7 col-md-7">
-          <h4>Kişiler</h4> 
+      </div>
+      <div class="d-flex justify-content-between align-items-center mb-2">   
+        <div id="months-row"></div>
+      </div>
+      <div id="family-summary" class="mb-4"></div>
+      <div class="row col-12">
+        <div class="col-7 col-md-7">
+        <h4>Kişiler</h4> 
+      </div>
+      <div class="col-5 col-md-5 d-flex justify-content-end">
+          <button class="top-action-btn" id="btn-add-member"><i class="bi bi-person-plus"></i> Kişi Ekle</button>
+      </div>
+      </div>
+      <div id="members-list" data-type="3" class="mt-2 sortable-list"></div>
         </div>
-        <div class="col-5 col-md-5 d-flex justify-content-end">
-            <button class="top-action-btn" id="btn-add-member"><i class="bi bi-person-plus"></i> Kişi Ekle</button>
-        </div>
-        </div>
-        <div id="members-list" data-type="3" class="mt-2 sortable-list"></div>
       </div>
     </div>
     <div class="tab-pane fade" id="profile" role="tabpanel" aria-labelledby="profile-tab">
-      <div id="gym-section">
-        <div class="mb-2">
-          <div>
-            <div class="cycles-dropdown-wrapper">
-              <i class="bi bi-calendar3 dropdown-icon"></i>
-              <select id="cycles-dropdown" class="form-select form-select-sm"></select>
+      <div id="gym-section" class="card shadow-sm mb-4">
+        <div class="card-body">
+          <div class="mb-2">
+            <div>
+              <div class="cycles-dropdown-wrapper">
+                <i class="bi bi-calendar3 dropdown-icon"></i>
+                <select id="cycles-dropdown" class="form-select form-select-sm"></select>
+              </div>
+              <span>
+                <!-- <button id="btn-clear-day" class="btn btn-circle delete ms-2" title="Bu döngünün verilerini temizle"><i class="fas fa-trash"></i></button>       -->
+              </span>
             </div>
-            <span>
-              <!-- <button id="btn-clear-day" class="btn btn-circle delete ms-2" title="Bu döngünün verilerini temizle"><i class="fas fa-trash"></i></button>       -->
-            </span>
           </div>
-        </div>
-        <div id="days-row" class="row col-12 d-flex justify-content-between align-items-center mb-2">   
+          <div id="days-row" class="row col-12 d-flex justify-content-between align-items-center mb-2"></div>
         </div>
       </div>
     </div>
@@ -1852,15 +1854,16 @@ function parseStringToNumber(input, toFixed = 2) {
 }
 
 function populateCurrencySelect() {
-  $("#currency").html(`<option value='${rates.EURTRY.code}'>EURO</option>
-                        <option value='${rates.USDTRY.code}'>DOLAR</option>
-                        <option value='${rates.AYAR22.code}'>22 AYAR ALTIN</option>
-                        <option value='${rates.ALTIN.code}'>HAS ALTIN</option>
-                        <option value='${rates.CEYREK_YENI.code}'>ÇEYREK ALTIN</option>
-                        <option value='${rates.YARIM_YENI.code}'>YARIM ALTIN</option>
-                        <option value='${rates.TEK_YENI.code}'>TAM ALTIN</option>
-                        <option value='${rates.ATA_YENI.code}'>ATA ALTIN</option>
-                        <option value='${rates.GREMESE_YENI.code}'>GREMSE</option>`);
+  console.log(rates.EURTRY);
+  $("#currency").html(`<option value='${rates.EURTRY.code}'>EURO - ${formatCurrency(rates.EURTRY.alis)}</option>
+                        <option value='${rates.USDTRY.code}'>DOLAR - ${formatCurrency(rates.USDTRY.alis)}</option>
+                        <option value='${rates.AYAR22.code}'>22 AYAR ALTIN - ${formatCurrency(rates.AYAR22.alis)}</option>
+                        <option value='${rates.ALTIN.code}'>HAS ALTIN - ${formatCurrency(rates.ALTIN.alis)}</option>
+                        <option value='${rates.CEYREK_YENI.code}'>ÇEYREK ALTIN - ${formatCurrency(rates.CEYREK_YENI.alis)}</option>
+                        <option value='${rates.YARIM_YENI.code}'>YARIM ALTIN - ${formatCurrency(rates.YARIM_YENI.alis)}</option>
+                        <option value='${rates.TEK_YENI.code}'>TAM ALTIN - ${formatCurrency(rates.TEK_YENI.alis)}</option>
+                        <option value='${rates.ATA_YENI.code}'>ATA ALTIN - ${formatCurrency(rates.ATA_YENI.alis)}</option>
+                        <option value='${rates.GREMESE_YENI.code}'>GREMSE - ${formatCurrency(rates.GREMESE_YENI.alis)}</option>`);
 }
 
 function updateCurrenciesFromApi() {
@@ -2223,7 +2226,8 @@ function renderDaysRow() {
 function renderCurrencies() {
   $("#customCurrencies").empty();
   $.each(financeData.savings.currencies, function (key, row) {
-    $("#customCurrencies").append($("<option>").val(row.code).text(row.text));
+    console.log(row);
+    $("#customCurrencies").append($("<option>").val(row.code).text(`${row.text} - ${formatCurrency(row.alis)}`));
   });
 }
 
@@ -2973,7 +2977,7 @@ $(document).ready(function() {
   // tab-3
   $(document).on('click', '#addSelectedCurrency', function(e) {
       const value = $('#currency').val();
-      const text = $('#currency option:selected').text();
+      const text = $('#currency option:selected').text().split('-')[0].trim();
       const rate = rates[value];
       if(!rate) {
         return;
