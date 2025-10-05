@@ -241,6 +241,10 @@
       border-color: #283593;
     }
 
+    .spacer {
+      height: 80px;
+    }
+
     #months-row .btn-month {
       border-radius: 20px;
       transition: all 0.2s ease;
@@ -467,20 +471,17 @@
 
     .card-header {
       border-bottom: none !important;
-    }
+    }  
 
-    /* Mobile responsive styles for top buttons */
     @media (max-width: 768px) {
+      /* .card-body {
+        padding: var(--bs-card-spacer-y) 0.25rem;
+      } */
       .nav-tabs .nav-link {
         font-size: 10pt;
       }
       .col-md-12, .col-12, .col-md-8, .col-8, .col-md-2, .col-2 {
         padding: 0;
-      }
-      .tab-content {
-        padding: 1rem 0.2rem 1rem 0.2rem; 
-        border: 1px solid #e0e0e0; 
-        border-top: none;
       }
       .list-group-item { 
         padding: 15px 8px !important;
@@ -518,71 +519,28 @@
   </style>
 </head>
 <body class="bg-light">
-<div class="container py-4">  
+<div class="container mt-4">  
   <div class="d-flex justify-content-between align-items-center mb-4">
     <div class="d-flex align-items-center">
       <h2 id="page-title"><i class="bi bi-people-fill me-2"></i>Finans Yöneticisi</h2>
-      <small class="text-muted ms-2">v1.4.6</small>   
+      <small class="text-muted ms-2">v1.4.7</small>   
     </div>
     <div class="d-flex justify-content-between align-items-center">
       <button class="top-action-btn me-1" id="btn-load-json"><i class="bi bi-folder2-open"></i>Verileri Geri Yükle</button>
       <button class="top-action-btn" id="btn-save-json"><i class="bi bi-save"></i>Verileri Yedekle</button>
     </div>
   </div>
-  <div id="drive-warning" class="alert alert-warning d-none mb-4">
+  <div id="drive-warning" class="alert alert-warning mb-3 d-none">
     <i class="bi bi-exclamation-triangle-fill me-2"></i>
     Google Drive ile giriş yapılmadığında verileriniz tarayıcıda tutulur ve tarayıcı verileri temizlendiğinde kaybolabilir.
     <button class="btn btn-sm btn-warning ms-2" onclick="initGoogleDrive()">
       <i class="bi bi-google me-1"></i>Google Drive ile Giriş Yap
     </button>
   </div>
-
-  <footer id="footer" class="fixed-bottom bg-light border-top">
-    <div class="container-fluid">
-      <div class="row align-items-center">
-        <div class="col-2 col-md-2 d-flex justify-content-center align-items-center">
-          <div class="currency-dropdown-wrapper">
-            <select id="currency-dropdown" class="form-select form-select-sm">
-              <option value="TRY">₺</option>
-              <option value="EUR">€</option>
-              <option value="USD">$</option>
-            </select>
-          </div>
-        </div>
-        <div class="col-8 col-md-8">
-          <ul class="nav nav-tabs col-12 col-md-12 justify-content-center" id="myTab" role="tablist">
-            <li class="nav-item col-4 col-md-4" role="presentation">
-              <button class="nav-link active" id="home-tab" data-bs-toggle="tab" data-bs-target="#home"
-                type="button" role="tab" aria-controls="home" aria-selected="true">
-                Finans Yöneticisi
-              </button>
-            </li>
-            <li class="nav-item col-4 col-md-4" role="presentation">
-              <button class="nav-link" id="profile-tab" data-bs-toggle="tab" data-bs-target="#profile"
-                type="button" role="tab" aria-controls="profile" aria-selected="false">
-                GYM Yöneticisi
-              </button>
-            </li>
-            <li class="nav-item col-4 col-md-4" role="presentation">
-              <button class="nav-link" id="contact-tab" data-bs-toggle="tab" data-bs-target="#contact"
-                type="button" role="tab" aria-controls="contact" aria-selected="false">
-                Birikim Yöneticisi
-              </button>
-            </li>
-          </ul>
-        </div>
-        <div class="col-2 col-md-2 d-flex justify-content-center align-items-center">
-          <button onclick="toggleAllCurrencyMasks()" class="btn-circle">
-            <i class="show-hide-icon fas fa-eye-slash"></i>
-          </button>
-        </div>
-      </div>
-    </div>
-  </footer>
   <div class="tab-content" id="myTabContent">
     <div class="tab-pane fade show active" id="home" role="tabpanel" aria-labelledby="home-tab">
-      <div id="finance-section" class="card shadow-sm mb-4">
-        <div class="card-body">
+      <div id="finance-section" class="card shadow-sm">
+        <div class="card-body" style="padding-left: 0.3rem;padding-right: 0.3rem;">
           <div class="mb-3 d-flex">
         <div class="years-dropdown-wrapper">
             <i class="bi bi-calendar3 dropdown-icon"></i>
@@ -611,7 +569,7 @@
       </div>
     </div>
     <div class="tab-pane fade" id="profile" role="tabpanel" aria-labelledby="profile-tab">
-      <div id="gym-section" class="card shadow-sm mb-4">
+      <div id="gym-section" class="card shadow-sm">
         <div class="card-body">
           <div class="mb-2">
             <div>
@@ -631,20 +589,20 @@
     <div class="tab-pane fade" id="contact" role="tabpanel" aria-labelledby="contact-tab">
       <div id="savings-section">
         <div class="card shadow-sm mb-4">
-          <div class="card-body">
-            <h5 class="card-title mb-3">Para Birimi Yönetimi</h5>
+          <div class="card-body" style="padding-left: 0.3rem;padding-right: 0.3rem;">
+            <h5 class="card-title">Para Birimi Yönetimi</h5>
             <div class="row g-2">
-              <div class="col-md-6">
-                <label class="form-label" for="currency">Para Birimi Seç</label>
+              <div class="row col-md-6 ms-1 mt-3">
+                <label class="form-label p-0" for="currency">Para Birimi Seç</label>
                 <select id="currency" class="form-select"></select>
                 <button id="addSelectedCurrency" class="btn btn-primary mt-2 w-100">Seçili Para Birimini Ekle</button>
               </div>
-              <div class="row col-md-6 ms-1">
-                <label class="form-label" for="newCurrency">Yeni Para Birimi</label>
-                <div class="col-md-6">
+              <div class="row col-md-6 ms-1 mt-3">
+                <label class="form-label p-0" for="newCurrency">Yeni Para Birimi</label>
+                <div class="col-md-6 p-0">
                   <input type="text" id="newCurrency" class="form-control mb-2" placeholder="Örn: Gram Altın">      
                 </div>
-                <div class="col-md-6">
+                <div class="col-md-6 p-0">
                   <input type="text" data-type="currency" id="newCurrencyValue" class="form-control mb-2" placeholder="Değer, Örn: 2500">
                 </div>
                 <button id="addNewCurrency" class="btn btn-success w-100">Yeni Para Birimi Ekle</button>    
@@ -653,7 +611,7 @@
           </div>
         </div>
         <div class="card shadow-sm mb-4">
-          <div class="card-body">
+          <div class="card-body" style="padding-left: 0.3rem;padding-right: 0.3rem;">
             <h5 class="card-title">Birikimler</h5>
             <div class="row g-2 mb-2">
               <div class="col-md-1">
@@ -691,8 +649,8 @@
             <h5 class="text-end">Toplam Birikim: <span id="totalSavings" class="text-success pointer">0</span></h5>
           </div>
         </div>
-        <div class="card shadow-sm mb-4">
-          <div class="card-body">
+        <div class="card shadow-sm">
+          <div class="card-body" style="padding-left: 0.3rem;padding-right: 0.3rem;">
             <h5 class="card-title">Hedefler</h5>
             <div class="row g-2 mb-2">
               <div class="col-md-6">
@@ -726,7 +684,8 @@
     </div>
   </div>
 </div>
-
+<div class="spacer">
+</div>
 <!-- Member Modal -->
 <div class="modal fade" id="memberModal" tabindex="-1" aria-labelledby="memberModalLabel" aria-hidden="true">
   <div class="modal-dialog">
@@ -876,6 +835,48 @@
     </div>
   </div>
 </div>
+<footer id="footer" class="fixed-bottom bg-light border-top">
+  <div class="container-fluid mb-1">
+    <div class="row align-items-center">
+      <div class="col-2 col-md-2 d-flex justify-content-center align-items-center">
+        <div class="currency-dropdown-wrapper">
+          <select id="currency-dropdown" class="form-select form-select-sm">
+            <option value="TRY">₺</option>
+            <option value="EUR">€</option>
+            <option value="USD">$</option>
+          </select>
+        </div>
+      </div>
+      <div class="col-8 col-md-8">
+        <ul class="nav nav-tabs col-12 col-md-12 justify-content-center" id="myTab" role="tablist">
+          <li class="nav-item col-4 col-md-4" role="presentation">
+            <button class="nav-link active" id="home-tab" data-bs-toggle="tab" data-bs-target="#home"
+              type="button" role="tab" aria-controls="home" aria-selected="true">
+              Finans Yöneticisi
+            </button>
+          </li>
+          <li class="nav-item col-4 col-md-4" role="presentation">
+            <button class="nav-link" id="profile-tab" data-bs-toggle="tab" data-bs-target="#profile"
+              type="button" role="tab" aria-controls="profile" aria-selected="false">
+              GYM Yöneticisi
+            </button>
+          </li>
+          <li class="nav-item col-4 col-md-4" role="presentation">
+            <button class="nav-link" id="contact-tab" data-bs-toggle="tab" data-bs-target="#contact"
+              type="button" role="tab" aria-controls="contact" aria-selected="false">
+              Birikim Yöneticisi
+            </button>
+          </li>
+        </ul>
+      </div>
+      <div class="col-2 col-md-2 d-flex justify-content-center align-items-center">
+        <button onclick="toggleAllCurrencyMasks()" class="btn-circle">
+          <i class="show-hide-icon fas fa-eye-slash"></i>
+        </button>
+      </div>
+    </div>
+  </div>
+</footer>
 
 <script>
 
@@ -1854,7 +1855,6 @@ function parseStringToNumber(input, toFixed = 2) {
 }
 
 function populateCurrencySelect() {
-  console.log(rates.EURTRY);
   $("#currency").html(`<option value='${rates.EURTRY.code}'>EURO - ${formatCurrency(rates.EURTRY.alis)}</option>
                         <option value='${rates.USDTRY.code}'>DOLAR - ${formatCurrency(rates.USDTRY.alis)}</option>
                         <option value='${rates.AYAR22.code}'>22 AYAR ALTIN - ${formatCurrency(rates.AYAR22.alis)}</option>
@@ -2567,10 +2567,12 @@ $(document).ready(function() {
   
   $(document).on('change', '#currency-dropdown', function() {
     financeData.currentCurrency = $(this).val();
-    console.log('[currency-dropdown . change]');  
     saveData();
 
     setCurrencyMultiplier();
+
+    populateCurrencySelect();
+    renderCurrencies();
     renderFamilySummary();
     renderMembers();  
     renderSavings();
