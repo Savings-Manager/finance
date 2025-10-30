@@ -2056,7 +2056,7 @@ function renderMembers() {
                         <i class="bi bi-credit-card"></i> ${card.name}
                       </div>
 					  <div class="col-md-12 fw-bold">
-                        <span class='badge card-color spending-color'>${formatCurrency(card.limit, isCurrencyMasked)}</span>
+                        <span class='badge card-color'>${formatCurrency(card.limit, isCurrencyMasked)}</span>
                       </div>
                       ${isValidDate(card.date) ? 
                       `<div class="col-md-12 fw-bold">
