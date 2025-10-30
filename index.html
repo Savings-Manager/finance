@@ -523,7 +523,7 @@
   <div class="d-flex justify-content-between align-items-center mb-4">
     <div class="d-flex align-items-center">
       <h2 id="page-title"><i class="bi bi-people-fill me-2"></i>Finans Yöneticisi</h2>
-      <small class="text-muted ms-2">v1.4.7</small>   
+      <small class="text-muted ms-2">v1.4.8</small>   
     </div>
     <div class="d-flex justify-content-between align-items-center">
       <button class="top-action-btn me-1" id="btn-load-json"><i class="bi bi-folder2-open"></i>Verileri Geri Yükle</button>
@@ -817,6 +817,10 @@
           <div class="form-floating mb-3">
             <input type="text" class="form-control" id="card-name" placeholder="Kart Adı" required>
             <label for="card-name">Kart Adı</label>
+          </div>		
+          <div class="form-floating mb-3">
+		    <input type="text" data-type="currency" class="form-control" id="card-limit" placeholder="Kart Limiti" required>
+            <label for="card-limit">Kart Limiti</label>
           </div>
           <div class="form-floating mb-3">
             <input type="text" class="form-control flat-date" id="card-date" placeholder="Hesap Kesim Tarihi" required>
@@ -1548,6 +1552,7 @@ function openAddCard(memberId) {
   $('#card-member-id').val(memberId);
   $('#card-id').val('');
   $('#card-name').val('');
+  $('#card-limit').val('');
   $('#card-date').val('');
   $('#card-payed').prop('checked', false);
   $('#cardModal').modal('show');
@@ -1564,6 +1569,7 @@ function openEditCard(memberId, cardId) {
       $('#card-member-id').val(memberId);
       $('#card-id').val(cardId);
       $('#card-name').val(card.name);
+      $('#card-limit').val(formatCurrency(card.limit));
       $('#card-date').val(formatDateString(card.date));
       $('#card-payed').prop('checked', card.payed);
       $('#cardModal').modal('show');
@@ -1583,7 +1589,7 @@ function deleteCard(memberId, cardId) {
         
         saveData();
         renderFamilySummary();
-		    renderMembers();
+	    renderMembers();
     
         showToast('Kart bilgisi silindi.');
       }
@@ -2047,6 +2053,9 @@ function renderMembers() {
                       <div class="col-md-12 fw-bold">
                         <i class="sortable-handle bi bi-list me-2"></i>
                         <i class="bi bi-credit-card"></i> ${card.name}
+                      </div>
+					  <div class="col-md-12 fw-bold">
+                        <span class='badge card-color spending-color'>${formatCurrency(card.limit, isCurrencyMasked)}</span>
                       </div>
                       ${isValidDate(card.date) ? 
                       `<div class="col-md-12 fw-bold">
@@ -2907,6 +2916,7 @@ $(document).ready(function() {
     const memberId = Number($('#card-member-id').val());
     const cardId = $('#card-id').val();
     const name = $('#card-name').val();
+    const limit = convertToCurrency(parseStringToNumber($('#card-limit').val()));
     const payed = $('#card-payed').prop('checked');
     const date = formatDateString($('#card-date').val());
     console.log("date: ", date);
@@ -2925,12 +2935,13 @@ $(document).ready(function() {
       const card = member.cards.find(c => c.id == cardId);
       if (card) {
         card.name = name;
+        card.limit = limit;
         card.date = date;
         card.payed = payed;
       }
     } else {
       // Add
-      member.cards.push({ id: generateId(member.cards), name: name, date: date, payed: false });
+      member.cards.push({ id: generateId(member.cards), name: name, limit: limit, date: date, payed: false });
     }
 
     saveData();
