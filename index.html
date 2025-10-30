@@ -1697,6 +1697,7 @@ function convertToCurrency(val, currency= 'TRY') {
 }
 
 function formatCurrency(val, shouldMask = false) {
+  if (isNullOrEmpty(val)) return ''; 
   if (shouldMask) return '••••••••';
   return numberFormat.format(convertToCurrency(val, financeData.currentCurrency));
 }
