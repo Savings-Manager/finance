@@ -2081,13 +2081,20 @@ function renderMembers() {
                   </div>`
                 }).join('')}
               </div>
+              <div class="fw-bold ms-2">Toplam Kart Limiti: <span class="card-color pointer" onclick="toggleMask(this, '${(member.cards || []).reduce((sum, card) => {
+                  return sum + Number(card.limit ?? 0);
+                }, 0)}')">${formatCurrency((member.cards || []).reduce((sum, card) => {
+                  return sum + Number(card.limit ?? 0);
+                }, 0), isCurrencyMasked)}</span>
+              </div>
               <div class="fw-bold ms-2">Toplam Kart Harcaması: <span class="spending-color pointer" onclick="toggleMask(this, '${(member.spendings || []).filter(s => s.cardId && s.payed).reduce((a, b) => {
-                if (!b.installment || b.installment < 1) b.installment = 1;
-                return a + Number(b.value) / b.installment;
-              }, 0)}')">${formatCurrency((member.spendings || []).filter(s => s.cardId && s.payed).reduce((a, b) => {
-                if (!b.installment || b.installment < 1) b.installment = 1;
-                return a + Number(b.value) / b.installment;
-              }, 0), isCurrencyMasked)}</span></div>
+                  if (!b.installment || b.installment < 1) b.installment = 1;
+                  return a + Number(b.value) / b.installment;
+                }, 0)}')">${formatCurrency((member.spendings || []).filter(s => s.cardId && s.payed).reduce((a, b) => {
+                  if (!b.installment || b.installment < 1) b.installment = 1;
+                  return a + Number(b.value) / b.installment;
+                }, 0), isCurrencyMasked)}</span>
+              </div>
             </div>
           </div>
           <div class="col-12 col-md-7">
