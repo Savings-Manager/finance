@@ -84,8 +84,8 @@
     .pointer { cursor: pointer; }
     .bg-big { font-size: 1.2rem !important; }
     .bg-income { background-color: #e8f5e9 !important; }
-    .bg-spending { background-color: #ffebee !important; }
-    .bg-card { background-color: #e3eafc !important; }
+    .bg-spending { background-color: #ffebee; }
+    .bg-card { background-color: #e3eafc; }
     .modal-header-income { background: #43a047; color: #fff; }
     .modal-header-spending { background: #e53935; color: #fff; }
     .modal-header-card { background: #3949ab; color: #fff; }
@@ -523,7 +523,7 @@
   <div class="d-flex justify-content-between align-items-center mb-4">
     <div class="d-flex align-items-center">
       <h2 id="page-title"><i class="bi bi-people-fill me-2"></i>Finans Yöneticisi</h2>
-      <small class="text-muted ms-2">v1.4.8</small>   
+      <small class="text-muted ms-2">v1.4.9</small>   
     </div>
     <div class="d-flex justify-content-between align-items-center">
       <button class="top-action-btn me-1" id="btn-load-json"><i class="bi bi-folder2-open"></i>Verileri Geri Yükle</button>
@@ -819,8 +819,12 @@
             <label for="card-name">Kart Adı</label>
           </div>		
           <div class="form-floating mb-3">
-		    <input type="text" data-type="currency" class="form-control" id="card-limit" placeholder="Kart Limiti" required>
+		        <input type="text" data-type="currency" class="form-control" id="card-limit" placeholder="Kart Limiti">
             <label for="card-limit">Kart Limiti</label>
+          </div>
+          <div class="form-floating mb-3">
+		        <input type="color" class="form-control" id="card-color" placeholder="Kart Rengi">
+            <label for="card-color">Kart Rengi</label>
           </div>
           <div class="form-floating mb-3">
             <input type="text" class="form-control flat-date" id="card-date" placeholder="Hesap Kesim Tarihi" required>
@@ -1553,6 +1557,7 @@ function openAddCard(memberId) {
   $('#card-id').val('');
   $('#card-name').val('');
   $('#card-limit').val('');
+  $('#card-color').val('');
   $('#card-date').val('');
   $('#card-payed').prop('checked', false);
   $('#cardModal').modal('show');
@@ -1570,6 +1575,7 @@ function openEditCard(memberId, cardId) {
       $('#card-id').val(cardId);
       $('#card-name').val(card.name);
       $('#card-limit').val(formatCurrency(card.limit));
+      $('#card-color').val(card.color);
       $('#card-date').val(formatDateString(card.date));
       $('#card-payed').prop('checked', card.payed);
       $('#cardModal').modal('show');
@@ -2050,7 +2056,7 @@ function renderMembers() {
                     if (!b.installment || b.installment < 1) b.installment = 1;
                     return a + Number(b.value) / b.installment;
                   }, 0);
-                  return `<div data-cardid="${card.id}" class="mb-1 list-group-item sortable-item bg-card d-flex justify-content-between align-items-center">
+                  return `<div data-cardid="${card.id}" ${(card?.color ? 'style="background-color:' + card.color + '!important"' : '')} class="bg-card mb-1 list-group-item sortable-item d-flex justify-content-between align-items-center">
                     <div class="col-md-6 col-sm-7">
                       <div class="col-md-12 fw-bold">
                         <i class="sortable-handle bi bi-list me-2"></i>
@@ -2098,7 +2104,7 @@ function renderMembers() {
                   }
                 }
                 return `<div data-spendingid="${spending.id}" class="col-md-12 sortable-item">
-                          <div class='col-md-12 d-flex justify-content-between list-group-item bg-spending'>
+                          <div ${(card?.color ? 'style="background-color:' + card.color + '!important"' : '')} class='col-md-12 d-flex justify-content-between list-group-item bg-spending'>
                             <div class="col-md-6 col-sm-7">
                               <div class="col-md-12 fw-bold">
                                 <i class="sortable-handle bi bi-list me-2"></i>
@@ -2919,6 +2925,7 @@ $(document).ready(function() {
     const cardId = $('#card-id').val();
     const name = $('#card-name').val();
     const limit = convertToCurrency(parseStringToNumber($('#card-limit').val()));
+    const color = $('#card-color').val();
     const payed = $('#card-payed').prop('checked');
     const date = formatDateString($('#card-date').val());
     console.log("date: ", date);
@@ -2938,12 +2945,13 @@ $(document).ready(function() {
       if (card) {
         card.name = name;
         card.limit = limit;
+        card.color = color;
         card.date = date;
         card.payed = payed;
       }
     } else {
       // Add
-      member.cards.push({ id: generateId(member.cards), name: name, limit: limit, date: date, payed: false });
+      member.cards.push({ id: generateId(member.cards), name: name, limit: limit, color: color, date: date, payed: false });
     }
 
     saveData();
