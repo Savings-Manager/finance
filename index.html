@@ -523,7 +523,7 @@
   <div class="d-flex justify-content-between align-items-center mb-4">
     <div class="d-flex align-items-center">
       <h2 id="page-title"><i class="bi bi-people-fill me-2"></i>Finans Yöneticisi</h2>
-      <small class="text-muted ms-2">v1.4.9</small>   
+      <small class="text-muted ms-2">v1.5.0</small>   
     </div>
     <div class="d-flex justify-content-between align-items-center">
       <button class="top-action-btn me-1" id="btn-load-json"><i class="bi bi-folder2-open"></i>Verileri Geri Yükle</button>
@@ -919,7 +919,7 @@ const TOKEN_EXPIRY_KEY = `${APP_CODE}_token_expiry`;
 const FILE_NAME = `${STORAGE_KEY}.json`;
 
 const CLIENT_ID = '1004280494239-bm24eig1gk63rgvk3in8rjh9bp5gcd6t.apps.googleusercontent.com';
-const API_KEY = 'AIzaSyDWgrMTLb2iygiApN18mtNiGfZlpk0pA0E'; // Replace with your actual API key
+const API_KEY = 'AIzaSyDWgrMTLb2iygiApN18mtNiGfZlpk0pA0E';
 const SCOPES = 'https://www.googleapis.com/auth/drive.file';
 
 let today = moment();
@@ -2063,7 +2063,7 @@ function renderMembers() {
                         <i class="bi bi-credit-card"></i> ${card.name}
                       </div>
 					  <div class="col-md-12 fw-bold">
-                        <span class='badge card-color'>${formatCurrency(card.limit, isCurrencyMasked)}</span>
+                        <span class='badge card-color' onclick="toggleMask(this, ${card.limit})">${formatCurrency(card.limit, isCurrencyMasked)}</span>
                       </div>
                       ${isValidDate(card.date) ? 
                       `<div class="col-md-12 fw-bold">
@@ -2110,7 +2110,7 @@ function renderMembers() {
                     currentInstallment = thisIdx - idx + 1;
                   }
                 }
-                return `<div data-spendingid="${spending.id}" class="col-md-12 sortable-item">
+                return `<div data-spendingcardid="${spending.cardId ?? ""}"  data-spendingid="${spending.id}" class="col-md-12 sortable-item">
                           <div ${(card?.color ? 'style="background-color:' + card.color + '!important"' : '')} class='col-md-12 d-flex justify-content-between list-group-item bg-spending'>
                             <div class="col-md-6 col-sm-7">
                               <div class="col-md-12 fw-bold">
@@ -2503,7 +2503,7 @@ function setRatesData() {
     renderGoals();
   }).fail(function(response) {
     console.log('fail: ', response);
-    showToast("Veri alınamadı, daha sonra tekrar deneyin.", "error");
+    showToast("HAREM Verileri alınamadı.", "error");
     renderCurrencies();
     renderSavings();
     renderGoals();
@@ -2547,6 +2547,26 @@ function setActiveTab() {
   console.log('setActiveTab: ', financeData.activeTabIndex);
   $('#myTab .nav-link').eq(financeData.activeTabIndex).tab('show');
 }
+
+function handleDblclickEvent(cardId) {
+  const $container = $("#spending-div-1");
+  $('html, body').animate({
+    scrollTop: $container.offset().top - 20
+  }, 10);
+
+  const $elem = $(`[data-spendingcardid="${cardId}"]`).first();
+  if($elem?.length > 0) {
+    const target = $elem.position().top + $container.scrollTop() - 168.828125;
+    const contHeight = $container.height();
+    const contScrollHeight = $container[0].scrollHeight;
+    $container.animate({ scrollTop: target }, 10);
+
+    if (target + contHeight > contScrollHeight) {
+      console.log($elem.offset().top, target, contHeight, contScrollHeight);
+      $("html, body").animate({ scrollTop: $elem.offset().top - 168.828125 }, 10);
+    }
+  }
+}
 // #endregion
 
 $(document).ready(function() {
@@ -2569,14 +2589,46 @@ $(document).ready(function() {
   });
 
   // #region Document Handlers
-  // $(".scroll-div").on("scroll", function () {
-  //   console.log("Scroll oldu! scrollTop:", $(this).scrollTop());
-  // });
-  // $(document).on('scroll', '.scroll-div', function() {
-  //   const id = $(this).attr("id");
-  //   scrollPositions[id] = $(this).scrollTop();
-  //   console.log(id, scrollPositions[id]);
-  // });
+  let lastTap = 0;
+  let lastTapId = 0;
+  let startX = 0;
+  let startY = 0;
+
+  $(document).on("dblclick", ".bg-card", function (e) {
+    handleDblclickEvent($(this).data('cardid'));
+  });
+  $(document).on("touchstart", ".bg-card", function (e) {
+      const touch = e.originalEvent.touches[0];
+      startX = touch.clientX;
+      startY = touch.clientY;
+  });
+  $(document).on("touchend", ".bg-card", function (e) {
+      const cardId = $(this).data('cardid');
+      const touch = e.originalEvent.changedTouches[0];
+      const endX = touch.clientX;
+      const endY = touch.clientY;
+
+      // Movement threshold (in px)
+      const movementX = Math.abs(endX - startX);
+      const movementY = Math.abs(endY - startY);
+
+      if (movementX > 15 || movementY > 15) {
+          // 👉 Finger moved too much → not a tap
+          lastTap = 0;
+          return;
+      }
+
+      const currentTime = Date.now();
+      const tapInterval = currentTime - lastTap;
+
+      if (tapInterval < 300 && tapInterval > 0 && lastTapId == cardId) {
+        handleDblclickEvent(cardId);
+      }
+
+      lastTap = currentTime;
+      lastTapId = cardId;
+  });
+  
   $(document).on('shown.bs.tab', '#myTab .nav-item', function() {
     financeData.activeTabIndex = $(this).index();
     console.log('[shown.bs.tab]');
