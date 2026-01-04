@@ -523,7 +523,7 @@
   <div class="d-flex justify-content-between align-items-center mb-4">
     <div class="d-flex align-items-center">
       <h2 id="page-title"><i class="bi bi-people-fill me-2"></i>Finans Yöneticisi</h2>
-      <small class="text-muted ms-2">v1.5.0</small>   
+      <small class="text-muted ms-2">v1.5.1</small>   
     </div>
     <div class="d-flex justify-content-between align-items-center">
       <button class="top-action-btn me-1" id="btn-load-json"><i class="bi bi-folder2-open"></i>Verileri Geri Yükle</button>
@@ -934,6 +934,7 @@ let fileRead = false;
 let googleDriveSwal = null;
 let timeOut = null;
 let copiedMonthData = null;
+let copiedYear = null;
 let copiedMonth = null;
 let totalSavings = 0;
 let currencyMultiplier = 1;
@@ -2704,6 +2705,7 @@ $(document).ready(function() {
     const month = financeData.currentMonth;
     if (financeData?.years[year]?.months[month]) {
       copiedMonthData = JSON.parse(JSON.stringify(financeData.years[year].months[month]));
+      copiedYear = year;
       copiedMonth = month;
       $('#btn-paste-month').removeAttr('disabled');
       showToast('Ay verileri kopyalandı.');
@@ -2714,7 +2716,11 @@ $(document).ready(function() {
       return;
     }
 
-    const monthDiff = parseInt(financeData.currentMonth) - parseInt(copiedMonth);
+    const yearDiff = parseInt(financeData.currentYear) - parseInt(copiedYear);
+    let monthDiff = parseInt(financeData.currentMonth) - parseInt(copiedMonth);
+    if(yearDiff != 0) monthDiff += yearDiff * 12;  
+
+    console.log(yearDiff, monthDiff);
 
     showToast('Ay verileri yapıştırılsın mı?', 'question', 0, 'center', true).then((result) => {
       if (result.isConfirmed) {
@@ -2748,6 +2754,7 @@ $(document).ready(function() {
           financeData.years[financeData.currentYear].months[financeData.currentMonth] = JSON.parse(JSON.stringify(copiedMonthData));
           copiedMonthData = null;  
           copiedMonth = null;  
+          copiedYear = null;
      
           $(this).attr('disabled', true);    
 
