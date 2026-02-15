@@ -523,7 +523,7 @@
   <div class="d-flex justify-content-between align-items-center mb-4">
     <div class="d-flex align-items-center">
       <h2 id="page-title"><i class="bi bi-people-fill me-2"></i>Finans Yöneticisi</h2>
-      <small class="text-muted ms-2">v1.5.3</small>   
+      <small class="text-muted ms-2">v1.5.4</small>   
     </div>
     <div class="d-flex justify-content-between align-items-center">
       <button class="top-action-btn me-1" id="btn-load-json"><i class="bi bi-folder2-open"></i>Verileri Geri Yükle</button>
@@ -590,7 +590,7 @@
       <div id="savings-section">
         <div class="card shadow-sm mb-4">
           <div class="card-body" style="padding-left: 0.3rem;padding-right: 0.3rem;">
-            <h5 class="card-title">Para Birimi Yönetimi</h5>
+            <h5 class="card-title">Para Birimi Yönetimi <span id="currencyUpdateDate"></span></h5>
             <div class="row g-2">
               <div class="row col-md-6 ms-1 mt-3">
                 <label class="form-label p-0" for="currency">Para Birimi Seç</label>
@@ -909,6 +909,7 @@ let numberFormat = new Intl.NumberFormat("tr-TR", {
   maximumFractionDigits: 2,
 });
 const FIX_DATE_FORMAT = 'YYYY-MM-DD';
+const FIX_DATE_TIME_FORMAT = 'YYYY-MM-DD HH:mm:ss';
 const DEFAULT_DATE_FORMAT = 'DD.MM.YYYY';
 const DEFAULT_DATE_TIME_FORMAT = 'DD.MM.YYYY HH:mm:ss';
 
@@ -1781,9 +1782,20 @@ function inputFormatCurrency(input, event, blur=false) {
 
 function getValidDate(input, format = DEFAULT_DATE_FORMAT) {
   let m = moment(input, format);
-  if(!m.isValid() && format != DEFAULT_DATE_FORMAT) m = moment(input, DEFAULT_DATE_FORMAT);
-  if(!m.isValid()) m = moment(input, DEFAULT_DATE_TIME_FORMAT);
-  if(!m.isValid()) m = moment(input, FIX_DATE_FORMAT);
+
+  if(!m.isValid() && format != DEFAULT_DATE_FORMAT) {
+    m = moment(input, DEFAULT_DATE_FORMAT);
+  }
+  if(!m.isValid()) {
+    m = moment(input, DEFAULT_DATE_TIME_FORMAT);
+  }
+  if(!m.isValid()) {
+    m = moment(input, FIX_DATE_TIME_FORMAT);
+  }
+  if(!m.isValid()) {
+    m = moment(input, FIX_DATE_FORMAT);
+  }
+
   return m;
 }
 
@@ -1872,9 +1884,9 @@ function populateCurrencySelect() {
   let html = "";
 
   Object.entries(rates).forEach(([key, value]) => {
-    if (key === "UpdateDate") return;
-    console.log(key, value);
-
+    if (key === "UpdateDate") {
+      return;
+    }
     html += `<option value='${key}'>${value.text} - ${formatCurrency(value.alis)}</option>`;
   });
 
@@ -2509,94 +2521,102 @@ function setRatesDataHAREM() {
 function setRatesData() {
   $.getJSON("https://finans.truncgil.com/v4/today.json").done(function(response) {
     
-    // todo: buranin bos gelme ihtimalini de goz onunde bulundur.
-
     rates = {};
+
+    if(response == null) {
+      console.log('fail: ', response);
+      showToast("KUR Verileri alınamadı.", "error");
+      renderCurrencies();
+      renderSavings();
+      renderGoals();
+      return;
+    }
     
     rates.UpdateDate = response.Update_Date;
+    $('#currencyUpdateDate').html(formatDateString(rates.UpdateDate, DEFAULT_DATE_TIME_FORMAT));
     
     rates.USD = {
       ...response.USD,
       code: 'USD',
-      text: response.USD.Name,
+      text: 'Dolar',
       alis: response.USD.Buying,
       satis: response.USD.Selling,
     };
     rates.EUR = {
       ...response.EUR,
       code: 'EUR',
-      text: response.EUR.Name,
+      text: 'Euro',
       alis: response.EUR.Buying,
       satis: response.EUR.Selling,
     };
     
-    rates.GRAMALTIN = {
-      ...response.GRA,
-      code: 'GRAMALTIN',
-      text: response.GRA.Name,
-      alis: response.GRA.Buying,
-      satis: response.GRA.Selling,
-    };
     rates.GRAMHASALTIN = {
       ...response.HAS,
       code: 'GRAMHASALTIN',
-      text: response.HAS.Name,
+      text: 'HAS ALTIN',
       alis: response.HAS.Buying,
       satis: response.HAS.Selling,
+    };
+    rates.GRAMALTIN = {
+      ...response.GRA,
+      code: 'GRAMALTIN',
+      text: '24 AYAR GRAM',
+      alis: response.GRA.Buying,
+      satis: response.GRA.Selling,
     };
     rates.CEYREKALTIN = {
       ...response.CEYREKALTIN,
       code: response.CEYREKALTIN.Name,
-      text: response.CEYREKALTIN.Name,
+      text: 'ÇEYREK ALTIN',
       alis: response.CEYREKALTIN.Buying,
       satis: response.CEYREKALTIN.Selling,
     };
     rates.YARIMALTIN = {
       ...response.YARIMALTIN,
       code: response.YARIMALTIN.Name,
-      text: response.YARIMALTIN.Name,
+      text: 'YARIM ALTIN',
       alis: response.YARIMALTIN.Buying,
       satis: response.YARIMALTIN.Selling,
     };
     rates.TAMALTIN = {
       ...response.TAMALTIN,
       code: response.TAMALTIN.Name,
-      text: response.TAMALTIN.Name,
+      text: 'TAM ALTIN',
       alis: response.TAMALTIN.Buying,
       satis: response.TAMALTIN.Selling,
     };
     rates.ATAALTIN = {
       ...response.ATAALTIN,
       code: response.ATAALTIN.Name,
-      text: response.ATAALTIN.Name,
+      text: 'ATA ALTIN',
       alis: response.ATAALTIN.Buying,
       satis: response.ATAALTIN.Selling,
     };
     rates.RESATALTIN = {
       ...response.RESATALTIN,
       code: response.RESATALTIN.Name,
-      text: response.RESATALTIN.Name,
+      text: 'REŞAT ALTIN',
       alis: response.RESATALTIN.Buying,
       satis: response.RESATALTIN.Selling,
     };
     rates.CUMHURIYETALTINI = {
       ...response.CUMHURIYETALTINI,
       code: response.CUMHURIYETALTINI.Name,
-      text: response.CUMHURIYETALTINI.Name,
+      text: 'CUMHURİYET ALTINI',
       alis: response.CUMHURIYETALTINI.Buying,
       satis: response.CUMHURIYETALTINI.Selling,
     };
     rates.GREMSEALTIN = {
       ...response.GREMSEALTIN,
       code: response.GREMSEALTIN.Name,
-      text: response.GREMSEALTIN.Name,
+      text: 'GREMSE',
       alis: response.GREMSEALTIN.Buying,
       satis: response.GREMSEALTIN.Selling,
     };
     rates.BESLIALTIN = {
       ...response.BESLIALTIN,
       code: response.BESLIALTIN.Name,
-      text: response.BESLIALTIN.Name,
+      text: 'BEŞLİ ALTIN',
       alis: response.BESLIALTIN.Buying,
       satis: response.BESLIALTIN.Selling,
     };
@@ -2613,7 +2633,7 @@ function setRatesData() {
     renderGoals();
   }).fail(function(response) {
     console.log('fail: ', response);
-    showToast("HAREM Verileri alınamadı.", "error");
+    showToast("KUR Verileri alınamadı.", "error");
     renderCurrencies();
     renderSavings();
     renderGoals();
@@ -3194,14 +3214,14 @@ $(document).ready(function() {
         return;
       }
 
-      const check = financeData.savings.currencies.find(x=> x.code == rate.code);
+      const check = financeData.savings.currencies.find(x => x.code == rate.code);
       if(check) {
         return showToast('Seçili para birimi zaten ekli.', 'error');
       }
 
       rate.text = text;
-      rate.tarih = formatDateString(rate.tarih, DEFAULT_DATE_TIME_FORMAT);
       financeData.savings.currencies.push(rate);
+
       saveData();
       renderCurrencies();
       showToast('Para birimi eklendi.'); 
