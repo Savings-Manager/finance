@@ -523,7 +523,7 @@
   <div class="d-flex justify-content-between align-items-center mb-4">
     <div class="d-flex align-items-center">
       <h2 id="page-title"><i class="bi bi-people-fill me-2"></i>Finans Yöneticisi</h2>
-      <small class="text-muted ms-2">v1.5.2</small>   
+      <small class="text-muted ms-2">v1.5.3</small>   
     </div>
     <div class="d-flex justify-content-between align-items-center">
       <button class="top-action-btn me-1" id="btn-load-json"><i class="bi bi-folder2-open"></i>Verileri Geri Yükle</button>
@@ -1869,15 +1869,16 @@ function parseStringToNumber(input, toFixed = 2) {
 }
 
 function populateCurrencySelect() {
-  $("#currency").html(`<option value='${rates.EURTRY.code}'>EURO - ${formatCurrency(rates.EURTRY.alis)}</option>
-                        <option value='${rates.USDTRY.code}'>DOLAR - ${formatCurrency(rates.USDTRY.alis)}</option>
-                        <option value='${rates.AYAR22.code}'>22 AYAR ALTIN - ${formatCurrency(rates.AYAR22.alis)}</option>
-                        <option value='${rates.ALTIN.code}'>HAS ALTIN - ${formatCurrency(rates.ALTIN.alis)}</option>
-                        <option value='${rates.CEYREK_YENI.code}'>ÇEYREK ALTIN - ${formatCurrency(rates.CEYREK_YENI.alis)}</option>
-                        <option value='${rates.YARIM_YENI.code}'>YARIM ALTIN - ${formatCurrency(rates.YARIM_YENI.alis)}</option>
-                        <option value='${rates.TEK_YENI.code}'>TAM ALTIN - ${formatCurrency(rates.TEK_YENI.alis)}</option>
-                        <option value='${rates.ATA_YENI.code}'>ATA ALTIN - ${formatCurrency(rates.ATA_YENI.alis)}</option>
-                        <option value='${rates.GREMESE_YENI.code}'>GREMSE - ${formatCurrency(rates.GREMESE_YENI.alis)}</option>`);
+  let html = "";
+
+  Object.entries(rates).forEach(([key, value]) => {
+    if (key === "UpdateDate") return;
+    console.log(key, value);
+
+    html += `<option value='${key}'>${value.text} - ${formatCurrency(value.alis)}</option>`;
+  });
+
+  $("#currency").html(html);
 }
 
 function updateCurrenciesFromApi() {
@@ -1885,12 +1886,7 @@ function updateCurrenciesFromApi() {
       const rate = rates[row.code];
       if(rate) {
         row.alis = rate.alis ?? row.alis;
-        row.dusuk = rate.dusuk ?? row.dusuk;
-        row.kapanis = rate.kapanis ?? row.kapanis;
         row.satis = rate.satis ?? row.satis;
-        row.tarih = formatDateString(rate.tarih, DEFAULT_DATE_TIME_FORMAT) ?? row.tarih;
-        row.yuksek = rate.yuksek ?? row.yuksek;
-        row.dir = rate.dir ?? row.dir;
       }
   });
   saveData();
@@ -2487,11 +2483,124 @@ function setGymDayData() {
 }
 
 // tab-3
-function setRatesData() {
+function setRatesDataHAREM() {
   $.getJSON("https://canlipiyasalar.haremaltin.com/tmp/altin.json?dil_kodu=tr").done(function(response) {
     // todo: buranin bos gelme ihtimalini de goz onunde bulundur.
     rates = response.data;
 
+    setCurrencyMultiplier();
+
+    console.log('rates: ', rates);
+    console.log(financeData.currentCurrency, currencyMultiplier);
+
+    populateCurrencySelect();
+    updateCurrenciesFromApi();
+    renderCurrencies();
+    renderSavings();
+    renderGoals();
+  }).fail(function(response) {
+    console.log('fail: ', response);
+    showToast("HAREM Verileri alınamadı.", "error");
+    renderCurrencies();
+    renderSavings();
+    renderGoals();
+  });
+}
+function setRatesData() {
+  $.getJSON("https://finans.truncgil.com/v4/today.json").done(function(response) {
+    
+    // todo: buranin bos gelme ihtimalini de goz onunde bulundur.
+
+    rates = {};
+    
+    rates.UpdateDate = response.Update_Date;
+    
+    rates.USD = {
+      ...response.USD,
+      code: 'USD',
+      text: response.USD.Name,
+      alis: response.USD.Buying,
+      satis: response.USD.Selling,
+    };
+    rates.EUR = {
+      ...response.EUR,
+      code: 'EUR',
+      text: response.EUR.Name,
+      alis: response.EUR.Buying,
+      satis: response.EUR.Selling,
+    };
+    
+    rates.GRAMALTIN = {
+      ...response.GRA,
+      code: 'GRAMALTIN',
+      text: response.GRA.Name,
+      alis: response.GRA.Buying,
+      satis: response.GRA.Selling,
+    };
+    rates.GRAMHASALTIN = {
+      ...response.HAS,
+      code: 'GRAMHASALTIN',
+      text: response.HAS.Name,
+      alis: response.HAS.Buying,
+      satis: response.HAS.Selling,
+    };
+    rates.CEYREKALTIN = {
+      ...response.CEYREKALTIN,
+      code: response.CEYREKALTIN.Name,
+      text: response.CEYREKALTIN.Name,
+      alis: response.CEYREKALTIN.Buying,
+      satis: response.CEYREKALTIN.Selling,
+    };
+    rates.YARIMALTIN = {
+      ...response.YARIMALTIN,
+      code: response.YARIMALTIN.Name,
+      text: response.YARIMALTIN.Name,
+      alis: response.YARIMALTIN.Buying,
+      satis: response.YARIMALTIN.Selling,
+    };
+    rates.TAMALTIN = {
+      ...response.TAMALTIN,
+      code: response.TAMALTIN.Name,
+      text: response.TAMALTIN.Name,
+      alis: response.TAMALTIN.Buying,
+      satis: response.TAMALTIN.Selling,
+    };
+    rates.ATAALTIN = {
+      ...response.ATAALTIN,
+      code: response.ATAALTIN.Name,
+      text: response.ATAALTIN.Name,
+      alis: response.ATAALTIN.Buying,
+      satis: response.ATAALTIN.Selling,
+    };
+    rates.RESATALTIN = {
+      ...response.RESATALTIN,
+      code: response.RESATALTIN.Name,
+      text: response.RESATALTIN.Name,
+      alis: response.RESATALTIN.Buying,
+      satis: response.RESATALTIN.Selling,
+    };
+    rates.CUMHURIYETALTINI = {
+      ...response.CUMHURIYETALTINI,
+      code: response.CUMHURIYETALTINI.Name,
+      text: response.CUMHURIYETALTINI.Name,
+      alis: response.CUMHURIYETALTINI.Buying,
+      satis: response.CUMHURIYETALTINI.Selling,
+    };
+    rates.GREMSEALTIN = {
+      ...response.GREMSEALTIN,
+      code: response.GREMSEALTIN.Name,
+      text: response.GREMSEALTIN.Name,
+      alis: response.GREMSEALTIN.Buying,
+      satis: response.GREMSEALTIN.Selling,
+    };
+    rates.BESLIALTIN = {
+      ...response.BESLIALTIN,
+      code: response.BESLIALTIN.Name,
+      text: response.BESLIALTIN.Name,
+      alis: response.BESLIALTIN.Buying,
+      satis: response.BESLIALTIN.Selling,
+    };
+    
     setCurrencyMultiplier();
 
     console.log('rates: ', rates);
@@ -2520,7 +2629,7 @@ function setCurrencyMultiplier() {
   });
 
   currencyMultiplier = 1;
-  const currentRate = rates[`${financeData.currentCurrency}TRY`];
+  const currentRate = rates[financeData.currentCurrency];
   if(currentRate) {
     currencyMultiplier = parseStringToNumber(currentRate.alis);
   }
@@ -2533,8 +2642,10 @@ function setAllDatas() {
   setYearData();
   // tab-2
   setCycleData();
+
   // tab-3
   setRatesData();
+
   // all tabs
   setActiveTab();
   setCurrentCurrencyData();
