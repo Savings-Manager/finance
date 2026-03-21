@@ -516,6 +516,10 @@
         margin-bottom: 0.5rem;
       }
     }
+
+  span {
+    padding: 0 !important;
+  }
   </style>
 </head>
 <body class="bg-light">
@@ -523,7 +527,7 @@
   <div class="d-flex justify-content-between align-items-center mb-4">
     <div class="d-flex align-items-center">
       <h2 id="page-title"><i class="bi bi-people-fill me-2"></i>Finans Yöneticisi</h2>
-      <small class="text-muted ms-2">v1.5.4</small>   
+      <small class="text-muted ms-2">v1.5.5.Test1</small>   
     </div>
     <div class="d-flex justify-content-between align-items-center">
       <button class="top-action-btn me-1" id="btn-load-json"><i class="bi bi-folder2-open"></i>Verileri Geri Yükle</button>
@@ -830,6 +834,14 @@
             <input type="text" class="form-control flat-date" id="card-date" placeholder="Hesap Kesim Tarihi" required>
             <label for="card-date">Hesap Kesim Tarihi</label>
           </div>
+          <div class="form-floating mb-3">
+            <input type="password" class="form-control" id="card-pass" placeholder="Kart Şifresi" maxlength="4">
+            <label for="card-pass">Kart Şifresi</label>
+          </div>	
+          <div class="form-floating mb-3">
+            <input type="password" class="form-control" id="card-mobilePass" placeholder="Mobil Şifre" maxlength="6">
+            <label for="card-mobilePass">Mobil Şifre</label>
+          </div>	
           <div class="form-check form-switch mb-3">
             <input class="form-check-input" type="checkbox" id="card-payed">
             <label class="form-check-label" for="card-payed">Ödendi</label>
@@ -888,10 +900,15 @@
 
 <script>
 
+moment.locale('tr');
+let today = moment();
+
+const cryptoPass = "m3hm3t_sefinanNCe#4%$Q%&*(*&cure_2026";
+
 let financeData = { 
   years: {}, 
-  currentYear: getCurrentYearMonth().year, 
-  currentMonth: getCurrentYearMonth().month, 
+  currentYear: today.year(), 
+  currentMonth: String(today.month() + 1), 
   lastSelectedMonthByYear: {},
   activeTabIndex: 0,
   cycles: {},
@@ -899,8 +916,6 @@ let financeData = {
   savings: {},
   currentCurrency: "TRY"
 };
-
-moment.locale('tr');
 
 let numberFormat = new Intl.NumberFormat("tr-TR", {
   style: "currency",
@@ -923,7 +938,6 @@ const CLIENT_ID = '1004280494239-bm24eig1gk63rgvk3in8rjh9bp5gcd6t.apps.googleuse
 const API_KEY = 'AIzaSyDWgrMTLb2iygiApN18mtNiGfZlpk0pA0E';
 const SCOPES = 'https://www.googleapis.com/auth/drive.file';
 
-let today = moment();
 let access_token = null;
 let fileId = null;
 let isCurrencyMasked = true;
@@ -951,10 +965,6 @@ let currencySymbols = {
 const months = Array.from({ length: 12 }, (_, i) => String(i + 1));
 const days = Array.from({ length: 13 }, (_, i) => String(i + 1));
 
-function getCurrentYearMonth() {
-  const d = new Date();
-  return { year: String(d.getFullYear()), month: String(d.getMonth() + 1) };
-}
 function getYearList() {
   let years = Object.keys(financeData.years || {});
   for (let y = 2025; y <= 2050; ++y) years.push(String(y));
@@ -962,8 +972,9 @@ function getYearList() {
   years = Array.from(new Set(years)).sort();
   return years;
 }
-function getMonthName(monthNum, currentYear= 2000) {
-  return `5 ${new Date(currentYear, Number(monthNum) - 1, 1).toLocaleString('tr-TR', { month: 'long' })} - 5 ${new Date(currentYear, Number(monthNum), 1).toLocaleString('tr-TR', { month: 'long' })}`;
+function getMonthName(monthNum) {
+  const current = moment().month(Number(monthNum) - 1);
+  return `5 ${formatDateString(current, 'MMMM')} - 5 ${formatDateString(addMonths(current, 1), 'MMMM')}`;
 }
 function getDayName(dayNum) {
   if(dayNum == 1) return 'ÖDENDİ';
@@ -982,7 +993,7 @@ async function initGoogleDrive() {
           console.error('[oauth2.initTokenClient][callback] Error getting access token:', resp.error);
 
           logOut();          
-          loadFromLocalStorage();
+          await loadFromLocalStorage();
           setAllDatas();
           return;
         }
@@ -998,7 +1009,7 @@ async function initGoogleDrive() {
         
         await loadFromGoogleDrive();
       },
-      error_callback: (error) => {
+      error_callback: async (error) => {
         console.log('[oauth2.initTokenClient][error_callback] Error: ', error);
         // user closed the popup: error.type === 'popup_closed'
         if(!isNullOrEmpty(timeOut)) {
@@ -1008,7 +1019,7 @@ async function initGoogleDrive() {
           googleDriveSwal.close();
         }
         logOut();          
-        loadFromLocalStorage();
+        await loadFromLocalStorage();
         setAllDatas();
       }
     });
@@ -1033,11 +1044,11 @@ async function initGoogleDrive() {
       didOpen: () => {
         Swal.showLoading();
         
-        timeOut = setTimeout(() => {
+        timeOut = setTimeout(async () => {
           if(!gapiInited) {   
             console.log('[initGoogleDrive][gapi.client.init] Drive API TIMED OUT.');    
             fileRead = false;
-            loadFromLocalStorage();
+            await loadFromLocalStorage();
             setAllDatas();
             googleDriveSwal.close();
           }
@@ -1072,7 +1083,7 @@ async function initGoogleDrive() {
   } catch (error) {
     console.error('Error during Google Drive initialization:', error);
     fileRead = false;
-    loadFromLocalStorage();
+    await loadFromLocalStorage();
     setAllDatas();
   }
 }
@@ -1102,7 +1113,7 @@ async function loadFromGoogleDrive() {
 
     if (!(response?.result?.files?.length > 0)) {
       console.log('[loadFromGoogleDrive] No existing file found in Drive. Starting with empty data.');
-      loadFromLocalStorage();
+      await loadFromLocalStorage();
       setAllDatas();
       return;
     }
@@ -1121,8 +1132,12 @@ async function loadFromGoogleDrive() {
       return;
     }
 
-    const data = await contentResponse.json();
-    if(data) {
+    const encData = await contentResponse.json();
+    console.log('[loadFromGoogleDrive]', encData);
+    if(encData) {
+      const data = await decryptData(encData);
+      console.log('[loadFromGoogleDrive]', data);
+      return;
       financeData = data;
       fileRead = true;     
 
@@ -1144,13 +1159,14 @@ async function loadFromGoogleDrive() {
       logOut();
       await requestNewToken();
     } else {
-      loadFromLocalStorage();
+      await loadFromLocalStorage();
       setAllDatas();
     }
   }
 }
 
 async function saveToGoogleDrive() {
+  return;
   try {   
     if (!gapiInited || !gisInited || !access_token) {
       console.warn('Cannot upload: Google APIs not initialized or not logged in');
@@ -1184,8 +1200,8 @@ async function saveToGoogleDrive() {
         return;
       }
     }
-    
-    const fileContent = JSON.stringify(financeData);
+  
+    const fileContent = JSON.stringify(await encryptData(financeData))
 
     const uploadRes = await fetch(`https://www.googleapis.com/upload/drive/v3/files/${fileId}?uploadType=media`, {
       method: 'PATCH',
@@ -1216,20 +1232,20 @@ function logOut() {
   access_token = null;
 }
 
-function saveData() {
+async function saveData() {
   console.log('[saveData]');
-  saveToLocalStorage();
-  saveToGoogleDrive();
+  await saveToLocalStorage();
+  await saveToGoogleDrive();
 }
 
-function saveToLocalStorage() {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(financeData));
+async function saveToLocalStorage() {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(await encryptData(financeData)));
 }
 
-function loadFromLocalStorage() {
-  const data = localStorage.getItem(STORAGE_KEY);
-  if (data) {
-    let loaded = JSON.parse(data);
+async function loadFromLocalStorage() {
+  const encDataStr = localStorage.getItem(STORAGE_KEY);
+  if (encDataStr) {
+    let loaded = await decryptData(JSON.parse(encDataStr));
     if (loaded?.months?.length > 0) {
       let newYears = {};
       Object.entries(loaded.months).forEach(([key, value]) => {
@@ -1241,8 +1257,8 @@ function loadFromLocalStorage() {
       });
       financeData = {
         years: newYears,
-        currentYear: loaded.currentMonth ? loaded.currentMonth.split('-')[0] : getCurrentYearMonth().year,
-        currentMonth: loaded.currentMonth ? String(Number(loaded.currentMonth.split('-')[1])) : getCurrentYearMonth().month
+        currentYear: loaded.currentMonth ? loaded.currentMonth.split('-')[0] : today.year(),
+        currentMonth: loaded.currentMonth ? String(Number(loaded.currentMonth.split('-')[1])) : String(today.month() + 1)
       };
     } else {
       financeData = loaded;
@@ -1261,8 +1277,8 @@ function validateFinanceData() {
   financeData.savings.savings ??= [];
   financeData.savings.goals ??= [];
   financeData.years ??= {};
-  financeData.currentYear ??= getCurrentYearMonth().year;
-  financeData.currentMonth ??= getCurrentYearMonth().month;
+  financeData.currentYear ??= today.year();
+  financeData.currentMonth ??= String(today.month() + 1);
   financeData.cycles ??= {};
   financeData.currentCycle ??= 1;
   financeData.activeTabIndex ??= 1; 
@@ -1292,7 +1308,7 @@ function ensureMonthData(year, month) {
   }
 }
 
-function switchMonth(month) {
+async function switchMonth(month) {
   financeData.currentMonth = month;
   financeData.lastSelectedMonthByYear ??= {}; 
   financeData.lastSelectedMonthByYear[financeData.currentYear] = month;
@@ -1302,7 +1318,7 @@ function switchMonth(month) {
   renderFamilySummary();
   renderMembers();
 
-  saveData();
+  await saveData();
 }
 
 function sumSpendingsForMonth(member) {
@@ -1561,11 +1577,13 @@ function openAddCard(memberId) {
   $('#card-limit').val('');
   $('#card-color').val('');
   $('#card-date').val('');
+  $('#card-pass').val('');
+  $('#card-mobilePass').val('');
   $('#card-payed').prop('checked', false);
   $('#cardModal').modal('show');
 }
 
-function openEditCard(memberId, cardId) {
+async function openEditCard(memberId, cardId) {
   const year = financeData.currentYear;
   const month = financeData.currentMonth;
   const members = financeData.years[year].months[month].members;
@@ -1579,6 +1597,8 @@ function openEditCard(memberId, cardId) {
       $('#card-limit').val(formatCurrency(card.limit));
       $('#card-color').val(card.color);
       $('#card-date').val(formatDateString(card.date));
+      $('#card-pass').val(await decryptData(card.pass));
+      $('#card-mobilePass').val(await decryptData(card.mobilePass));
       $('#card-payed').prop('checked', card.payed);
       $('#cardModal').modal('show');
     }
@@ -1657,6 +1677,85 @@ function onDateChange(day) {
 }
 
 // #region Utility Functions
+async function encryptData(data) {
+  const enc = new TextEncoder();
+
+  const keyMaterial = await crypto.subtle.importKey(
+    "raw",
+    enc.encode(cryptoPass),
+    "PBKDF2",
+    false,
+    ["deriveKey"]
+  );
+
+  const salt = crypto.getRandomValues(new Uint8Array(16));
+
+  const key = await crypto.subtle.deriveKey(
+    {
+      name: "PBKDF2",
+      salt,
+      iterations: 100000,
+      hash: "SHA-256"
+    },
+    keyMaterial,
+    { name: "AES-GCM", length: 256 },
+    false,
+    ["encrypt"]
+  );
+
+  const iv = crypto.getRandomValues(new Uint8Array(12));
+
+  const encrypted = await crypto.subtle.encrypt(
+    { name: "AES-GCM", iv },
+    key,
+    enc.encode(JSON.stringify(data))
+  );
+
+  return {
+    encrypted: Array.from(new Uint8Array(encrypted)),
+    iv: Array.from(iv),
+    salt: Array.from(salt)
+  };
+}
+async function decryptData(payload) {
+  if (!payload?.encrypted || !payload?.iv || !payload?.salt) {
+    console.warn('Invalid encrypted payload:', payload);
+    return "";
+  }
+
+  const enc = new TextEncoder();
+  const dec = new TextDecoder();
+
+  const keyMaterial = await crypto.subtle.importKey(
+    "raw",
+    enc.encode(cryptoPass),
+    "PBKDF2",
+    false,
+    ["deriveKey"]
+  );
+
+  const key = await crypto.subtle.deriveKey(
+    {
+      name: "PBKDF2",
+      salt: new Uint8Array(payload.salt),
+      iterations: 100000,
+      hash: "SHA-256"
+    },
+    keyMaterial,
+    { name: "AES-GCM", length: 256 },
+    false,
+    ["decrypt"]
+  );
+
+  const decrypted = await crypto.subtle.decrypt(
+    { name: "AES-GCM", iv: new Uint8Array(payload.iv) },
+    key,
+    new Uint8Array(payload.encrypted)
+  );
+
+  return JSON.parse(dec.decode(decrypted));
+}
+
 function showToast(title, icon = "success", timer = 2000, position = "top-end", showConfirmButton = false) {
   const Toast = Swal.mixin({
     toast: true,
@@ -1972,11 +2071,26 @@ function renderYearsDropdown() {
 }
 
 function renderMonthsRow() {
-  const currentYear = financeData?.currentYear ?? getCurrentYearMonth().year;
-  $('#months-row').html(months.map(m => `<button data-month="${m}" class="btn-outline-primary btn-month btn btn-sm me-2 mt-2" onclick="switchMonth('${m}')">${getMonthName(m, currentYear)}</button>`).join(''));
+  const currentYear = financeData?.currentYear ?? today.year();
+
+  $('#months-row').html(
+    months.map(m => {
+      const start = endOfDay(stringToDate(`5.${m}.${currentYear}`));
+      const end = addMonths(start, 1);
+
+      const isActive = today.isBetween(start, end, 'day', '[]');   
+      const isBefore = start.isBefore(today);
+
+      return `
+        <button data-month="${m}" class="btn btn-sm me-2 mt-2 btn-month ${isActive ? 'btn-outline-secondary' 
+                                                                                   : isBefore ? 'btn-secondary' 
+                                                                                              : 'btn-outline-primary'}"
+          onclick="switchMonth('${m}')">${getMonthName(m)}</button>`;
+    }).join('')
+  );
 }
 
-function renderMembers() {
+async function renderMembers() {
   ensureMonthData(financeData.currentYear, financeData.currentMonth);
   const members = financeData?.years[financeData.currentYear]?.months[financeData.currentMonth]?.members;
   if (!(members?.length > 0)) {
@@ -1984,7 +2098,7 @@ function renderMembers() {
     return;
   }
 
-  const html = members.map(member => {
+  const html = await Promise.all(members.map(async member => {
     const income = (member.incomes || []).filter(i => i.received).reduce((a, b) => a + Number(b.value || 0), 0);
     const spend = sumSpendingsForMonth(member);
     const net = income - spend;
@@ -2060,20 +2174,28 @@ function renderMembers() {
             <div class="col-md-12 mt-4 mb-4">
               <h6>Kredi Kartları <button class="icon-btn card-color" onclick="openAddCard(${member.id})"><i class="bi bi-credit-card"></i></button></h6>
               <div data-type="1" data-memberid="${member.id}" class="col-md-12 list-group sortable-list mb-2">
-                ${(member.cards || []).map(card => {
+                ${await Promise.all((member.cards || []).map(async card => {
                   const cardSpend = (member.spendings || []).filter(s => s.cardId === card.id && s.payed).reduce((a, b) => {
                     if (!b.installment || b.installment < 1) b.installment = 1;
                     return a + Number(b.value) / b.installment;
                   }, 0);
+                  const decrptedPass = await decryptData(card.pass);
+                  const decryptedMobilePass = await decryptData(card.mobilePass);
                   return `<div data-cardid="${card.id}" ${(card?.color ? 'style="background-color:' + card.color + '!important"' : '')} class="bg-card mb-1 list-group-item sortable-item d-flex justify-content-between align-items-center">
                     <div class="col-md-6 col-sm-7">
                       <div class="col-md-12 fw-bold">
                         <i class="sortable-handle bi bi-list me-2"></i>
                         <i class="bi bi-credit-card"></i> ${card.name}
                       </div>
-					  <div class="col-md-12 fw-bold">
-                        <span class='badge card-color' onclick="toggleMask(this, ${card.limit})">${formatCurrency(card.limit, isCurrencyMasked)}</span>
+					            <div class="col-md-12 fw-bold">
+                        <span class='badge card-color pointer' onclick="toggleMask(this, ${card.limit})">${formatCurrency(card.limit, isCurrencyMasked)}</span>
                       </div>
+                      ${decrptedPass || decryptedMobilePass ? 
+                      `<div class="col-md-12 fw-bold">${decrptedPass ? 
+                        `<span class='badge card-color pointer' onclick="toggleMask(this, ${decrptedPass}, 2)">${formatText(decrptedPass, isCurrencyMasked)}</span>` : ''} 
+                        ${decryptedMobilePass ? 
+                        `${decrptedPass ? '- ' : ''}<span class='badge card-color pointer' onclick="toggleMask(this, ${decryptedMobilePass}, 2)">${formatText(decryptedMobilePass, isCurrencyMasked)}</span>` : ''} 
+                      </div>` : ''}
                       ${isValidDate(card.date) ? 
                       `<div class="col-md-12 fw-bold">
                         <span class='badge card-color ${addDays(endOfDay(stringToDate(card.date)), 10).isBefore(today) && !card.payed ? 'spending-color' : 'income-color'}'>${formatDateString(addDays(endOfDay(stringToDate(card.date)), 10), 'DD.MM.YYYY')}</span>
@@ -2088,7 +2210,7 @@ function renderMembers() {
                       <button class="icon-btn delete" onclick="deleteCard(${member.id},${card.id})"><i class="fas fa-trash"></i></button>
                     </div>
                   </div>`
-                }).join('')}
+                }))}
               </div>
               <div class="fw-bold ms-2">Toplam Kart Limiti: <span class="card-color pointer" onclick="toggleMask(this, '${(member.cards || []).reduce((sum, card) => {
                   return sum + Number(card.limit ?? 0);
@@ -2158,7 +2280,7 @@ function renderMembers() {
           </div>
         </div>
     </div>`;
-  }).join('');
+  }));
   $('#members-list').html(html);
 
   initializeSortable();
@@ -2169,9 +2291,8 @@ function renderFamilySummary() {
   let year = financeData.currentYear;
   let month = financeData.currentMonth;
   if (!year || !financeData.years[year] || !financeData.years[year].months[month]) {
-    const now = getCurrentYearMonth();
-    year = now.year;
-    month = now.month;
+    year = today.year();
+    month = String(today.month() + 1);
     ensureMonthData(year, month);
     financeData.currentYear = year;
     financeData.currentMonth = month;
@@ -2453,12 +2574,12 @@ function initializeSortable() {
 // #region Set Data Functions
 // tab-1
 function setYearData() {
-  const currentYear = financeData?.currentYear ?? getCurrentYearMonth().year;
+  const currentYear = financeData?.currentYear ?? today.year();
   $('#years-dropdown').val(currentYear).change();
 }
 
 function setMonthData() {
-  const year = financeData?.currentYear ?? getCurrentYearMonth().year;
+  const year = financeData?.currentYear ?? today.year();
   const month = financeData?.currentMonth;
 
   $('#months-row button.active').removeClass('btn-primary active fw-bold');
@@ -2701,7 +2822,7 @@ function handleDblclickEvent(cardId) {
 }
 // #endregion
 
-$(document).ready(function() {
+$(document).ready(async function() {
   // $(document).off("keyup", 'input[data-type="number"]');
   // $(document).on('keyup', 'input[data-type="number"]', function (e) {
   //   inputFormatCurrency($(this), e);
@@ -3126,17 +3247,27 @@ $(document).ready(function() {
 
     $('#spendingModal').modal('hide');
   });
-  $(document).on('submit', '#cardForm', function(e) {
+  $(document).on('submit', '#cardForm', async function(e) {
     e.preventDefault();
 
     const memberId = Number($('#card-member-id').val());
     const cardId = $('#card-id').val();
     const name = $('#card-name').val();
+    const pass = $('#card-pass').val();
+    const mobilePass = $('#card-mobilePass').val();
     const limit = convertToCurrency(parseStringToNumber($('#card-limit').val()));
     const color = $('#card-color').val();
     const payed = $('#card-payed').prop('checked');
     const date = formatDateString($('#card-date').val());
     console.log("date: ", date);
+
+    // validasyon:
+    if(pass && pass.length != 4) {
+      return showToast('Kart şifresi 4 karakter olmalıdır.', 'error');
+    }
+    if(mobilePass && mobilePass.length != 6) {
+      return showToast('Mobil bankacılık şifresi 6 karakter olmalıdır.', 'error');
+    }
 
     const member = financeData?.years[financeData.currentYear]
                               ?.months[financeData.currentMonth]
@@ -3155,11 +3286,24 @@ $(document).ready(function() {
         card.limit = limit;
         card.color = color;
         card.date = date;
+        card.pass = await encryptData(pass);
+        card.mobilePass = await encryptData(mobilePass);
+        
+        //console.log(mobilePass, await decryptData(card.mobilePass));
+
         card.payed = payed;
       }
     } else {
       // Add
-      member.cards.push({ id: generateId(member.cards), name: name, limit: limit, color: color, date: date, payed: false });
+      member.cards.push({ id: generateId(member.cards), 
+                          name: name, 
+                          limit: limit, 
+                          color: color, 
+                          date: date, 
+                          pass: await encryptData(pass), 
+                          mobilePass: await encryptData(mobilePass), 
+                          payed: false 
+                        });
     }
 
     saveData();
@@ -3473,7 +3617,7 @@ $(document).ready(function() {
   renderDaysRow();
 
   if(window.location.href.includes('file://')) {
-    loadFromLocalStorage();
+    await loadFromLocalStorage();
   }
   else {
       var checkGoogle = setInterval(function() {
