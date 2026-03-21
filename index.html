@@ -527,7 +527,7 @@
   <div class="d-flex justify-content-between align-items-center mb-4">
     <div class="d-flex align-items-center">
       <h2 id="page-title"><i class="bi bi-people-fill me-2"></i>Finans Yöneticisi</h2>
-      <small class="text-muted ms-2">v1.5.5.Test4</small>   
+      <small class="text-muted ms-2">v1.5.6</small>   
     </div>
     <div class="d-flex justify-content-between align-items-center">
       <button class="top-action-btn me-1" id="btn-load-json"><i class="bi bi-folder2-open"></i>Verileri Geri Yükle</button>
@@ -1168,7 +1168,6 @@ async function loadFromGoogleDrive() {
 }
 
 async function saveToGoogleDrive() {
-  return;
   try {   
     if (!gapiInited || !gisInited || !access_token) {
       console.warn('Cannot upload: Google APIs not initialized or not logged in');
