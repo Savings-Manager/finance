@@ -523,7 +523,7 @@
   <div class="d-flex justify-content-between align-items-center mb-4">
     <div class="d-flex align-items-center">
       <h2 id="page-title"><i class="bi bi-people-fill me-2"></i>Finans Yöneticisi</h2>
-      <small class="text-muted ms-2">v1.5.4</small>   
+      <small class="text-muted ms-2">v1.5.5</small>   
     </div>
     <div class="d-flex justify-content-between align-items-center">
       <button class="top-action-btn me-1" id="btn-load-json"><i class="bi bi-folder2-open"></i>Verileri Geri Yükle</button>
@@ -888,10 +888,13 @@
 
 <script>
 
+moment.locale('tr');
+let today = moment();
+
 let financeData = { 
   years: {}, 
-  currentYear: getCurrentYearMonth().year, 
-  currentMonth: getCurrentYearMonth().month, 
+  currentYear: today.year(), 
+  currentMonth: String(today.month() + 1), 
   lastSelectedMonthByYear: {},
   activeTabIndex: 0,
   cycles: {},
@@ -899,8 +902,6 @@ let financeData = {
   savings: {},
   currentCurrency: "TRY"
 };
-
-moment.locale('tr');
 
 let numberFormat = new Intl.NumberFormat("tr-TR", {
   style: "currency",
@@ -923,7 +924,6 @@ const CLIENT_ID = '1004280494239-bm24eig1gk63rgvk3in8rjh9bp5gcd6t.apps.googleuse
 const API_KEY = 'AIzaSyDWgrMTLb2iygiApN18mtNiGfZlpk0pA0E';
 const SCOPES = 'https://www.googleapis.com/auth/drive.file';
 
-let today = moment();
 let access_token = null;
 let fileId = null;
 let isCurrencyMasked = true;
@@ -951,10 +951,6 @@ let currencySymbols = {
 const months = Array.from({ length: 12 }, (_, i) => String(i + 1));
 const days = Array.from({ length: 13 }, (_, i) => String(i + 1));
 
-function getCurrentYearMonth() {
-  const d = new Date();
-  return { year: String(d.getFullYear()), month: String(d.getMonth() + 1) };
-}
 function getYearList() {
   let years = Object.keys(financeData.years || {});
   for (let y = 2025; y <= 2050; ++y) years.push(String(y));
@@ -962,8 +958,9 @@ function getYearList() {
   years = Array.from(new Set(years)).sort();
   return years;
 }
-function getMonthName(monthNum, currentYear= 2000) {
-  return `5 ${new Date(currentYear, Number(monthNum) - 1, 1).toLocaleString('tr-TR', { month: 'long' })} - 5 ${new Date(currentYear, Number(monthNum), 1).toLocaleString('tr-TR', { month: 'long' })}`;
+function getMonthName(monthNum) {
+  const current = moment().month(Number(monthNum) - 1);
+  return `5 ${formatDateString(current, 'MMMM')} - 5 ${formatDateString(addMonths(current, 1), 'MMMM')}`;
 }
 function getDayName(dayNum) {
   if(dayNum == 1) return 'ÖDENDİ';
@@ -1241,8 +1238,8 @@ function loadFromLocalStorage() {
       });
       financeData = {
         years: newYears,
-        currentYear: loaded.currentMonth ? loaded.currentMonth.split('-')[0] : getCurrentYearMonth().year,
-        currentMonth: loaded.currentMonth ? String(Number(loaded.currentMonth.split('-')[1])) : getCurrentYearMonth().month
+        currentYear: loaded.currentMonth ? loaded.currentMonth.split('-')[0] : today.year(),
+        currentMonth: loaded.currentMonth ? String(Number(loaded.currentMonth.split('-')[1])) : String(today.month() + 1)
       };
     } else {
       financeData = loaded;
@@ -1261,8 +1258,8 @@ function validateFinanceData() {
   financeData.savings.savings ??= [];
   financeData.savings.goals ??= [];
   financeData.years ??= {};
-  financeData.currentYear ??= getCurrentYearMonth().year;
-  financeData.currentMonth ??= getCurrentYearMonth().month;
+  financeData.currentYear ??= today.year();
+  financeData.currentMonth ??= String(today.month() + 1);
   financeData.cycles ??= {};
   financeData.currentCycle ??= 1;
   financeData.activeTabIndex ??= 1; 
@@ -1972,8 +1969,23 @@ function renderYearsDropdown() {
 }
 
 function renderMonthsRow() {
-  const currentYear = financeData?.currentYear ?? getCurrentYearMonth().year;
-  $('#months-row').html(months.map(m => `<button data-month="${m}" class="btn-outline-primary btn-month btn btn-sm me-2 mt-2" onclick="switchMonth('${m}')">${getMonthName(m, currentYear)}</button>`).join(''));
+  const currentYear = financeData?.currentYear ?? today.year();
+
+  $('#months-row').html(
+    months.map(m => {
+      const start = endOfDay(stringToDate(`5.${m}.${currentYear}`));
+      const end = addMonths(start, 1);
+
+      const isActive = today.isBetween(start, end, 'day', '[]');   
+      const isBefore = start.isBefore(today);
+
+      return `
+        <button data-month="${m}" class="btn btn-sm me-2 mt-2 btn-month ${isActive ? 'btn-outline-secondary' 
+                                                                                   : isBefore ? 'btn-secondary' 
+                                                                                              : 'btn-outline-primary'}"
+          onclick="switchMonth('${m}')">${getMonthName(m)}</button>`;
+    }).join('')
+  );
 }
 
 function renderMembers() {
@@ -2169,9 +2181,8 @@ function renderFamilySummary() {
   let year = financeData.currentYear;
   let month = financeData.currentMonth;
   if (!year || !financeData.years[year] || !financeData.years[year].months[month]) {
-    const now = getCurrentYearMonth();
-    year = now.year;
-    month = now.month;
+    year = today.year();
+    month = String(today.month() + 1);
     ensureMonthData(year, month);
     financeData.currentYear = year;
     financeData.currentMonth = month;
@@ -2453,12 +2464,12 @@ function initializeSortable() {
 // #region Set Data Functions
 // tab-1
 function setYearData() {
-  const currentYear = financeData?.currentYear ?? getCurrentYearMonth().year;
+  const currentYear = financeData?.currentYear ?? today.year();
   $('#years-dropdown').val(currentYear).change();
 }
 
 function setMonthData() {
-  const year = financeData?.currentYear ?? getCurrentYearMonth().year;
+  const year = financeData?.currentYear ?? today.year();
   const month = financeData?.currentMonth;
 
   $('#months-row button.active').removeClass('btn-primary active fw-bold');
