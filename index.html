@@ -527,7 +527,7 @@
   <div class="d-flex justify-content-between align-items-center mb-4">
     <div class="d-flex align-items-center">
       <h2 id="page-title"><i class="bi bi-people-fill me-2"></i>Finans Yöneticisi</h2>
-      <small class="text-muted ms-2">v1.5.5.Test2</small>   
+      <small class="text-muted ms-2">v1.5.5.Test3</small>   
     </div>
     <div class="d-flex justify-content-between align-items-center">
       <button class="top-action-btn me-1" id="btn-load-json"><i class="bi bi-folder2-open"></i>Verileri Geri Yükle</button>
@@ -1330,7 +1330,7 @@ function sumSpendingsForMonth(member) {
   }, 0);
 }
 
-function toggleCardPayed(memberId, cardId) {
+async function toggleCardPayed(memberId, cardId) {
   scrollPositions[`spending-div-${memberId}`] = $(`#spending-div-${memberId}`).scrollTop();
   const card = financeData?.years[financeData.currentYear]
                               ?.months[financeData.currentMonth]
@@ -1338,7 +1338,7 @@ function toggleCardPayed(memberId, cardId) {
                               ?.cards?.find(s => s.id === cardId);
   if (card) {
     card.payed = !card.payed;
-    saveData();
+    await saveData();
 
     renderFamilySummary();
 		renderMembers();
@@ -1347,7 +1347,7 @@ function toggleCardPayed(memberId, cardId) {
   }
 }
 
-function toggleSpendingPayed(memberId, spendingId) {
+async function toggleSpendingPayed(memberId, spendingId) {
   scrollPositions[`spending-div-${memberId}`] = $(`#spending-div-${memberId}`).scrollTop();
   const spending = financeData?.years[financeData.currentYear]
                               ?.months[financeData.currentMonth]
@@ -1366,7 +1366,7 @@ function toggleSpendingPayed(memberId, spendingId) {
 
     console.log(spending, receivedMemberIncome);
 
-    saveData();
+    await saveData();
 
     renderFamilySummary();
 		renderMembers();
@@ -1375,12 +1375,12 @@ function toggleSpendingPayed(memberId, spendingId) {
   }
 }
 
-function toggleSavingStatus(savingId) {  
+async function toggleSavingStatus(savingId) {  
   const saving = financeData.savings?.savings?.find(x => x.id === savingId);
   if(saving) {
     saving.status = !saving.status;
 
-    saveData();
+    await saveData();
     renderSavings();
     renderGoals();
     
@@ -1388,19 +1388,19 @@ function toggleSavingStatus(savingId) {
   }
 }
 
-function toggleGoalStatus(goalId) {  
+async function toggleGoalStatus(goalId) {  
   const goal = financeData.savings?.goals?.find(x => x.id === goalId);
   if(goal) {
     goal.status = !goal.status;
 
-    saveData();
+    await saveData();
     renderGoals();
     
     showToast('Hedef durumu güncellendi.'); 
   }
 }
 
-function toggleMemberStatus(memberId) {  
+async function toggleMemberStatus(memberId) {  
   const member = financeData.years[financeData.currentYear]
                            ?.months[financeData.currentMonth]
                            ?.members?.find(m => m.id === memberId);
@@ -1417,7 +1417,7 @@ function toggleMemberStatus(memberId) {
     //   });
     // });
 
-    saveData();
+    await saveData();
 
     renderFamilySummary();
 		renderMembers();
@@ -1426,7 +1426,7 @@ function toggleMemberStatus(memberId) {
   }
 }
 
-function toggleIncomeReceived(memberId, incomeId) {
+async function toggleIncomeReceived(memberId, incomeId) {
   scrollPositions[`spending-div-${memberId}`] = $(`#spending-div-${memberId}`).scrollTop();
   const income = financeData.years[financeData.currentYear]
                            ?.months[financeData.currentMonth]
@@ -1434,7 +1434,7 @@ function toggleIncomeReceived(memberId, incomeId) {
                            ?.incomes?.find(i => i.id === incomeId);
   if (income) {
     income.received = !income.received;
-    saveData();
+    await saveData();
 
     renderFamilySummary();
 		renderMembers();
@@ -1467,15 +1467,15 @@ function openEditIncome(memberId, incomeId) {
   }
 }
 
-function deleteIncome(memberId, incomeId) {
-  showToast('Gelir bilgisi silinsin mi?', 'warning', 0, 'center', true).then((result) => {
+async function deleteIncome(memberId, incomeId) {
+  showToast('Gelir bilgisi silinsin mi?', 'warning', 0, 'center', true).then(async (result) => {
     if (result.isConfirmed) {
       const member = financeData?.years[financeData.currentYear]
                                  ?.months[financeData.currentMonth]
                                  ?.members?.find(m => m.id === memberId);
       if (member?.incomes) {
         member.incomes = member.incomes.filter(i => i.id !== incomeId);
-        saveData();
+        await saveData();
 
         renderFamilySummary();
 		    renderMembers();
@@ -1543,9 +1543,9 @@ function openEditSpending(memberId, spendingId) {
   }
 }
 
-function deleteSpending(memberId, spendingId) {  
+async function deleteSpending(memberId, spendingId) {  
   scrollPositions[`spending-div-${memberId}`] = $(`#spending-div-${memberId}`).scrollTop();
-  showToast('Gider bilgisi silinsin mi?', 'warning', 0, 'center', true).then((result) => {
+  showToast('Gider bilgisi silinsin mi?', 'warning', 0, 'center', true).then(async (result) => {
     if (result.isConfirmed) {
       const member = financeData?.years[financeData.currentYear]
                                 ?.months[financeData.currentMonth]
@@ -1562,7 +1562,7 @@ function deleteSpending(memberId, spendingId) {
         console.log(spending, receivedMember?.incomes?.find(x => x.id == spending.sendIncomeId));
         member.spendings = member.spendings.filter(x => x.id !== spendingId);  
 
-        saveData();
+        await saveData();
         renderFamilySummary();
 		    renderMembers();
     
@@ -1607,8 +1607,8 @@ async function openEditCard(memberId, cardId) {
   }
 }
 
-function deleteCard(memberId, cardId) {
-  showToast('Kart bilgisi silinsin mi?', 'warning', 0, 'center', true).then((result) => {
+async function deleteCard(memberId, cardId) {
+  showToast('Kart bilgisi silinsin mi?', 'warning', 0, 'center', true).then(async (result) => {
     if (result.isConfirmed) {
       const member = financeData?.years[financeData.currentYear]
                                  ?.months[financeData.currentMonth]
@@ -1617,9 +1617,9 @@ function deleteCard(memberId, cardId) {
         member.cards = member.cards.filter(c => c.id !== cardId);
         member.spendings = member.spendings.filter(x => x.cardId !== cardId);
         
-        saveData();
+        await saveData();
         renderFamilySummary();
-	    renderMembers();
+	      renderMembers();
     
         showToast('Kart bilgisi silindi.');
       }
@@ -1638,8 +1638,8 @@ function openEditMember(memberId) {
   }
 }
 
-function deleteMember(memberId) {
-  showToast('Kişi bilgisi silinsin mi?', 'warning', 0, 'center', true).then((result) => {
+async function deleteMember(memberId) {
+  showToast('Kişi bilgisi silinsin mi?', 'warning', 0, 'center', true).then(async (result) => {
     if (result.isConfirmed) {
       let members = financeData.years[financeData.currentYear].months[financeData.currentMonth].members;
       financeData.years[financeData.currentYear].months[financeData.currentMonth].members = members.filter(m => m.id !== memberId);
@@ -1649,7 +1649,7 @@ function deleteMember(memberId) {
         member.spendings = member.spendings.filter(m => m.sendMemberId !== memberId);
       });
       
-      saveData();
+      await saveData();
       renderFamilySummary();
       renderMembers();
     
@@ -1658,7 +1658,7 @@ function deleteMember(memberId) {
   });
 }
 
-function onDateChange(day) {
+async function onDateChange(day) {
   const $elem = $(`#day_${day}`);
   const value = formatDateString($elem.val());
   console.log('[onDateChange] ', value);
@@ -1674,7 +1674,7 @@ function onDateChange(day) {
     $(`label[for="day_${day}"]`).removeClass('income-color');
   }
 
-  saveData();
+  await saveData();
   showToast("Tarih güncellendi.");
 }
 
@@ -1994,7 +1994,7 @@ function populateCurrencySelect() {
   $("#currency").html(html);
 }
 
-function updateCurrenciesFromApi() {
+async function updateCurrenciesFromApi() {
     $.each(financeData.savings.currencies, function (key, row) {
       const rate = rates[row.code];
       if(rate) {
@@ -2002,7 +2002,7 @@ function updateCurrenciesFromApi() {
         row.satis = rate.satis ?? row.satis;
       }
   });
-  saveData();
+  await saveData();
 }
 
 function populateSpendingMemberDropdown(memberId, selectedMemberId) {
@@ -2474,7 +2474,7 @@ function restoreScrollPositions() {
   });
 }
 
-function initializeSortable() {  
+async function initializeSortable() {  
   $.each(sortableInstances, function (key, val) {
     val.destroy();
   });
@@ -2483,7 +2483,7 @@ function initializeSortable() {
     sortableInstances.push(new Sortable(this, {
       animation: 150, // sürüklerken animasyon efekti
       handle: '.sortable-handle',
-      onEnd: function (event) {
+      onEnd: async function (event) {
         const $parent = $(event.item).parent();
         const type = $parent.data('type');
         const memberId = $parent.data('memberid') ?? $(event.item).data('memberid');
@@ -2559,7 +2559,7 @@ function initializeSortable() {
         }
 
         console.log('[initializeSortable]');
-        saveData();
+        await saveData();
         if(type === 1) {
           renderMembers();
         }
@@ -2884,10 +2884,10 @@ $(document).ready(async function() {
       lastTapId = cardId;
   });
   
-  $(document).on('shown.bs.tab', '#myTab .nav-item', function() {
+  $(document).on('shown.bs.tab', '#myTab .nav-item', async function() {
     financeData.activeTabIndex = $(this).index();
     console.log('[shown.bs.tab]');
-    saveData();
+    await saveData();
   });
   $('#memberModal, #incomeModal, #spendingModal, #cardModal').on('shown.bs.modal', function (e) {
     var firstInput = $('input:not([type=hidden]):not([disabled]), select, textarea', $(this)).first();
@@ -2896,9 +2896,9 @@ $(document).ready(async function() {
     }
   });
   
-  $(document).on('change', '#currency-dropdown', function() {
+  $(document).on('change', '#currency-dropdown', async function() {
     financeData.currentCurrency = $(this).val();
-    saveData();
+    await saveData();
 
     setCurrencyMultiplier();
 
@@ -2965,7 +2965,7 @@ $(document).ready(async function() {
       showToast('Ay verileri kopyalandı.');
     }
   });
-  $(document).on('click', '#btn-paste-month',function() {
+  $(document).on('click', '#btn-paste-month', async function() {
     if (isNullOrEmpty(copiedMonthData)) {
       return;
     }
@@ -2978,7 +2978,7 @@ $(document).ready(async function() {
 
     showToast('Ay verileri yapıştırılsın mı?', 'question', 0, 'center', true).then((result) => {
       if (result.isConfirmed) {
-        showToast('Taksitler otomatik olarak arttırılsın mı?', 'question', 0, 'center', true).then((taksitResult) => {
+        showToast('Taksitler otomatik olarak arttırılsın mı?', 'question', 0, 'center', true).then(async (taksitResult) => {
           copiedMonthData.members.forEach(member => {
           const income = (member.incomes || []).filter(i => i.received).reduce((a, b) => a + Number(b.value || 0), 0);
           const spend = sumSpendingsForMonth(member);
@@ -3023,7 +3023,7 @@ $(document).ready(async function() {
      
           $(this).attr('disabled', true);    
 
-          saveData();
+          await saveData();
 
           renderFamilySummary();
 		      renderMembers();
@@ -3033,14 +3033,14 @@ $(document).ready(async function() {
       }
     });
   });
-  $(document).on('click', '#btn-clear-month', function() {
-    showToast('Ay verileri temizlensin mi?', 'warning', 0, 'center', true).then((result) => {
+  $(document).on('click', '#btn-clear-month', async function() {
+    showToast('Ay verileri temizlensin mi?', 'warning', 0, 'center', true).then(async (result) => {
       if (result.isConfirmed) {
         const year = financeData.currentYear;
         const month = financeData.currentMonth;
         if (financeData?.years[year]?.months[month]) {
           financeData.years[year].months[month] = { members: [] };
-          saveData();
+          await saveData();
 
           renderFamilySummary();
 		      renderMembers();
@@ -3069,7 +3069,7 @@ $(document).ready(async function() {
       }
     });
   });
-  $(document).on('click', '#btn-load-json', function() {
+  $(document).on('click', '#btn-load-json', async function() {
     const input = document.createElement('input');
     input.type = 'file';
     input.accept = '.json';
@@ -3077,13 +3077,13 @@ $(document).ready(async function() {
       const file = e.target.files[0];
       if (!file) return;
       const reader = new FileReader();
-      reader.onload = function(evt) {
+      reader.onload = async function(evt) {
         try {
           const data = JSON.parse(evt.target.result);
           financeData = data;   
           
           validateFinanceData(); 
-          saveData();
+          await saveData();
 
           renderFamilySummary();
 		      renderMembers();
@@ -3099,7 +3099,7 @@ $(document).ready(async function() {
     input.click();
   });
   
-  $(document).on('submit', '#incomeForm', function(e) {
+  $(document).on('submit', '#incomeForm', async function(e) {
     e.preventDefault();
 
     const memberId = Number($('#income-member-id').val());
@@ -3129,7 +3129,7 @@ $(document).ready(async function() {
       member.incomes.push({ id: generateId(member.incomes), name: name, value: value, received: received });
     }
 
-    saveData();		
+    await saveData();		
     
     renderFamilySummary();
 		renderMembers();
@@ -3138,7 +3138,7 @@ $(document).ready(async function() {
 
     $('#incomeModal').modal('hide');
   });
-  $(document).on('submit', '#spendingForm', function(e) {
+  $(document).on('submit', '#spendingForm', async function(e) {
     e.preventDefault();
 
     const memberId = Number($('#spending-member-id').val());
@@ -3240,7 +3240,7 @@ $(document).ready(async function() {
         sendMember.incomes = sendMember.incomes.filter(i => i.id != sendIncome.id);
     }
 
-    saveData();		
+    await saveData();		
     
     renderFamilySummary();
 		renderMembers();
@@ -3308,7 +3308,7 @@ $(document).ready(async function() {
                         });
     }
 
-    saveData();
+    await saveData();
 
     renderFamilySummary();
 		renderMembers();
@@ -3317,7 +3317,7 @@ $(document).ready(async function() {
 
     $('#cardModal').modal('hide');
   });
-  $(document).on('submit', '#memberForm', function(e) {
+  $(document).on('submit', '#memberForm', async function(e) {
     e.preventDefault();
 
     const memberId = $('#member-id').val();
@@ -3341,7 +3341,7 @@ $(document).ready(async function() {
       });
     }
 
-    saveData();
+    await saveData();
 
     renderFamilySummary();
     renderMembers();
@@ -3352,7 +3352,7 @@ $(document).ready(async function() {
   });
   
   // tab-3
-  $(document).on('click', '#addSelectedCurrency', function(e) {
+  $(document).on('click', '#addSelectedCurrency', async function(e) {
       const value = $('#currency').val();
       const text = $('#currency option:selected').text().split('-')[0].trim();
       const rate = rates[value];
@@ -3368,13 +3368,13 @@ $(document).ready(async function() {
       rate.text = text;
       financeData.savings.currencies.push(rate);
 
-      saveData();
+      await saveData();
       renderCurrencies();
       showToast('Para birimi eklendi.'); 
       console.log(text, value, rate.tarih);
       
   });
-  $(document).on('click', '#addNewCurrency', function(e) {
+  $(document).on('click', '#addNewCurrency', async function(e) {
       const text = $('#newCurrency').val();
       const value = convertToCurrency(parseStringToNumber($('#newCurrencyValue').val()));
       if(!value || !text) {
@@ -3399,15 +3399,15 @@ $(document).ready(async function() {
         financeData.savings.currencies.push(rate);
       }
 
-      saveData();
+      await saveData();
       renderCurrencies();
       showToast('Para birimi eklendi.'); 
       console.log(text, value);
       $('#newCurrencyValue').val('');
       $('#newCurrency').val('');
   });
-  $(document).on('click', '#removeCustom', function(e) {
-    showToast('Para birimi silinsin mi?', 'warning', 0, 'center', true).then((result) => {
+  $(document).on('click', '#removeCustom', async function(e) {
+    showToast('Para birimi silinsin mi?', 'warning', 0, 'center', true).then(async (result) => {
       if (result.isConfirmed) {
         const value = $('#customCurrencies').val();
         const text = $('#customCurrencies option:selected').text();
@@ -3419,7 +3419,7 @@ $(document).ready(async function() {
 
         financeData.savings.currencies = financeData.savings.currencies.filter(x=> x.code != value);
 
-        saveData();
+        await saveData();
         renderCurrencies();
         showToast(`${text} başarıyla silindi.`);
 
@@ -3427,7 +3427,7 @@ $(document).ready(async function() {
       }
     });
   });
-  $(document).on('click', '#addSavings', function(e) {
+  $(document).on('click', '#addSavings', async function(e) {
       const code = $('#customCurrencies').val();
       const explanation = $('#savingExplanation').val();
       const id = $('#savingId').val();
@@ -3449,7 +3449,7 @@ $(document).ready(async function() {
           checkSaving.explanation = explanation;
         }
 
-        saveData();
+        await saveData();
         renderSavings();
         renderGoals();
         return showToast('Birikim güncellendi.');
@@ -3465,12 +3465,12 @@ $(document).ready(async function() {
             status: true
           });
             
-          saveData();
+          await saveData();
           renderSavings();
           renderGoals();
           return showToast('Birikim eklendi.');
         }
-        showToast('Aynı para birimiyle bir birikim mevcut. Güncellensin mi?', 'warning', 0, 'center', true).then((result) => {
+        showToast('Aynı para birimiyle bir birikim mevcut. Güncellensin mi?', 'warning', 0, 'center', true).then(async (result) => {
           if (result.isConfirmed) {  
             checkSaving.quantity += quantity;      
           }
@@ -3484,13 +3484,13 @@ $(document).ready(async function() {
             });
           }
 
-          saveData();
+          await saveData();
           renderSavings();
           renderGoals();
           return showToast('Birikim eklendi.');
         });  
   });
-  $(document).on('click', '#addGoals', function(e) {
+  $(document).on('click', '#addGoals', async function(e) {
       const name = $('#goalName').val();
       const id = $('#goalId').val();
       let amount = convertToCurrency(parseStringToNumber($('#goalAmount').val()));
@@ -3517,7 +3517,7 @@ $(document).ready(async function() {
         showToast('Hedef eklendi.');
       }
 
-      saveData();
+      await saveData();
       renderGoals();
   });
   $(document).on('click', '.btn-edit-saving', function(e) {   
@@ -3574,8 +3574,8 @@ $(document).ready(async function() {
       $(this).html('<i class="fas fa-edit"></i>');
     }
   });
-  $(document).on('click', '.btn-delete-saving', function(e) {
-    showToast('Birikim silinsin mi?', 'warning', 0, 'center', true).then((result) => {
+  $(document).on('click', '.btn-delete-saving', async function(e) {
+    showToast('Birikim silinsin mi?', 'warning', 0, 'center', true).then(async (result) => {
       if (result.isConfirmed) {    
         const id = $(this).data('id');     
         const checkSaving = financeData.savings.savings.find(x=> x.id == id);
@@ -3585,15 +3585,15 @@ $(document).ready(async function() {
 
         financeData.savings.savings = financeData.savings.savings.filter(x=> x.id != id);
 
-        saveData();
+        await saveData();
         renderSavings();
         renderGoals();
         showToast('Birikim silindi.');
       }
     });
   });
-  $(document).on('click', '.btn-delete-goal', function(e) {
-    showToast('Hedef silinsin mi?', 'warning', 0, 'center', true).then((result) => {
+  $(document).on('click', '.btn-delete-goal', async function(e) {
+    showToast('Hedef silinsin mi?', 'warning', 0, 'center', true).then(async (result) => {
       if (result.isConfirmed) {    
         const id = $(this).data('id');     
         const checkGoal = financeData.savings.goals.find(x=> x.id == id);
@@ -3603,7 +3603,7 @@ $(document).ready(async function() {
 
         financeData.savings.goals = financeData.savings.goals.filter(x=> x.id != id);
 
-        saveData();
+        await saveData();
         renderGoals();
         showToast('Hedef silindi.');
       }
