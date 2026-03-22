@@ -2098,7 +2098,7 @@ async function renderMembers() {
     return;
   }
 
-  const html = await Promise.all(members.map(async member => {
+  const html = (await Promise.all(members.map(async member => {
     const income = (member.incomes || []).filter(i => i.received).reduce((a, b) => a + Number(b.value || 0), 0);
     const spend = sumSpendingsForMonth(member);
     const net = income - spend;
@@ -2174,7 +2174,7 @@ async function renderMembers() {
             <div class="col-md-12 mt-4 mb-4">
               <h6>Kredi Kartları <button class="icon-btn card-color" onclick="openAddCard(${member.id})"><i class="bi bi-credit-card"></i></button></h6>
               <div data-type="1" data-memberid="${member.id}" class="col-md-12 list-group sortable-list mb-2">
-                ${await Promise.all((member.cards || []).map(async card => {
+                ${(await Promise.all((member.cards || []).map(async card => {
                   const cardSpend = (member.spendings || []).filter(s => s.cardId === card.id && s.payed).reduce((a, b) => {
                     if (!b.installment || b.installment < 1) b.installment = 1;
                     return a + Number(b.value) / b.installment;
@@ -2210,7 +2210,7 @@ async function renderMembers() {
                       <button class="icon-btn delete" onclick="deleteCard(${member.id},${card.id})"><i class="fas fa-trash"></i></button>
                     </div>
                   </div>`
-                }))}
+                }))).join('')}
               </div>
               <div class="fw-bold ms-2">Toplam Kart Limiti: <span class="card-color pointer" onclick="toggleMask(this, '${(member.cards || []).reduce((sum, card) => {
                   return sum + Number(card.limit ?? 0);
@@ -2280,7 +2280,8 @@ async function renderMembers() {
           </div>
         </div>
     </div>`;
-  }));
+  }))).join('');
+  
   $('#members-list').html(html);
 
   initializeSortable();
