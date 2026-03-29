@@ -523,7 +523,7 @@
   <div class="d-flex justify-content-between align-items-center mb-4">
     <div class="d-flex align-items-center">
       <h2 id="page-title"><i class="bi bi-people-fill me-2"></i>Finans Yöneticisi</h2>
-      <small class="text-muted ms-2">v1.5.6</small>   
+      <small class="text-muted ms-2">v1.5.7</small>   
     </div>
     <div class="d-flex justify-content-between align-items-center">
       <button class="top-action-btn me-1" id="btn-load-json"><i class="bi bi-folder2-open"></i>Verileri Geri Yükle</button>
@@ -1229,10 +1229,24 @@ function logOut() {
   access_token = null;
 }
 
+function showLoader() {
+    Swal.fire({
+        allowOutsideClick: false,
+        showConfirmButton: false,
+        didOpen: () => Swal.showLoading()
+    });
+}
+
+function hideLoader() {
+    Swal.close();
+}
+
 async function saveData() {
+  showLoader();
   console.log('[saveData]');
   await saveToLocalStorage();
   await saveToGoogleDrive();
+  hideLoader();
 }
 
 async function saveToLocalStorage() {
@@ -1313,7 +1327,7 @@ async function switchMonth(month) {
   
   setMonthData();
   renderFamilySummary();
-  renderMembers();
+  await renderMembers();
 
   await saveData();
 }
@@ -3444,14 +3458,33 @@ $(document).ready(async function() {
           checkSaving.explanation = explanation;
         }
 
-        await saveData();
+        saveData();
         renderSavings();
         renderGoals();
-        return showToast('Birikim güncellendi.');
+        showToast('Birikim güncellendi.');
+        return;
       }
 
       const checkSaving = financeData.savings.savings.find(x=> x.currencyCode == checkCurrency.code);
-        if(!checkSaving) {
+      if(!checkSaving) {
+        financeData.savings.savings.push({
+          id: generateId(financeData.savings.savings),
+          currencyCode: code,
+          quantity: quantity,
+          explanation: explanation,
+          status: true
+        });
+          
+        await saveData();
+        renderSavings();
+        renderGoals();
+        return showToast('Birikim eklendi.');
+      }
+      showToast('Aynı para birimiyle bir birikim mevcut. Güncellensin mi?', 'warning', 0, 'center', true).then(async (result) => {
+        if (result.isConfirmed) {  
+          checkSaving.quantity += quantity;      
+        }
+        else {
           financeData.savings.savings.push({
             id: generateId(financeData.savings.savings),
             currencyCode: code,
@@ -3459,31 +3492,13 @@ $(document).ready(async function() {
             explanation: explanation,
             status: true
           });
-            
-          await saveData();
-          renderSavings();
-          renderGoals();
-          return showToast('Birikim eklendi.');
         }
-        showToast('Aynı para birimiyle bir birikim mevcut. Güncellensin mi?', 'warning', 0, 'center', true).then(async (result) => {
-          if (result.isConfirmed) {  
-            checkSaving.quantity += quantity;      
-          }
-          else {
-            financeData.savings.savings.push({
-              id: generateId(financeData.savings.savings),
-              currencyCode: code,
-              quantity: quantity,
-              explanation: explanation,
-              status: true
-            });
-          }
 
-          await saveData();
-          renderSavings();
-          renderGoals();
-          return showToast('Birikim eklendi.');
-        });  
+        await saveData();
+        renderSavings();
+        renderGoals();
+        return showToast('Birikim eklendi.');
+      });  
   });
   $(document).on('click', '#addGoals', async function(e) {
       const name = $('#goalName').val();
