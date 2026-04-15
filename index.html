@@ -523,7 +523,7 @@
   <div class="d-flex justify-content-between align-items-center mb-4">
     <div class="d-flex align-items-center">
       <h2 id="page-title"><i class="bi bi-people-fill me-2"></i>Finans Yöneticisi</h2>
-      <small class="text-muted ms-2">v1.5.7</small>   
+      <small class="text-muted ms-2">v1.5.8</small>   
     </div>
     <div class="d-flex justify-content-between align-items-center">
       <button class="top-action-btn me-1" id="btn-load-json"><i class="bi bi-folder2-open"></i>Verileri Geri Yükle</button>
@@ -614,17 +614,25 @@
           <div class="card-body" style="padding-left: 0.3rem;padding-right: 0.3rem;">
             <h5 class="card-title">Birikimler</h5>
             <div class="row g-2 mb-2">
-              <div class="col-md-1">
-                  <button id="removeCustom" class="col-md-3 btn btn-outline-danger w-100">Sil</button>
-                </div>
               <div class="col-md-3">
                   <input type="hidden" id="savingId">
                   <select id="customCurrencies" class="form-select"></select>
               </div>
-              <div class="col-md-2">
+              <div class="col-md-1">
+                  <button id="removeCustom" class="col-md-3 btn btn-outline-danger w-100">Sil</button>
+              </div>
+            </div>
+            <div class="row g-2 mb-2">
+              <div class="col-md-3">
                 <input type="number" id="quantity" class="form-control" placeholder="Miktar">
               </div>
-              <div class="col-md-4">
+              <div class="col-md-2">
+                <input type="text" data-type="currency" id="buyPrice" class="form-control" placeholder="Alış Fiyatı (Birim)">
+              </div>
+              <div class="col-md-2">
+                <input type="date" id="savingDate" class="form-control" placeholder="Birikim Tarihi">
+              </div>
+              <div class="col-md-3">
                 <input type="text" id="savingExplanation" class="form-control" placeholder="Açıklama">
               </div>
               <div class="col-md-2">
@@ -637,8 +645,12 @@
                   <tr>
                     <th>Para Birimi</th>
                     <th>Birim Fiyatı</th>
+                    <th>Alış Fiyatı</th>
                     <th>Miktar</th>
+                    <th>Maliyet</th>
                     <th>Toplam</th>
+                    <th>Kâr/Zarar</th>
+                    <th>Alış Tarihi</th>
                     <th>Açıklama</th>
                     <th>İşlemler</th>
                   </tr>
@@ -646,7 +658,9 @@
                 <tbody class="sortable-list" data-type="4"></tbody>
               </table>
             </div>
-            <h5 class="text-end">Toplam Birikim: <span id="totalSavings" class="text-success pointer">0</span></h5>
+            <h5 class="text-end mb-1">Toplam Maliyet: <span id="totalSavingsCost" class="pointer">0</span></h5>
+            <h5 class="text-end mb-1">Toplam Birikim: <span id="totalSavings" class="text-success pointer">0</span></h5>
+            <h5 class="text-end">Toplam Kâr/Zarar: <span id="totalSavingsProfit" class="pointer">0</span></h5>
           </div>
         </div>
         <div class="card shadow-sm">
@@ -1273,6 +1287,7 @@ async function loadFromLocalStorage() {
       };
     } else {
       financeData = loaded;
+      financeData ??= {};
     }
   }
 
@@ -1283,6 +1298,7 @@ async function loadFromLocalStorage() {
 }
 
 function validateFinanceData() {
+  financeData.lastSelectedMonthByYear ??= {};
   financeData.savings ??= {};
   financeData.savings.currencies ??= [];
   financeData.savings.savings ??= [];
@@ -2391,7 +2407,6 @@ function renderDaysRow() {
 function renderCurrencies() {
   $("#customCurrencies").empty();
   $.each(financeData.savings.currencies, function (key, row) {
-    console.log(row);
     $("#customCurrencies").append($("<option>").val(row.code).text(`${row.text} - ${formatCurrency(row.alis)}`));
   });
 }
@@ -2400,21 +2415,39 @@ function renderSavings() {
   const $tbody = $("#savingsTable tbody");
   $tbody.html('');
   totalSavings = 0;
+  let totalSavingsProfit = 0;
+  let totalSavingsCost = 0;
   $.each(financeData.savings.savings, function (key, row) {
     let rowTotal = 0;
+    let rowProfit = 0;
+    let rowCost = 0;
 
     const currency = financeData.savings.currencies.find(x=> x.code == row.currencyCode);
     if(currency) {
-      rowTotal = row.quantity * parseStringToNumber(currency.alis);
+      const currentUnitPrice = parseStringToNumber(currency.alis);
+      const buyUnitPrice = parseStringToNumber(row.buyPrice) ?? currentUnitPrice;
+
+      rowTotal = row.quantity * currentUnitPrice;
+      rowCost = row.quantity * buyUnitPrice;
+      rowProfit = (currentUnitPrice - buyUnitPrice) * row.quantity;
       if(row.status) {
         totalSavings += rowTotal;
+        totalSavingsProfit += rowProfit;
+        totalSavingsCost += rowCost;
       }
+
+      const profitClass = rowProfit < 0 ? 'text-danger' : (rowProfit > 0 ? 'text-success' : '');
+      const displayDate = row.savingDate ?? '';
 
       const $row = $(`<tr data-savingid='${row.id}' class='sortable-item'>`).append(
        `<td><i class="sortable-handle bi bi-list me-2"></i> ${currency.text}</td>
         <td>${formatCurrency(currency.alis)}</td>
+        <td class="pointer" onclick="toggleMask(this, ${buyUnitPrice})">${formatCurrency(buyUnitPrice, isCurrencyMasked)}</td>
         <td class="pointer" onclick="toggleMask(this, ${row.quantity}, 1)">${formatNumber(row.quantity, isCurrencyMasked)}</td>
+        <td class="pointer" onclick="toggleMask(this, ${rowCost})">${formatCurrency(rowCost, isCurrencyMasked)}</td>
         <td class="pointer" onclick="toggleMask(this, ${rowTotal})">${formatCurrency(rowTotal, isCurrencyMasked)}</td>
+        <td class="pointer ${profitClass}" onclick="toggleMask(this, ${rowProfit})">${formatCurrency(rowProfit, isCurrencyMasked)}</td>
+        <td>${displayDate}</td>
         <td>${row.explanation ?? ""}</td>
         <td> 
           <div class="d-flex align-items-center">
@@ -2431,10 +2464,19 @@ function renderSavings() {
 
   $('#savingId').val('');
   $('#quantity').val(''); 
+  $('#buyPrice').val('');
+  $('#savingDate').val(formatDateString(today, "YYYY-MM-DD"));
   $('#savingExplanation').val('');
   $('#addSavings').text('Birikim Ekle');
+  
+  $('#totalSavingsCost').html(formatCurrency(totalSavingsCost, isCurrencyMasked));
+  $('#totalSavingsCost').attr('onclick', `toggleMask(this, ${totalSavingsCost})`);
   $('#totalSavings').html(formatCurrency(totalSavings, isCurrencyMasked));
   $('#totalSavings').attr('onclick', `toggleMask(this, ${totalSavings})`);
+  $('#totalSavingsProfit').html(formatCurrency(totalSavingsProfit, isCurrencyMasked));
+  $('#totalSavingsProfit').attr('onclick', `toggleMask(this, ${totalSavingsProfit})`);
+  $('#totalSavingsProfit').removeClass('text-success').removeClass('text-danger')
+                         .addClass(totalSavingsProfit < 0 ? 'text-danger' : 'text-success');
   
   initializeSortable();
 }
@@ -2808,7 +2850,6 @@ function setCurrentCurrencyData() {
 }
 
 function setActiveTab() {
-  console.log('setActiveTab: ', financeData.activeTabIndex);
   $('#myTab .nav-link').eq(financeData.activeTabIndex).tab('show');
 }
 
@@ -2851,6 +2892,8 @@ $(document).ready(async function() {
   $(document).on('blur', 'input[data-type="currency"]', function (e) {
     inputFormatCurrency($(this), e, true);
   });
+
+  $('#savingDate').val(formatDateString(today, "YYYY-MM-DD"));
 
   // #region Document Handlers
   let lastTap = 0;
@@ -3398,14 +3441,14 @@ $(document).ready(async function() {
         check.alis = value;
         check.tarih = formatDateString(moment(), DEFAULT_DATE_TIME_FORMAT);
       }
-      else {
-        const rate = {
+      else {   
+        financeData.savings.currencies.push({
           code: key,
           text: text,
           alis: value,
+          satis: value,
           tarih: formatDateString(moment(), DEFAULT_DATE_TIME_FORMAT)
-        };      
-        financeData.savings.currencies.push(rate);
+        });
       }
 
       await saveData();
@@ -3445,17 +3488,25 @@ $(document).ready(async function() {
         return showToast('Alanları doldurun.', 'error');
       }
 
-      const checkCurrency = financeData.savings.currencies.find(x=> x.code == code);
+      const checkCurrency = financeData.savings.currencies.find(x => x.code == code);
       if(!checkCurrency) {
         return showToast('Para birimi bulunamadı.', 'error');
       }
+
+      const buyPrice = parseStringToNumber($('#buyPrice').val()) 
+                        ?? parseStringToNumber(checkCurrency.satis)
+                        ?? parseStringToNumber(checkCurrency.alis);
+
+      const savingDate = $('#savingDate').val() || formatDateString(today, "YYYY-MM-DD");
 
       const editMode = $(this).text() == 'Birikim Güncelle';  
       if(editMode) {
         const checkSaving = financeData.savings.savings.find(x=> x.id == id);
         if(checkSaving) {
           checkSaving.quantity = quantity;
-          checkSaving.explanation = explanation;
+          checkSaving.explanation = explanation;     
+          checkSaving.buyPrice = buyPrice;
+          checkSaving.savingDate = savingDate;
         }
 
         saveData();
@@ -3472,6 +3523,8 @@ $(document).ready(async function() {
           currencyCode: code,
           quantity: quantity,
           explanation: explanation,
+          buyPrice: buyPrice,
+          savingDate: savingDate,
           status: true
         });
           
@@ -3481,8 +3534,17 @@ $(document).ready(async function() {
         return showToast('Birikim eklendi.');
       }
       showToast('Aynı para birimiyle bir birikim mevcut. Güncellensin mi?', 'warning', 0, 'center', true).then(async (result) => {
-        if (result.isConfirmed) {  
-          checkSaving.quantity += quantity;      
+        if (result.isConfirmed) { 
+          const oldBuy = parseStringToNumber(checkSaving.buyPrice);
+          const newBuy = parseStringToNumber(buyPrice);
+
+          if(oldBuy != null && newBuy != null && (checkSaving.quantity + quantity) > 0) {
+            checkSaving.buyPrice = convertToCurrency(((checkSaving.quantity * oldBuy) + (quantity * newBuy)) / (checkSaving.quantity + quantity));
+          } else if(newBuy != null && (oldBuy == null)) {
+            checkSaving.buyPrice = buyPrice;
+          }
+          checkSaving.savingDate = savingDate; 
+          checkSaving.quantity += quantity;
         }
         else {
           financeData.savings.savings.push({
@@ -3490,6 +3552,8 @@ $(document).ready(async function() {
             currencyCode: code,
             quantity: quantity,
             explanation: explanation,
+            buyPrice: buyPrice,
+            savingDate: savingDate,
             status: true
           });
         }
@@ -3543,6 +3607,8 @@ $(document).ready(async function() {
       $('#savingId').val(checkSaving.id);
       $('#customCurrencies').val(checkSaving.currencyCode);
       $('#quantity').val(checkSaving.quantity);
+      $('#buyPrice').val(formatCurrency(checkSaving.buyPrice));
+      $('#savingDate').val(checkSaving.savingDate ?? '');
       $('#savingExplanation').val(checkSaving.explanation);
       $('#addSavings').text('Birikim Güncelle');
       $(this).html('<i class="fas fa-cancel"></i>');
@@ -3553,6 +3619,8 @@ $(document).ready(async function() {
     } else {
       $('#savingId').val('');
       $('#quantity').val('');
+      $('#buyPrice').val('');
+      $('#savingDate').val(formatDateString(today, "YYYY-MM-DD"));
       $('#savingExplanation').val('');
       $('#addSavings').text('Birikim Ekle');
       $(this).html('<i class="fas fa-edit"></i>');
