@@ -2,11 +2,12 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <link rel="manifest" href="manifest.json">
+  <link rel="manifest" href="/finance/manifest.json">
   <meta name="theme-color" content="#0f172a">
-  <link rel="icon" type="image/x-icon" href="./favicon.ico">
+  <link rel="icon" type="image/x-icon" href="/finance/favicon.ico">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta http-equiv="Content-Security-Policy" content="default-src 'self' https: 'unsafe-inline' 'unsafe-eval' blob: data:; script-src 'self' https: 'unsafe-inline' 'unsafe-eval' blob: data:; connect-src 'self' https:; frame-src 'self' https:; img-src 'self' https: data: blob:;">
+  
   <title>Finans Yöneticisi</title>
 
   <!-- Font Awesome CDN -->
@@ -18,6 +19,7 @@
   <!-- Flatpickr CSS ve JS -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
   <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+
   <!-- Türkçe Dil Paketi -->
   <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/tr.js"></script>
 
@@ -2878,7 +2880,7 @@ function handleDblclickEvent(cardId) {
 
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('serviceWorker.js');
+    navigator.serviceWorker.register('/finance/serviceWorker.js');
   });
 }
 
