@@ -1,7 +1,7 @@
 {
     "name": "Finance App",
     "short_name": "Finance",
-    "scope": "/",
+    "scope": "/finance",
     "start_url": "/finance",
     "display": "standalone",
     "orientation": "portrait",
