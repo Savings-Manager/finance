@@ -2,6 +2,8 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#0f172a">
   <link rel="icon" type="image/x-icon" href="./favicon.ico">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta http-equiv="Content-Security-Policy" content="default-src 'self' https: 'unsafe-inline' 'unsafe-eval' blob: data:; script-src 'self' https: 'unsafe-inline' 'unsafe-eval' blob: data:; connect-src 'self' https:; frame-src 'self' https:; img-src 'self' https: data: blob:;">
@@ -523,7 +525,7 @@
   <div class="d-flex justify-content-between align-items-center mb-4">
     <div class="d-flex align-items-center">
       <h2 id="page-title"><i class="bi bi-people-fill me-2"></i>Finans Yöneticisi</h2>
-      <small class="text-muted ms-2">v1.5.8</small>   
+      <small class="text-muted ms-2">v1.5.9</small>   
     </div>
     <div class="d-flex justify-content-between align-items-center">
       <button class="top-action-btn me-1" id="btn-load-json"><i class="bi bi-folder2-open"></i>Verileri Geri Yükle</button>
@@ -2874,7 +2876,14 @@ function handleDblclickEvent(cardId) {
 }
 // #endregion
 
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/serviceWorker.js');
+  });
+}
+
 $(document).ready(async function() {
+
   // $(document).off("keyup", 'input[data-type="number"]');
   // $(document).on('keyup', 'input[data-type="number"]', function (e) {
   //   inputFormatCurrency($(this), e);
