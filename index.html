@@ -1267,6 +1267,11 @@ async function saveData() {
   hideLoader();
 }
 
+async function saveDataBackground() {
+  await saveToLocalStorage();
+  saveToGoogleDrive().catch(err => console.error('[saveDataBackground] Drive error:', err));
+}
+
 async function saveToLocalStorage() {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(await encryptData(financeData)));
 }
@@ -1341,15 +1346,15 @@ function ensureMonthData(year, month) {
 
 async function switchMonth(month) {
   financeData.currentMonth = month;
-  financeData.lastSelectedMonthByYear ??= {}; 
+  financeData.lastSelectedMonthByYear ??= {};
   financeData.lastSelectedMonthByYear[financeData.currentYear] = month;
-  ensureMonthData(financeData.currentYear, month);  
-  
+  ensureMonthData(financeData.currentYear, month);
+
   setMonthData();
   renderFamilySummary();
   await renderMembers();
 
-  await saveData();
+  await saveDataBackground();
 }
 
 function sumSpendingsForMonth(member) {
@@ -2950,7 +2955,7 @@ $(document).ready(async function() {
   $(document).on('shown.bs.tab', '#myTab .nav-item', async function() {
     financeData.activeTabIndex = $(this).index();
     console.log('[shown.bs.tab]');
-    await saveData();
+    await saveDataBackground();
   });
   $('#memberModal, #incomeModal, #spendingModal, #cardModal').on('shown.bs.modal', function (e) {
     var firstInput = $('input:not([type=hidden]):not([disabled]), select, textarea', $(this)).first();
@@ -2961,7 +2966,7 @@ $(document).ready(async function() {
   
   $(document).on('change', '#currency-dropdown', async function() {
     financeData.currentCurrency = $(this).val();
-    await saveData();
+    await saveDataBackground();
 
     setCurrencyMultiplier();
 
