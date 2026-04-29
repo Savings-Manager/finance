@@ -10,6 +10,11 @@
   
   <title>Finans Yöneticisi</title>
 
+  <!-- Inter Font -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
   <!-- Font Awesome CDN -->
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
 
@@ -556,11 +561,10 @@
     }
     @keyframes spin-ring { to { transform: rotate(360deg); } }
     .loader-label {
-      font-size: 11px;
-      font-weight: 700;
-      letter-spacing: 0.12em;
+      font-size: 13px;
+      font-weight: 600;
+      letter-spacing: 0.03em;
       color: #7986cb;
-      text-transform: uppercase;
     }
 
     /* ─── Background Save Indicator ─── */
@@ -611,8 +615,7 @@
       color: #b0b8d8 !important;
       font-weight: 700;
       font-size: 9px !important;
-      letter-spacing: 0.06em;
-      text-transform: uppercase;
+      letter-spacing: 0.02em;
       flex-direction: column !important;
       gap: 2px;
       padding: 6px 4px 4px !important;
@@ -718,6 +721,182 @@
       background: linear-gradient(135deg, #43a047, #66bb6a);
     }
   </style>
+  <style>
+    /* ─── Global Font ─── */
+    body, input, select, textarea, button {
+      font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif !important;
+    }
+
+    /* ─── Buttons ─── */
+    .btn {
+      border-radius: 10px;
+      font-weight: 600;
+      font-size: 0.85rem;
+      padding: 0.48rem 1.1rem;
+      transition: all 0.18s ease;
+      letter-spacing: 0.01em;
+    }
+    .btn:active { transform: scale(0.97); }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #3949ab, #5c6bc0) !important;
+      border: none !important;
+      box-shadow: 0 3px 10px rgba(57,73,171,0.28);
+    }
+    .btn-primary:hover, .btn-primary:focus {
+      background: linear-gradient(135deg, #283593, #3949ab) !important;
+      box-shadow: 0 5px 16px rgba(57,73,171,0.38);
+    }
+
+    .btn-success {
+      background: linear-gradient(135deg, #43a047, #66bb6a) !important;
+      border: none !important;
+      box-shadow: 0 3px 10px rgba(67,160,71,0.28);
+    }
+    .btn-success:hover, .btn-success:focus {
+      background: linear-gradient(135deg, #2e7d32, #43a047) !important;
+      box-shadow: 0 5px 16px rgba(67,160,71,0.38);
+    }
+
+    .btn-danger {
+      background: linear-gradient(135deg, #e53935, #ef5350) !important;
+      border: none !important;
+      box-shadow: 0 3px 8px rgba(229,57,53,0.25);
+    }
+    .btn-danger:hover, .btn-danger:focus {
+      background: linear-gradient(135deg, #b71c1c, #e53935) !important;
+    }
+
+    .btn-secondary {
+      background: #eceff1 !important;
+      color: #546e7a !important;
+      border: none !important;
+      box-shadow: none;
+    }
+    .btn-secondary:hover { background: #cfd8dc !important; color: #37474f !important; }
+
+    .btn-outline-danger {
+      border-width: 2px !important;
+      font-weight: 600;
+      border-radius: 10px;
+    }
+    .btn-warning { font-weight: 600; border-radius: 10px; }
+
+    /* ─── Modaller ─── */
+    .modal-content {
+      border: none !important;
+      border-radius: 20px !important;
+      box-shadow: 0 24px 64px rgba(0,0,0,0.18) !important;
+      overflow: hidden;
+    }
+    .modal-header {
+      border-bottom: none !important;
+      padding: 1.2rem 1.5rem 0.8rem !important;
+    }
+    .modal-body { padding: 0.5rem 1.5rem 1rem !important; }
+    .modal-footer {
+      border-top: 1px solid #f0f2f8 !important;
+      padding: 0.75rem 1.5rem !important;
+      gap: 0.5rem;
+    }
+    .modal-header-income  { background: linear-gradient(135deg, #43a047, #66bb6a); }
+    .modal-header-spending { background: linear-gradient(135deg, #e53935, #ef5350); }
+    .modal-header-card    { background: linear-gradient(135deg, #3949ab, #5c6bc0); }
+    .modal-header .btn-close { filter: brightness(0) invert(1); opacity: 0.85; }
+
+    /* ─── Form kontrolleri ─── */
+    .form-control, .form-select {
+      border-radius: 10px !important;
+      border: 2px solid #e8eaf6 !important;
+      font-weight: 500;
+      transition: border-color 0.18s ease, box-shadow 0.18s ease !important;
+    }
+    .form-control:focus, .form-select:focus {
+      border-color: #3949ab !important;
+      box-shadow: 0 0 0 3px rgba(57,73,171,0.1) !important;
+    }
+    .form-floating > label { color: #90a4ae; font-weight: 500; }
+    .form-check-input:checked {
+      background-color: #3949ab;
+      border-color: #3949ab;
+    }
+    .form-check-input:focus { box-shadow: 0 0 0 3px rgba(57,73,171,0.15); }
+
+    /* ─── Tablolar ─── */
+    .table {
+      font-size: 0.855rem;
+      border-collapse: collapse !important;
+    }
+    .table thead th {
+      background: #e8eaf6 !important;
+      color: #3949ab !important;
+      font-weight: 700 !important;
+      font-size: 0.78rem;
+      border: none !important;
+      padding: 10px 12px !important;
+    }
+    .table tbody td {
+      border: none !important;
+      border-bottom: 1px solid #f0f2f8 !important;
+      padding: 9px 12px !important;
+      vertical-align: middle;
+    }
+    .table-bordered { border: none !important; }
+    .table-striped > tbody > tr:nth-of-type(odd) > * { background: #fafbff !important; }
+    .table-striped > tbody > tr:nth-of-type(even) > * { background: #fff !important; }
+
+    /* ─── Birikim Sekme Stilleri ─── */
+    .sc-header {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      padding: 0.9rem 0.5rem 0.7rem;
+      font-size: 1rem;
+      font-weight: 700;
+      color: #1a237e;
+      border-bottom: 2px solid #f0f2f8;
+      margin-bottom: 1rem;
+    }
+    .sc-icon {
+      width: 30px;
+      height: 30px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      color: #fff;
+      flex-shrink: 0;
+    }
+    .sc-icon-currency { background: linear-gradient(135deg, #5c6bc0, #3949ab); }
+    .sc-icon-savings  { background: linear-gradient(135deg, #43a047, #2e7d32); }
+    .sc-icon-goals    { background: linear-gradient(135deg, #fb8c00, #e65100); }
+
+    .savings-totals {
+      background: #f5f7ff;
+      border-radius: 12px;
+      padding: 12px 16px;
+      margin-top: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .savings-total-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .savings-total-row .st-label {
+      font-size: 0.82rem;
+      font-weight: 600;
+      color: #78909c;
+    }
+    .savings-total-row .st-value {
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: #1a237e;
+    }
+  </style>
 </head>
 <body class="bg-light">
 <div class="container mt-4">  
@@ -790,8 +969,12 @@
     <div class="tab-pane fade" id="contact" role="tabpanel" aria-labelledby="contact-tab">
       <div id="savings-section">
         <div class="card shadow-sm mb-4">
-          <div class="card-body" style="padding-left: 0.3rem;padding-right: 0.3rem;">
-            <h5 class="card-title">Para Birimi Yönetimi <span id="currencyUpdateDate"></span></h5>
+          <div class="card-body" style="padding-left: 0.5rem;padding-right: 0.5rem;">
+            <div class="sc-header">
+              <span class="sc-icon sc-icon-currency"><i class="bi bi-currency-exchange"></i></span>
+              Para Birimi Yönetimi
+              <small id="currencyUpdateDate" class="text-muted ms-1 fw-normal" style="font-size:0.72rem"></small>
+            </div>
             <div class="row g-2">
               <div class="row col-md-6 ms-1 mt-3">
                 <label class="form-label p-0" for="currency">Para Birimi Seç</label>
@@ -812,8 +995,11 @@
           </div>
         </div>
         <div class="card shadow-sm mb-4">
-          <div class="card-body" style="padding-left: 0.3rem;padding-right: 0.3rem;">
-            <h5 class="card-title">Birikimler</h5>
+          <div class="card-body" style="padding-left: 0.5rem;padding-right: 0.5rem;">
+            <div class="sc-header">
+              <span class="sc-icon sc-icon-savings"><i class="bi bi-piggy-bank"></i></span>
+              Birikimler
+            </div>
             <div class="row g-2 mb-2">
               <div class="col-md-3">
                   <input type="hidden" id="savingId">
@@ -859,14 +1045,28 @@
                 <tbody class="sortable-list" data-type="4"></tbody>
               </table>
             </div>
-            <h5 class="text-end mb-1">Toplam Maliyet: <span id="totalSavingsCost" class="pointer">0</span></h5>
-            <h5 class="text-end mb-1">Toplam Birikim: <span id="totalSavings" class="text-success pointer">0</span></h5>
-            <h5 class="text-end">Toplam Kâr/Zarar: <span id="totalSavingsProfit" class="pointer">0</span></h5>
+            <div class="savings-totals">
+              <div class="savings-total-row">
+                <span class="st-label">Toplam Maliyet</span>
+                <span class="st-value pointer" id="totalSavingsCost">0</span>
+              </div>
+              <div class="savings-total-row">
+                <span class="st-label">Toplam Birikim</span>
+                <span class="st-value text-success pointer" id="totalSavings">0</span>
+              </div>
+              <div class="savings-total-row">
+                <span class="st-label">Kâr / Zarar</span>
+                <span class="st-value pointer" id="totalSavingsProfit">0</span>
+              </div>
+            </div>
           </div>
         </div>
         <div class="card shadow-sm">
-          <div class="card-body" style="padding-left: 0.3rem;padding-right: 0.3rem;">
-            <h5 class="card-title">Hedefler</h5>
+          <div class="card-body" style="padding-left: 0.5rem;padding-right: 0.5rem;">
+            <div class="sc-header">
+              <span class="sc-icon sc-icon-goals"><i class="bi bi-bullseye"></i></span>
+              Hedefler
+            </div>
             <div class="row g-2 mb-2">
               <div class="col-md-6">
                 <input type="hidden" id="goalId">
@@ -891,8 +1091,16 @@
                 <tbody class="sortable-list" data-type="5"></tbody>
               </table>
             </div>
-            <h5 class="text-end">Hedef Tutarı: <span id="totalGoals" class="text-primary">0</span></h5>
-            <h5 class="text-end">Kalan Tutar: <span id="moneyLeft" class="text-primary pointer">0</span></h5>
+            <div class="savings-totals">
+              <div class="savings-total-row">
+                <span class="st-label">Hedef Tutarı</span>
+                <span class="st-value text-primary" id="totalGoals">0</span>
+              </div>
+              <div class="savings-total-row">
+                <span class="st-label">Kalan Tutar</span>
+                <span class="st-value text-primary pointer" id="moneyLeft">0</span>
+              </div>
+            </div>
           </div>
         </div>
       </div>
