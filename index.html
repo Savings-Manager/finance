@@ -693,21 +693,21 @@
     }
     /* Bugünün fatura dönemi: indigo outline */
     #months-row .btn-month.bm-today {
-      background: transparent;
+      background: #fff;
       border-color: #3949ab;
       color: #3949ab;
     }
-    /* Geçmiş aylar: soluk gri outline */
+    /* Geçmiş aylar: soluk */
     #months-row .btn-month.bm-past {
       background: #fff;
-      border-color: #cfd8dc;
-      color: #90a4ae;
+      border-color: #e0e0e0;
+      color: #bdbdbd;
     }
-    /* Gelecek aylar: çok soluk */
+    /* Gelecek aylar: normal görünür */
     #months-row .btn-month.bm-future {
-      background: #f5f7ff;
-      border-color: #e8eaf6;
-      color: #b0bec5;
+      background: #fff;
+      border-color: #c5cae9;
+      color: #5c6bc0;
     }
 
     /* ─── Top action buttons polish ─── */
@@ -1577,6 +1577,7 @@ async function switchMonth(month) {
   ensureMonthData(financeData.currentYear, month);
 
   setMonthData();
+  renderMonthsRow();
   renderFamilySummary();
   await renderMembers();
 
