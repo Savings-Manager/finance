@@ -1466,6 +1466,7 @@ async function saveData() {
 }
 
 let _saveIndicatorTimer;
+let _driveDebounceTimer;
 
 function showSaveIndicator() {
   const el = document.getElementById('save-indicator');
@@ -1488,14 +1489,22 @@ function hideSaveIndicator(success) {
 }
 
 async function saveDataBackground() {
-  showSaveIndicator();
+  // localStorage'a hemen yaz — veri her zaman güvende
   await saveToLocalStorage();
-  saveToGoogleDrive()
-    .then(() => hideSaveIndicator(true))
-    .catch(err => {
+
+  // Drive save'ini debounce et: hızlı geçişlerde sadece son state gider,
+  // uçuşta çakışan request olmaz
+  showSaveIndicator();
+  clearTimeout(_driveDebounceTimer);
+  _driveDebounceTimer = setTimeout(async () => {
+    try {
+      await saveToGoogleDrive();
+      hideSaveIndicator(true);
+    } catch(err) {
       console.error('[saveDataBackground] Drive error:', err);
       hideSaveIndicator(false);
-    });
+    }
+  }, 800);
 }
 
 async function saveToLocalStorage() {
