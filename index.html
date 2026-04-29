@@ -257,18 +257,6 @@
       box-shadow: 0 1px 3px rgba(0,0,0,0.1);
     }
 
-    #months-row .btn-month:hover {
-      transform: translateY(-1px);
-      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-    }
-
-    #months-row .btn-month.active {
-      background-color: #3f51b5;
-      border-color: #3f51b5;
-      color: white;
-      box-shadow: 0 4px 14px rgba(63, 81, 181, 0.4);
-    }
-
     /* --- Years Dropdown Beautification --- */
     .years-dropdown-wrapper {
       padding: 0;
@@ -691,11 +679,35 @@
     #months-row .btn-month {
       border-radius: 20px;
       border: 2px solid transparent;
+      font-weight: 600;
+      transition: all 0.15s ease;
     }
-    #months-row .btn-month:not(.active) {
+    #months-row .btn-month:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(0,0,0,0.12); }
+
+    /* Seçili ay: indigo dolu */
+    #months-row .btn-month.bm-selected {
+      background: #3949ab;
+      border-color: #3949ab;
+      color: #fff;
+      box-shadow: 0 4px 14px rgba(57,73,171,0.4);
+    }
+    /* Bugünün fatura dönemi: indigo outline */
+    #months-row .btn-month.bm-today {
+      background: transparent;
+      border-color: #3949ab;
+      color: #3949ab;
+    }
+    /* Geçmiş aylar: soluk gri outline */
+    #months-row .btn-month.bm-past {
       background: #fff;
-      border-color: #e0e4f7;
-      color: #5c6bc0;
+      border-color: #cfd8dc;
+      color: #90a4ae;
+    }
+    /* Gelecek aylar: çok soluk */
+    #months-row .btn-month.bm-future {
+      background: #f5f7ff;
+      border-color: #e8eaf6;
+      color: #b0bec5;
     }
 
     /* ─── Top action buttons polish ─── */
@@ -1240,23 +1252,25 @@ async function initGoogleDrive() {
       });
     });
 
-    googleDriveSwal = Swal.fire({
-      title: 'Google Drive verileri alınıyor...',
-      allowOutsideClick: false,
-      didOpen: () => {
-        Swal.showLoading();
-        
-        timeOut = setTimeout(async () => {
-          if(!gapiInited) {   
-            console.log('[initGoogleDrive][gapi.client.init] Drive API TIMED OUT.');    
-            fileRead = false;
-            await loadFromLocalStorage();
-            setAllDatas();
-            googleDriveSwal.close();
-          }
-        }, 3000);
+    const _driveLoader = document.getElementById('app-loader');
+    _driveLoader.querySelector('.loader-label').textContent = 'Drive Verisi Alınıyor';
+    _driveLoader.classList.add('active');
+    googleDriveSwal = {
+      close: () => {
+        _driveLoader.classList.remove('active');
+        _driveLoader.querySelector('.loader-label').textContent = 'Kaydediliyor';
       }
-    });
+    };
+
+    timeOut = setTimeout(async () => {
+      if(!gapiInited) {
+        console.log('[initGoogleDrive][gapi.client.init] Drive API TIMED OUT.');
+        fileRead = false;
+        await loadFromLocalStorage();
+        setAllDatas();
+        googleDriveSwal.close();
+      }
+    }, 3000);
 
     await gapi.client.init({
       apiKey: API_KEY,
@@ -2319,19 +2333,25 @@ function renderYearsDropdown() {
 
 function renderMonthsRow() {
   const currentYear = financeData?.currentYear ?? today.year();
+  const selectedMonth = String(financeData?.currentMonth ?? today.month() + 1);
 
   $('#months-row').html(
     months.map(m => {
       const start = endOfDay(stringToDate(`5.${m}.${currentYear}`));
       const end = addMonths(start, 1);
 
-      const isActive = today.isBetween(start, end, 'day', '[]');   
+      const isSelected = selectedMonth === m;
+      const isToday = today.isBetween(start, end, 'day', '[]');
       const isBefore = start.isBefore(today);
 
+      let stateCls;
+      if (isSelected)    stateCls = 'bm-selected';
+      else if (isToday)  stateCls = 'bm-today';
+      else if (isBefore) stateCls = 'bm-past';
+      else               stateCls = 'bm-future';
+
       return `
-        <button data-month="${m}" class="btn btn-sm me-2 mt-2 btn-month ${isActive ? 'btn-outline-secondary' 
-                                                                                   : isBefore ? 'btn-secondary' 
-                                                                                              : 'btn-outline-primary'}"
+        <button data-month="${m}" class="btn btn-sm me-2 mt-2 btn-month ${stateCls}"
           onclick="switchMonth('${m}')">${getMonthName(m)}</button>`;
     }).join('')
   );
