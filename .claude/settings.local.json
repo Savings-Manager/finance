@@ -1,0 +1,15 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(document)",
+      "Bash(grep -n \"window.onload\\\\|document.ready\\\\|$\\(document\\).ready\\\\|addEventListener.*load\\\\|window.addEventListener\" /c/Users/sumer.mehmet/source/repos/finance/.claude/worktrees/reverent-goodall-3f6b97/index.html)",
+      "Bash(git add *)",
+      "Bash(git commit -m ' *)",
+      "Bash(git push *)",
+      "Bash(gh pr create --title 'Save to Drive in background for navigation events' --body ' *)",
+      "PowerShell(Get-Command gh -ErrorAction SilentlyContinue)",
+      "mcp__Claude_Preview__preview_start",
+      "mcp__Claude_in_Chrome__tabs_context_mcp"
+    ]
+  }
+}
