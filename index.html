@@ -89,8 +89,16 @@
     }
     .income-color { color: #43a047 !important; }
     .spending-color { color: #e53935 !important; }
+    .due-approaching { color: #fb8c00 !important; } /* ~10 gün */
+    .due-soon { color: #f4511e !important; }        /* ~5 gün */
+    .due-passed { color: #d32f2f !important; }   /* ~2 gün */
     .card-color { color: #3949ab; }
     .pointer { cursor: pointer; }
+    /* Mobilde üye kart header'ında sağa taşmayı engelle */
+    .member-card-header { flex-wrap: wrap; gap: 0.35rem 0.5rem; }
+    .member-card-header > :first-child { min-width: 0; }
+    .member-actions { display: flex; align-items: center; justify-content: flex-end; flex-wrap: wrap; gap: 0.35rem; }
+    .member-toggle { display: inline-flex; align-items: center; justify-content: center; width: 34px; height: 34px; flex: 0 0 auto; }
     .bg-big { font-size: 1.2rem !important; }
     .bg-income { background-color: #e8f5e9 !important; }
     .bg-spending { background-color: #ffebee; }
@@ -2408,6 +2416,21 @@ function addMonths(input, months, format = DEFAULT_DATE_FORMAT) {
   return m.isValid() ? m : null;
 }
 
+function getDueBadgeClass(dueDate, payed) {
+  if (payed) return 'income-color';
+
+  const validDate = isValidDate(dueDate);
+  if (!validDate) return 'income-color';
+
+  const daysLeft = validDate.clone().startOf('day').diff(today.clone().startOf('day'), 'days');
+
+  if (daysLeft <= 0) return 'due-passed';
+  if (daysLeft <= 2) return 'spending-color';
+  if (daysLeft <= 5) return 'due-soon';
+  if (daysLeft <= 10) return 'due-approaching';
+  return 'income-color';
+}
+
 function normalizeString(str) {
   return str.toLowerCase()
             .replace(/ç/g, 'c')
@@ -2600,7 +2623,7 @@ async function renderMembers() {
       return (a.order || 0) - (b.order || 0);
     });
     return `<div data-memberid="${member.id}" class="card mb-3 material-shadow sortable-item">
-        <div class="card-header d-flex justify-content-between align-items-center">
+        <div class="card-header member-card-header d-flex justify-content-between align-items-center">
           <div>
             <h5 class="card-title mb-1">
               <i class="sortable-handle bi bi-list me-2"></i>
@@ -2618,13 +2641,13 @@ async function renderMembers() {
               </div>
             </div>
           </div>
-          <div class="d-flex align-items-center">
+          <div class="member-actions">
             <div class="btn-status form-check form-switch">
               <input class="form-check-input" type="checkbox" name="member-status" title="Aktif" ${member.status ? 'checked' : ''} onchange="toggleMemberStatus(${member.id})">
             </div>
-            <button class="btn-member btn btn-sm btn-primary ms-1" onclick="openEditMember(${member.id})"><i class="fas fa-pen"></i></button>
-            <button class="btn-member btn btn-sm btn-danger ms-2" onclick="deleteMember(${member.id})"><i class="fas fa-trash"></i></button>
-            <i data-memberid="${member.id}" data-bs-toggle="collapse" data-bs-target="#collapse_${member.id}" class="fa-solid fa-chevron-${member.collapsed == true ? "down" : "up"} ms-3 pointer"></i>
+            <button class="btn-member btn btn-sm btn-primary" onclick="openEditMember(${member.id})"><i class="fas fa-pen"></i></button>
+            <button class="btn-member btn btn-sm btn-danger" onclick="deleteMember(${member.id})"><i class="fas fa-trash"></i></button>
+            <i data-memberid="${member.id}" data-bs-toggle="collapse" data-bs-target="#collapse_${member.id}" class="member-toggle fa-solid fa-chevron-${member.collapsed == true ? "down" : "up"} ms-1 pointer"></i>
           </div>
         </div>
         <div class="collapse card-body row ${member.collapsed == true ? "" : "show"}" id="collapse_${member.id}">
@@ -2683,7 +2706,7 @@ async function renderMembers() {
                       </div>` : ''}
                       ${isValidDate(card.date) ? 
                       `<div class="col-md-12 fw-bold">
-                        <span class='badge card-color ${addDays(endOfDay(stringToDate(card.date)), 10).isBefore(today) && !card.payed ? 'spending-color' : 'income-color'}'>${formatDateString(addDays(endOfDay(stringToDate(card.date)), 10), 'DD.MM.YYYY')}</span>
+                        <span class='badge card-color ${getDueBadgeClass(addDays(endOfDay(stringToDate(card.date)), 10), card.payed)}'>${formatDateString(addDays(endOfDay(stringToDate(card.date)), 10), 'DD.MM.YYYY')}</span>
                       </div>` : ''}                  
                     </div>
                     <div class="d-flex justify-content-end align-items-center">
@@ -3498,40 +3521,42 @@ $(document).ready(async function() {
       if (result.isConfirmed) {
         showToast('Taksitler otomatik olarak arttırılsın mı?', 'question', 0, 'center', true).then(async (taksitResult) => {
           copiedMonthData.members.forEach(member => {
-          const income = (member.incomes || []).filter(i => i.received).reduce((a, b) => a + Number(b.value || 0), 0);
-          const spend = sumSpendingsForMonth(member);
-          const net = income - spend;
-            if(taksitResult.isConfirmed) {
-              let removeIds = [];
-              const gecenAy = member.incomes.find(x => x.name == "Geçen Aydan");
-              if(gecenAy) {
-                gecenAy.value = net;
-                gecenAy.received = true;
-              } 
-              else {
-                member.incomes.push({ id: generateId(member.incomes), name: "Geçen Aydan", value: net, received: true });
+            const income = (member.incomes || []).filter(i => i.received).reduce((a, b) => a + Number(b.value || 0), 0);
+            const spend = sumSpendingsForMonth(member);
+            const net = income - spend;
+              if(taksitResult.isConfirmed) {
+                let removeIds = [];
+                const gecenAy = member.incomes.find(x => x.name == "Geçen Aydan");
+                if(gecenAy) {
+                  gecenAy.value = net;
+                  gecenAy.received = true;
+                } 
+                else {
+                  member.incomes.push({ id: generateId(member.incomes), name: "Geçen Aydan", value: net, received: true });
+                }
+                member.spendings.filter(x => x.installment > 1).forEach(spending => {
+                  spending.currentInstallment += monthDiff;
+                  if(spending.currentInstallment > spending.installment) {
+                    removeIds.push(spending.id);
+                  }        
+                });
+
+                if(removeIds.length > 0) {
+                  member.spendings = member.spendings.filter(x=> !removeIds.includes(x.id));
+                }
               }
-              member.spendings.filter(x => x.installment > 1).forEach(spending => {
-                spending.currentInstallment += monthDiff;
-                if(spending.currentInstallment > spending.installment) {
-                  removeIds.push(spending.id);
-                }        
+
+              member.cards.forEach(card => {
+                card.payed = false;
+                const date = isValidDate(card.date);
+                if(date) {
+                  const originalDay = date.date();
+                  date.add(monthDiff, 'months');
+                  date.year(parseInt(financeData.currentYear));
+                  date.date(Math.min(originalDay, date.daysInMonth()));
+                  card.date = formatDateString(date);  
+                }     
               });
-
-              if(removeIds.length > 0) {
-                member.spendings = member.spendings.filter(x=> !removeIds.includes(x.id));
-              }
-            }
-
-            member.cards.forEach(card => {
-              card.payed = false;
-              const date = isValidDate(card.date);
-              if(date) {
-                date.month(date.month() + monthDiff);
-                date.year(parseInt(financeData.currentYear));
-                card.date = formatDateString(date);  
-              }     
-            });
           });
           
           financeData.years[financeData.currentYear].months[financeData.currentMonth] = JSON.parse(JSON.stringify(copiedMonthData));
