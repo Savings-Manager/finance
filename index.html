@@ -1329,11 +1329,27 @@
 </footer>
 
 <script>
-
 moment.locale('tr');
-let today = moment();
 
 const cryptoPass = "m3hm3t_sefinanNCe#4%$Q%&*(*&cure_2026";
+
+const FIX_DATE_FORMAT = 'YYYY-MM-DD';
+const FIX_DATE_TIME_FORMAT = 'YYYY-MM-DD HH:mm:ss';
+const DEFAULT_DATE_FORMAT = 'DD.MM.YYYY';
+const DEFAULT_DATE_TIME_FORMAT = 'DD.MM.YYYY HH:mm:ss';
+const DEFAULT_CARD_COLOR = '#ffffff';
+
+const APP_CODE = 'cmeaisacsy_finance_app';
+const STORAGE_KEY = `${APP_CODE}_data`;
+const TOKEN_STORAGE_KEY = `${APP_CODE}_access_token`;
+const TOKEN_EXPIRY_KEY = `${APP_CODE}_token_expiry`;
+const FILE_NAME = `${STORAGE_KEY}.json`;
+
+const CLIENT_ID = '1004280494239-bm24eig1gk63rgvk3in8rjh9bp5gcd6t.apps.googleusercontent.com';
+const API_KEY = 'AIzaSyDWgrMTLb2iygiApN18mtNiGfZlpk0pA0E';
+const SCOPES = 'https://www.googleapis.com/auth/drive.file';
+
+let today = moment();
 
 let financeData = { 
   years: {}, 
@@ -1353,20 +1369,6 @@ let numberFormat = new Intl.NumberFormat("tr-TR", {
   minimumFractionDigits: 2,
   maximumFractionDigits: 2,
 });
-const FIX_DATE_FORMAT = 'YYYY-MM-DD';
-const FIX_DATE_TIME_FORMAT = 'YYYY-MM-DD HH:mm:ss';
-const DEFAULT_DATE_FORMAT = 'DD.MM.YYYY';
-const DEFAULT_DATE_TIME_FORMAT = 'DD.MM.YYYY HH:mm:ss';
-
-const APP_CODE = 'cmeaisacsy_finance_app';
-const STORAGE_KEY = `${APP_CODE}_data`;
-const TOKEN_STORAGE_KEY = `${APP_CODE}_access_token`;
-const TOKEN_EXPIRY_KEY = `${APP_CODE}_token_expiry`;
-const FILE_NAME = `${STORAGE_KEY}.json`;
-
-const CLIENT_ID = '1004280494239-bm24eig1gk63rgvk3in8rjh9bp5gcd6t.apps.googleusercontent.com';
-const API_KEY = 'AIzaSyDWgrMTLb2iygiApN18mtNiGfZlpk0pA0E';
-const SCOPES = 'https://www.googleapis.com/auth/drive.file';
 
 let access_token = null;
 let fileId = null;
@@ -2063,8 +2065,8 @@ function openAddCard(memberId) {
   $('#card-id').val('');
   $('#card-name').val('');
   $('#card-limit').val('');
-  $('#card-color').val('');
-  $('#card-date').val('');
+  $('#card-color').val(DEFAULT_CARD_COLOR);
+  $("#card-date")[0]._flatpickr.setDate(formatDateString(today));
   $('#card-pass').val('');
   $('#card-mobilePass').val('');
   $('#card-payed').prop('checked', false);
@@ -2084,7 +2086,7 @@ async function openEditCard(memberId, cardId) {
       $('#card-name').val(card.name);
       $('#card-limit').val(formatCurrency(card.limit));
       $('#card-color').val(card.color);
-      $('#card-date').val(formatDateString(card.date));
+      $("#card-date")[0]._flatpickr.setDate(formatDateString(card.date));
       $('#card-pass').val(await decryptData(card.pass));
       $('#card-mobilePass').val(await decryptData(card.mobilePass));
       $('#card-payed').prop('checked', card.payed);
@@ -2838,7 +2840,6 @@ function renderDateInputs() {
     locale: "tr",
     disableMobile: true,  
     onOpen: function(selectedDates, dateStr, instance) {
-      // Takvim popup'u DOM elementi
       const calendarContainer = instance.calendarContainer;
 
       // Önce varsa eski clear button’u kaldır
