@@ -911,7 +911,7 @@
   <div class="app-header-wrap d-flex justify-content-between align-items-center mb-4">
     <div class="d-flex align-items-center gap-2">
       <h2 id="page-title"><i class="bi bi-wallet2 me-2"></i>Finans Yöneticisi</h2>
-      <small class="text-muted" style="font-size:0.7rem;font-weight:600;">v1.6.2</small>
+      <small class="text-muted" style="font-size:0.7rem;font-weight:600;">v1.6.3</small>
     </div>
     <div class="d-flex align-items-center gap-2">
       <button class="top-action-btn" id="btn-load-json"><i class="bi bi-folder2-open"></i>Geri Yükle</button>
@@ -1826,7 +1826,8 @@ async function toggleCardPayed(memberId, cardId) {
                               ?.cards?.find(s => s.id === cardId);
   if (card) {
     card.payed = !card.payed;
-    await saveData();
+
+    await saveDataBackground();
 
     renderFamilySummary();
 		renderMembers();
@@ -1854,7 +1855,7 @@ async function toggleSpendingPayed(memberId, spendingId) {
 
     console.log(spending, receivedMemberIncome);
 
-    await saveData();
+    await saveDataBackground();
 
     renderFamilySummary();
 		renderMembers();
@@ -1868,7 +1869,8 @@ async function toggleSavingStatus(savingId) {
   if(saving) {
     saving.status = !saving.status;
 
-    await saveData();
+    await saveDataBackground();
+
     renderSavings();
     renderGoals();
     
@@ -1881,7 +1883,8 @@ async function toggleGoalStatus(goalId) {
   if(goal) {
     goal.status = !goal.status;
 
-    await saveData();
+    await saveDataBackground();
+
     renderGoals();
     
     showToast('Hedef durumu güncellendi.'); 
@@ -1905,10 +1908,10 @@ async function toggleMemberStatus(memberId) {
     //   });
     // });
 
-    await saveData();
+    await saveDataBackground();
 
     renderFamilySummary();
-		renderMembers();
+		await renderMembers();
     
     showToast('Kişi durumu güncellendi.'); 
   }
@@ -1922,10 +1925,11 @@ async function toggleIncomeReceived(memberId, incomeId) {
                            ?.incomes?.find(i => i.id === incomeId);
   if (income) {
     income.received = !income.received;
-    await saveData();
+
+    await saveDataBackground();
 
     renderFamilySummary();
-		renderMembers();
+		await renderMembers();
     
     showToast('Gelir durumu güncellendi.'); 
   }
@@ -1963,6 +1967,7 @@ async function deleteIncome(memberId, incomeId) {
                                  ?.members?.find(m => m.id === memberId);
       if (member?.incomes) {
         member.incomes = member.incomes.filter(i => i.id !== incomeId);
+        
         await saveData();
 
         renderFamilySummary();
@@ -2051,6 +2056,7 @@ async function deleteSpending(memberId, spendingId) {
         member.spendings = member.spendings.filter(x => x.id !== spendingId);  
 
         await saveData();
+
         renderFamilySummary();
 		    await renderMembers();
     
@@ -2106,6 +2112,7 @@ async function deleteCard(memberId, cardId) {
         member.spendings = member.spendings.filter(x => x.cardId !== cardId);
         
         await saveData();
+
         renderFamilySummary();
 	      await renderMembers();
     
@@ -2138,6 +2145,7 @@ async function deleteMember(memberId) {
       });
       
       await saveData();
+
       renderFamilySummary();
       await renderMembers();
     
@@ -2162,7 +2170,8 @@ async function onDateChange(day) {
     $(`label[for="day_${day}"]`).removeClass('income-color');
   }
 
-  await saveData();
+  await saveDataBackground();
+
   showToast("Tarih güncellendi.");
 }
 
@@ -2504,7 +2513,8 @@ async function updateCurrenciesFromApi() {
         row.satis = rate.satis ?? row.satis;
       }
   });
-  await saveData();
+
+  await saveDataBackground();
 }
 
 function populateSpendingMemberDropdown(memberId, selectedMemberId) {
@@ -2560,6 +2570,7 @@ function toggleAllCurrencyMasks() {
     $('.show-hide-icon').addClass('fa-eye');
     $('.show-hide-icon').removeClass('fa-eye-slash');
   }
+  
   // todo: mehmet.sumer: burayi fixle jquery ile yapilir.
   renderFamilySummary();
   renderMembers();  
@@ -3093,7 +3104,7 @@ async function initializeSortable() {
         }
 
         console.log('[initializeSortable]');
-            
+
         await saveDataBackground();
         if(type === 1) {
           await renderMembers();
@@ -3439,6 +3450,7 @@ $(document).ready(async function() {
   
   $(document).on('change', '#currency-dropdown', async function() {
     financeData.currentCurrency = $(this).val();
+    
     await saveDataBackground();
 
     setCurrencyMultiplier();
@@ -3446,7 +3458,7 @@ $(document).ready(async function() {
     populateCurrencySelect();
     renderCurrencies();
     renderFamilySummary();
-    renderMembers();  
+    await renderMembers();  
     renderSavings();
     renderGoals();
   });
@@ -3569,7 +3581,7 @@ $(document).ready(async function() {
           await saveData();
 
           renderFamilySummary();
-		      renderMembers();
+		      await renderMembers();
     
           showToast('Ay verileri yapıştırıldı.' + (taksitResult.isConfirmed ? ' Taksitler otomatik olarak arttırıldı.' : ''));
         });
@@ -3586,7 +3598,7 @@ $(document).ready(async function() {
           await saveData();
 
           renderFamilySummary();
-		      renderMembers();
+		      await renderMembers();
     
           showToast('Ay verileri temizlendi.');
         }
@@ -3629,7 +3641,7 @@ $(document).ready(async function() {
           await saveData();
 
           renderFamilySummary();
-		      renderMembers();
+		      await renderMembers();
           setAllDatas();
     
           showToast('Veriler yedekten yüklendi.');
@@ -3675,7 +3687,7 @@ $(document).ready(async function() {
     await saveData();		
     
     renderFamilySummary();
-		renderMembers();
+		await renderMembers();
 
     showToast('Gelir bilgisi kaydedildi.'); 
 
@@ -3786,7 +3798,7 @@ $(document).ready(async function() {
     await saveData();		
     
     renderFamilySummary();
-		renderMembers();
+		await renderMembers();
 
     showToast('Harcama kaydedildi.'); 
 
@@ -3854,7 +3866,7 @@ $(document).ready(async function() {
     await saveData();
 
     renderFamilySummary();
-		renderMembers();
+		await renderMembers();
 
     showToast('Kart bilgisi kaydedildi.'); 
 
@@ -3887,7 +3899,7 @@ $(document).ready(async function() {
     await saveData();
 
     renderFamilySummary();
-    renderMembers();
+    await renderMembers();
 
     showToast('Kişi bilgisi kaydedildi.'); 
     
@@ -4215,7 +4227,7 @@ $(document).ready(async function() {
 
   // #region Render Initial HTML
   renderFamilySummary();
-  renderMembers();
+  await renderMembers();
 
   // select all datas by financeData: 
   setAllDatas();
