@@ -1966,7 +1966,7 @@ async function deleteIncome(memberId, incomeId) {
         await saveData();
 
         renderFamilySummary();
-		    renderMembers();
+		    await renderMembers();
     
         showToast('Gelir bilgisi silindi.');
       }
@@ -2052,7 +2052,7 @@ async function deleteSpending(memberId, spendingId) {
 
         await saveData();
         renderFamilySummary();
-		    renderMembers();
+		    await renderMembers();
     
         showToast('Gider bilgisi silindi.');
       }
@@ -2107,7 +2107,7 @@ async function deleteCard(memberId, cardId) {
         
         await saveData();
         renderFamilySummary();
-	      renderMembers();
+	      await renderMembers();
     
         showToast('Kart bilgisi silindi.');
       }
@@ -2139,7 +2139,7 @@ async function deleteMember(memberId) {
       
       await saveData();
       renderFamilySummary();
-      renderMembers();
+      await renderMembers();
     
       showToast('Kişi bilgisi silindi.');
     }
@@ -3093,9 +3093,10 @@ async function initializeSortable() {
         }
 
         console.log('[initializeSortable]');
-        await saveData();
+            
+        await saveDataBackground();
         if(type === 1) {
-          renderMembers();
+          await renderMembers();
         }
       }
     }));
