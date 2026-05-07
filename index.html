@@ -911,7 +911,7 @@
   <div class="app-header-wrap d-flex justify-content-between align-items-center mb-4">
     <div class="d-flex align-items-center gap-2">
       <h2 id="page-title"><i class="bi bi-wallet2 me-2"></i>Finans Yöneticisi</h2>
-      <small class="text-muted" style="font-size:0.7rem;font-weight:600;">v1.6.3</small>
+      <small class="text-muted" style="font-size:0.7rem;font-weight:600;">v1.6.4</small>
     </div>
     <div class="d-flex align-items-center gap-2">
       <button class="top-action-btn" id="btn-load-json"><i class="bi bi-folder2-open"></i>Geri Yükle</button>
@@ -3923,10 +3923,10 @@ $(document).ready(async function() {
       rate.text = text;
       financeData.savings.currencies.push(rate);
 
-      await saveData();
+      await saveDataBackground();
       renderCurrencies();
+
       showToast('Para birimi eklendi.'); 
-      console.log(text, value, rate.tarih);
       
   });
   $(document).on('click', '#addNewCurrency', async function(e) {
@@ -3954,12 +3954,13 @@ $(document).ready(async function() {
         });
       }
 
-      await saveData();
-      renderCurrencies();
-      showToast('Para birimi eklendi.'); 
-      console.log(text, value);
       $('#newCurrencyValue').val('');
       $('#newCurrency').val('');
+
+      await saveDataBackground();
+      renderCurrencies();
+
+      showToast('Para birimi eklendi.'); 
   });
   $(document).on('click', '#removeCustom', async function(e) {
     showToast('Para birimi silinsin mi?', 'warning', 0, 'center', true).then(async (result) => {
@@ -3974,11 +3975,11 @@ $(document).ready(async function() {
 
         financeData.savings.currencies = financeData.savings.currencies.filter(x=> x.code != value);
 
-        await saveData();
-        renderCurrencies();
-        showToast(`${text} başarıyla silindi.`);
+        await saveDataBackground();
 
-        console.log(value, text);
+        renderCurrencies();
+
+        showToast(`${text} başarıyla silindi.`);
       }
     });
   });
@@ -4012,9 +4013,11 @@ $(document).ready(async function() {
           checkSaving.savingDate = savingDate;
         }
 
-        saveData();
+        await saveDataBackground();
+
         renderSavings();
         renderGoals();
+
         showToast('Birikim güncellendi.');
         return;
       }
@@ -4031,9 +4034,11 @@ $(document).ready(async function() {
           status: true
         });
           
-        await saveData();
+        await saveDataBackground();
+
         renderSavings();
         renderGoals();
+
         return showToast('Birikim eklendi.');
       }
       showToast('Aynı para birimiyle bir birikim mevcut. Güncellensin mi?', 'warning', 0, 'center', true).then(async (result) => {
@@ -4061,9 +4066,11 @@ $(document).ready(async function() {
           });
         }
 
-        await saveData();
+        await saveDataBackground();
+
         renderSavings();
         renderGoals();
+
         return showToast('Birikim eklendi.');
       });  
   });
@@ -4094,7 +4101,8 @@ $(document).ready(async function() {
         showToast('Hedef eklendi.');
       }
 
-      await saveData();
+      await saveDataBackground();
+
       renderGoals();
   });
   $(document).on('click', '.btn-edit-saving', function(e) {   
@@ -4177,8 +4185,10 @@ $(document).ready(async function() {
         financeData.savings.savings = financeData.savings.savings.filter(x=> x.id != id);
 
         await saveData();
+
         renderSavings();
         renderGoals();
+
         showToast('Birikim silindi.');
       }
     });
@@ -4194,8 +4204,10 @@ $(document).ready(async function() {
 
         financeData.savings.goals = financeData.savings.goals.filter(x=> x.id != id);
 
-        await saveData();
+        await saveDataBackground();
+
         renderGoals();
+
         showToast('Hedef silindi.');
       }
     });
