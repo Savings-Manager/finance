@@ -911,7 +911,7 @@
   <div class="app-header-wrap d-flex justify-content-between align-items-center mb-4">
     <div class="d-flex align-items-center gap-2">
       <h2 id="page-title"><i class="bi bi-wallet2 me-2"></i>Finans Yöneticisi</h2>
-      <small class="text-muted" style="font-size:0.7rem;font-weight:600;">v1.6.1</small>
+      <small class="text-muted" style="font-size:0.7rem;font-weight:600;">v1.6.2</small>
     </div>
     <div class="d-flex align-items-center gap-2">
       <button class="top-action-btn" id="btn-load-json"><i class="bi bi-folder2-open"></i>Geri Yükle</button>
@@ -1024,8 +1024,8 @@
               <div class="col-md-2">
                 <input type="text" data-type="currency" id="buyPrice" class="form-control" placeholder="Alış Fiyatı (Birim)">
               </div>
-              <div class="col-md-2">
-                <input type="date" id="savingDate" class="form-control" placeholder="Birikim Tarihi">
+              <div class="col-md-2"> 
+                <input type="text" id="savingDate" class="form-control flat-date" placeholder="Birikim Tarihi">
               </div>
               <div class="col-md-3">
                 <input type="text" id="savingExplanation" class="form-control" placeholder="Açıklama">
@@ -2920,7 +2920,6 @@ function renderSavings() {
       }
 
       const profitClass = rowProfit < 0 ? 'text-danger' : (rowProfit > 0 ? 'text-success' : '');
-      const displayDate = row.savingDate ?? '';
 
       const $row = $(`<tr data-savingid='${row.id}' class='sortable-item'>`).append(
        `<td><i class="sortable-handle bi bi-list me-2"></i> ${currency.text}</td>
@@ -2930,7 +2929,7 @@ function renderSavings() {
         <td class="pointer" onclick="toggleMask(this, ${rowCost})">${formatCurrency(rowCost, isCurrencyMasked)}</td>
         <td class="pointer" onclick="toggleMask(this, ${rowTotal})">${formatCurrency(rowTotal, isCurrencyMasked)}</td>
         <td class="pointer ${profitClass}" onclick="toggleMask(this, ${rowProfit})">${formatCurrency(rowProfit, isCurrencyMasked)}</td>
-        <td>${displayDate}</td>
+        <td>${formatDateString(row.savingDate)}</td>
         <td>${row.explanation ?? ""}</td>
         <td> 
           <div class="d-flex align-items-center">
@@ -2948,7 +2947,8 @@ function renderSavings() {
   $('#savingId').val('');
   $('#quantity').val(''); 
   $('#buyPrice').val('');
-  $('#savingDate').val(formatDateString(today, "YYYY-MM-DD"));
+  $("#savingDate")[0]._flatpickr.setDate(formatDateString(today));
+
   $('#savingExplanation').val('');
   $('#addSavings').text('Birikim Ekle');
   
@@ -3382,8 +3382,6 @@ $(document).ready(async function() {
   $(document).on('blur', 'input[data-type="currency"]', function (e) {
     inputFormatCurrency($(this), e, true);
   });
-
-  $('#savingDate').val(formatDateString(today, "YYYY-MM-DD"));
 
   // #region Document Handlers
   let lastTap = 0;
@@ -3989,7 +3987,7 @@ $(document).ready(async function() {
                         ?? parseStringToNumber(checkCurrency.satis)
                         ?? parseStringToNumber(checkCurrency.alis);
 
-      const savingDate = $('#savingDate').val() || formatDateString(today, "YYYY-MM-DD");
+      const savingDate = $('#savingDate').val() || formatDateString(today);
 
       const editMode = $(this).text() == 'Birikim Güncelle';  
       if(editMode) {
@@ -4089,18 +4087,26 @@ $(document).ready(async function() {
   $(document).on('click', '.btn-edit-saving', function(e) {   
     const id = $(this).data('id'); 
  
-    const checkSaving = financeData.savings.savings.find(x=> x.id == id);
+    const checkSaving = financeData.savings.savings.find(x => x.id == id);
     if(!checkSaving) {
       return showToast('Birikim bulunamadı.', 'error');
     }
 
+    const addSavingsText = $('#addSavings').text();
     const editMode = $(this).find('i').hasClass('fa-edit');
+    //console.log(editMode, id, addSavingsText);
     if(editMode) {
+      if(addSavingsText == 'Birikim Güncelle') {
+        return;
+      }
+
       $('#savingId').val(checkSaving.id);
       $('#customCurrencies').val(checkSaving.currencyCode);
       $('#quantity').val(checkSaving.quantity);
       $('#buyPrice').val(formatCurrency(checkSaving.buyPrice));
-      $('#savingDate').val(checkSaving.savingDate ?? '');
+
+      $("#savingDate")[0]._flatpickr.setDate(formatDateString(checkSaving.savingDate));
+
       $('#savingExplanation').val(checkSaving.explanation);
       $('#addSavings').text('Birikim Güncelle');
       $(this).html('<i class="fas fa-cancel"></i>');
@@ -4108,11 +4114,13 @@ $(document).ready(async function() {
       $('html, body').animate({
         scrollTop: ($("#quantity").offset().top - 200)
       }, 10);
-    } else {
+    } 
+    else {
       $('#savingId').val('');
       $('#quantity').val('');
       $('#buyPrice').val('');
-      $('#savingDate').val(formatDateString(today, "YYYY-MM-DD"));
+      $("#savingDate")[0]._flatpickr.setDate(formatDateString(today));
+
       $('#savingExplanation').val('');
       $('#addSavings').text('Birikim Ekle');
       $(this).html('<i class="fas fa-edit"></i>');
@@ -4187,6 +4195,8 @@ $(document).ready(async function() {
   renderMonthsRow();
   renderCycleDropdown();
   renderDaysRow();
+
+  $("#savingDate")[0]._flatpickr.setDate(formatDateString(today));
 
   if(window.location.href.includes('file://')) {
     await loadFromLocalStorage();
