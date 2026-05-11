@@ -911,7 +911,7 @@
   <div class="app-header-wrap d-flex justify-content-between align-items-center mb-4">
     <div class="d-flex align-items-center gap-2">
       <h2 id="page-title"><i class="bi bi-wallet2 me-2"></i>Finans Yöneticisi</h2>
-      <small class="text-muted" style="font-size:0.7rem;font-weight:600;">v1.6.4</small>
+      <small class="text-muted" style="font-size:0.7rem;font-weight:600;">v1.6.5</small>
     </div>
     <div class="d-flex align-items-center gap-2">
       <button class="top-action-btn" id="btn-load-json"><i class="bi bi-folder2-open"></i>Geri Yükle</button>
@@ -1675,13 +1675,13 @@ function hideLoader() {
   document.getElementById('app-loader').classList.remove('active');
 }
 
-async function saveData() {
-  showLoader();
-  console.log('[saveData]');
-  await saveToLocalStorage();
-  await saveToGoogleDrive();
-  hideLoader();
-}
+// async function saveDataLoader() {
+//   showLoader();
+//   console.log('[saveDataLoader]');
+//   await saveToLocalStorage();
+//   await saveToGoogleDrive();
+//   hideLoader();
+// }
 
 let _saveIndicatorTimer;
 let _driveDebounceTimer;
@@ -1706,7 +1706,7 @@ function hideSaveIndicator(success) {
   _saveIndicatorTimer = setTimeout(() => el.classList.remove('show'), 1800);
 }
 
-async function saveDataBackground() {
+async function saveData() {
   // localStorage'a hemen yaz — veri her zaman güvende
   await saveToLocalStorage();
 
@@ -1719,7 +1719,7 @@ async function saveDataBackground() {
       await saveToGoogleDrive();
       hideSaveIndicator(true);
     } catch(err) {
-      console.error('[saveDataBackground] Drive error:', err);
+      console.error('[saveData] Drive error:', err);
       hideSaveIndicator(false);
     }
   }, 800);
@@ -1808,7 +1808,7 @@ async function switchMonth(month) {
   renderFamilySummary();
   await renderMembers();
 
-  await saveDataBackground();
+  await saveData();
 }
 
 function sumSpendingsForMonth(member) {
@@ -1827,7 +1827,7 @@ async function toggleCardPayed(memberId, cardId) {
   if (card) {
     card.payed = !card.payed;
 
-    await saveDataBackground();
+    await saveData();
 
     renderFamilySummary();
 		renderMembers();
@@ -1855,7 +1855,7 @@ async function toggleSpendingPayed(memberId, spendingId) {
 
     console.log(spending, receivedMemberIncome);
 
-    await saveDataBackground();
+    await saveData();
 
     renderFamilySummary();
 		renderMembers();
@@ -1869,7 +1869,7 @@ async function toggleSavingStatus(savingId) {
   if(saving) {
     saving.status = !saving.status;
 
-    await saveDataBackground();
+    await saveData();
 
     renderSavings();
     renderGoals();
@@ -1883,7 +1883,7 @@ async function toggleGoalStatus(goalId) {
   if(goal) {
     goal.status = !goal.status;
 
-    await saveDataBackground();
+    await saveData();
 
     renderGoals();
     
@@ -1908,7 +1908,7 @@ async function toggleMemberStatus(memberId) {
     //   });
     // });
 
-    await saveDataBackground();
+    await saveData();
 
     renderFamilySummary();
 		await renderMembers();
@@ -1926,7 +1926,7 @@ async function toggleIncomeReceived(memberId, incomeId) {
   if (income) {
     income.received = !income.received;
 
-    await saveDataBackground();
+    await saveData();
 
     renderFamilySummary();
 		await renderMembers();
@@ -2170,7 +2170,7 @@ async function onDateChange(day) {
     $(`label[for="day_${day}"]`).removeClass('income-color');
   }
 
-  await saveDataBackground();
+  await saveData();
 
   showToast("Tarih güncellendi.");
 }
@@ -2514,7 +2514,7 @@ async function updateCurrenciesFromApi() {
       }
   });
 
-  await saveDataBackground();
+  await saveData();
 }
 
 function populateSpendingMemberDropdown(memberId, selectedMemberId) {
@@ -3105,7 +3105,7 @@ async function initializeSortable() {
 
         console.log('[initializeSortable]');
 
-        await saveDataBackground();
+        await saveData();
         if(type === 1) {
           await renderMembers();
         }
@@ -3439,7 +3439,7 @@ $(document).ready(async function() {
   $(document).on('shown.bs.tab', '#myTab .nav-item', async function() {
     financeData.activeTabIndex = $(this).index();
     console.log('[shown.bs.tab]');
-    await saveDataBackground();
+    await saveData();
   });
   $('#memberModal, #incomeModal, #spendingModal, #cardModal').on('shown.bs.modal', function (e) {
     var firstInput = $('input:not([type=hidden]):not([disabled]), select, textarea', $(this)).first();
@@ -3451,7 +3451,7 @@ $(document).ready(async function() {
   $(document).on('change', '#currency-dropdown', async function() {
     financeData.currentCurrency = $(this).val();
     
-    await saveDataBackground();
+    await saveData();
 
     setCurrencyMultiplier();
 
@@ -3923,7 +3923,7 @@ $(document).ready(async function() {
       rate.text = text;
       financeData.savings.currencies.push(rate);
 
-      await saveDataBackground();
+      await saveData();
       renderCurrencies();
 
       showToast('Para birimi eklendi.'); 
@@ -3957,7 +3957,7 @@ $(document).ready(async function() {
       $('#newCurrencyValue').val('');
       $('#newCurrency').val('');
 
-      await saveDataBackground();
+      await saveData();
       renderCurrencies();
 
       showToast('Para birimi eklendi.'); 
@@ -3975,7 +3975,7 @@ $(document).ready(async function() {
 
         financeData.savings.currencies = financeData.savings.currencies.filter(x=> x.code != value);
 
-        await saveDataBackground();
+        await saveData();
 
         renderCurrencies();
 
@@ -4013,7 +4013,7 @@ $(document).ready(async function() {
           checkSaving.savingDate = savingDate;
         }
 
-        await saveDataBackground();
+        await saveData();
 
         renderSavings();
         renderGoals();
@@ -4034,7 +4034,7 @@ $(document).ready(async function() {
           status: true
         });
           
-        await saveDataBackground();
+        await saveData();
 
         renderSavings();
         renderGoals();
@@ -4066,7 +4066,7 @@ $(document).ready(async function() {
           });
         }
 
-        await saveDataBackground();
+        await saveData();
 
         renderSavings();
         renderGoals();
@@ -4101,7 +4101,7 @@ $(document).ready(async function() {
         showToast('Hedef eklendi.');
       }
 
-      await saveDataBackground();
+      await saveData();
 
       renderGoals();
   });
@@ -4204,7 +4204,7 @@ $(document).ready(async function() {
 
         financeData.savings.goals = financeData.savings.goals.filter(x=> x.id != id);
 
-        await saveDataBackground();
+        await saveData();
 
         renderGoals();
 
