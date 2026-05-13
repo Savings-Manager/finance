@@ -143,10 +143,6 @@
     .icon-btn.delete {
       color: #dc3545; /* Bootstrap danger */
     }
-    
-    .form-check-input:not(:disabled) { 
-      cursor: pointer;
-    }
 
     .btn-circle {
       display: inline-flex;
@@ -367,7 +363,7 @@
     }
 
     .fa-chevron-down, .fa-chevron-up {
-      font-size: 18pt;
+      font-size: 16pt;
     }
 
     /* GYM PAGE */
@@ -740,7 +736,7 @@
       border-radius: 10px;
       font-weight: 600;
       font-size: 0.85rem;
-      padding: 0.48rem 1.1rem;
+      padding: 0.4rem 1rem;
       transition: all 0.18s ease;
       letter-spacing: 0.01em;
     }
@@ -829,6 +825,14 @@
       border-color: #3949ab;
     }
     .form-check-input:focus { box-shadow: 0 0 0 3px rgba(57,73,171,0.15); }
+        
+    .form-check-input:not(:disabled) { 
+      cursor: pointer;
+    }
+
+    .mt-5px {
+      margin-top: 5px;
+    }
 
     /* ─── Tablolar ─── */
     .table {
@@ -911,7 +915,7 @@
   <div class="app-header-wrap d-flex justify-content-between align-items-center mb-4">
     <div class="d-flex align-items-center gap-2">
       <h2 id="page-title"><i class="bi bi-wallet2 me-2"></i>Finans Yöneticisi</h2>
-      <small class="text-muted" style="font-size:0.7rem;font-weight:600;">v1.6.5</small>
+      <small class="text-muted" style="font-size:0.7rem;font-weight:600;">v1.6.6</small>
     </div>
     <div class="d-flex align-items-center gap-2">
       <button class="top-action-btn" id="btn-load-json"><i class="bi bi-folder2-open"></i>Geri Yükle</button>
@@ -1370,6 +1374,7 @@ let numberFormat = new Intl.NumberFormat("tr-TR", {
   maximumFractionDigits: 2,
 });
 
+let isFile = window.location.href.includes('file://');
 let access_token = null;
 let fileId = null;
 let isCurrencyMasked = true;
@@ -1707,22 +1712,22 @@ function hideSaveIndicator(success) {
 }
 
 async function saveData() {
-  // localStorage'a hemen yaz — veri her zaman güvende
   await saveToLocalStorage();
 
-  // Drive save'ini debounce et: hızlı geçişlerde sadece son state gider,
-  // uçuşta çakışan request olmaz
-  showSaveIndicator();
-  clearTimeout(_driveDebounceTimer);
-  _driveDebounceTimer = setTimeout(async () => {
-    try {
-      await saveToGoogleDrive();
-      hideSaveIndicator(true);
-    } catch(err) {
-      console.error('[saveData] Drive error:', err);
-      hideSaveIndicator(false);
-    }
-  }, 800);
+  if(!isFile) {
+    showSaveIndicator();
+    clearTimeout(_driveDebounceTimer);
+    _driveDebounceTimer = setTimeout(async () => {
+      try {
+        console.log('[saveData]:');
+        await saveToGoogleDrive();
+        hideSaveIndicator(true);
+      } catch(err) {
+        console.error('[saveData] Drive error:', err);
+        hideSaveIndicator(false);
+      }
+    }, 800);
+  }
 }
 
 async function saveToLocalStorage() {
@@ -2640,7 +2645,7 @@ async function renderMembers() {
           <div>
             <h5 class="card-title mb-1">
               <i class="sortable-handle bi bi-list me-2"></i>
-              <i class="bi bi-person-circle me-2"></i> ${member.name}
+              <i class="bi bi-person-circle me-2"></i>${member.name}
             </h5>
             <div class="mb-2">
               <div class="badge bg-big bg-income me-1 income-color">
@@ -2672,7 +2677,7 @@ async function renderMembers() {
                     <div class="col-md-6 col-sm-7">
                       <div class="col-md-12 fw-bold">
                         <i class="sortable-handle bi bi-list me-2"></i>
-                        <i class="bi bi-cash-coin"></i> ${income.name}
+                        <i class="bi bi-cash-coin"></i>${income.name}
                       </div>
                       ${members.find(x=> x.id == income.senderId)?.name ? 
                       `<div class="col-md-12 fw-bold">
@@ -2706,7 +2711,7 @@ async function renderMembers() {
                     <div class="col-md-6 col-sm-7">
                       <div class="col-md-12 fw-bold">
                         <i class="sortable-handle bi bi-list me-2"></i>
-                        <i class="bi bi-credit-card"></i> ${card.name}
+                        <i class="bi bi-credit-card"></i>${card.name}
                       </div>
 					            <div class="col-md-12 fw-bold">
                         <span class='badge card-color pointer' onclick="toggleMask(this, ${card.limit})">${formatCurrency(card.limit, isCurrencyMasked)}</span>
@@ -2767,7 +2772,7 @@ async function renderMembers() {
                             <div class="col-md-6 col-sm-7">
                               <div class="col-md-12 fw-bold">
                                 <i class="sortable-handle bi bi-list me-2"></i>
-                                <i class="bi bi-cart-dash"></i> ${spending.name} 
+                                <i class="bi bi-cart-dash"></i>${spending.name} 
                               </div>${(card || spending.installment > 1 || spending.sendMemberId) ? `<div class="col-md-12 fw-bold">
                                   ${card ? `<span class='badge card-color'><i class='bi bi-credit-card-fill'></i> ${card.name}</span>` 
                                           : ''} ${spending.installment > 1 ? `<span class='badge bg-secondary'>${spending.currentInstallment > 1 
@@ -2933,7 +2938,11 @@ function renderSavings() {
       const profitClass = rowProfit < 0 ? 'text-danger' : (rowProfit > 0 ? 'text-success' : '');
 
       const $row = $(`<tr data-savingid='${row.id}' class='sortable-item'>`).append(
-       `<td><i class="sortable-handle bi bi-list me-2"></i> ${currency.text}</td>
+       `<td>
+        <div class="d-flex align-items-center">
+          <i class="sortable-handle bi bi-list me-2"></i>${currency.text} 
+        </div> 
+        </td>
         <td>${formatCurrency(currency.alis)}</td>
         <td class="pointer" onclick="toggleMask(this, ${buyUnitPrice})">${formatCurrency(buyUnitPrice, isCurrencyMasked)}</td>
         <td class="pointer" onclick="toggleMask(this, ${row.quantity}, 1)">${formatNumber(row.quantity, isCurrencyMasked)}</td>
@@ -2945,7 +2954,7 @@ function renderSavings() {
         <td> 
           <div class="d-flex align-items-center">
             <div class="btn-status form-check form-switch">
-              <input class="form-check-input" type="checkbox" name="saving-status" title="Aktif" ${row.status ? 'checked' : ''} onchange="toggleSavingStatus(${row.id})">
+              <input class="form-check-input mt-5px" type="checkbox" name="saving-status" title="Aktif" ${row.status ? 'checked' : ''} onchange="toggleSavingStatus(${row.id})">
             </div>
             <button class="icon-btn edit btn-edit-saving" data-id="${row.id}"><i class="fas fa-edit"></i></button>
             <button class="icon-btn delete btn-delete-saving" data-id="${row.id}"><i class="fas fa-trash"></i></button>
@@ -2986,12 +2995,15 @@ function renderGoals() {
 
     const $row = $(`<tr data-goalid='${row.id}' class='sortable-item'>`).append(
       `<td>
-          <i class="sortable-handle bi bi-list me-2"></i> ${row.name}</td>
+        <div class="d-flex align-items-center">
+          <i class="sortable-handle bi bi-list me-2"></i>${row.name} 
+        </div> 
+      </td>
       <td>${formatCurrency(row.amount)}</td>
       <td>
         <div class="d-flex align-items-center">
           <div class="btn-status form-check form-switch">
-            <input class="form-check-input" type="checkbox" name="goal-status" title="Aktif" ${row.status ? 'checked' : ''} onchange="toggleGoalStatus(${row.id})">
+            <input class="form-check-input mt-5px" type="checkbox" name="goal-status" title="Aktif" ${row.status ? 'checked' : ''} onchange="toggleGoalStatus(${row.id})">
           </div>
           <button class="icon-btn edit btn-edit-goal" data-id="${row.id}"><i class="fas fa-edit"></i></button>
           <button class="icon-btn delete btn-delete-goal" data-id="${row.id}"><i class="fas fa-trash"></i></button>
@@ -3369,7 +3381,7 @@ function handleDblclickEvent(cardId) {
 }
 // #endregion
 
-if ('serviceWorker' in navigator) {
+if ('serviceWorker' in navigator && !isFile) {
   window.addEventListener('load', () => {
     navigator.serviceWorker.register('/finance/serviceWorker.js');
   });
@@ -4215,15 +4227,14 @@ $(document).ready(async function() {
   // #endregion
 
   // financeData olmadan render edilebilecek kisimlar buraya:
-  renderDateInputs();
+  renderDaysRow();
   renderYearsDropdown();
   renderMonthsRow();
   renderCycleDropdown();
-  renderDaysRow();
 
   $("#savingDate")[0]._flatpickr.setDate(formatDateString(today));
 
-  if(window.location.href.includes('file://')) {
+  if(isFile) {
     await loadFromLocalStorage();
   }
   else {
